@@ -8,70 +8,21 @@ using UnityEngine.UI;
 namespace ConnectPuzzle.EditorTools
 {
     /// <summary>
-    /// Xuất toàn bộ UI đang dựng bằng code ra một prefab để XEM và SỬA trong Editor.
+    /// Nướng sprite sinh runtime thành file PNG thật, và canh cho không prefab nào còn
+    /// ô ảnh trống.
     ///
-    /// Không viết tay hierarchy: chạy chính `PuzzleGame.BuildAll()` đã được kiểm tra rồi
-    /// chụp lại kết quả. Nhờ vậy prefab không phải là một bản chép tay có thể lệch với
-    /// game, mà đúng là cái game dựng ra.
+    /// Sprite được sinh trong bộ nhớ với HideAndDontSave; lưu prefab thẳng thì mọi tham
+    /// chiếu thành null và prefab mở ra trắng bệch. Nên mỗi texture phải ghi ra PNG, import
+    /// lại kèm border 9-slice, rồi nối lại vào Image.
     ///
-    /// Việc khó nằm ở SPRITE: chúng được sinh trong bộ nhớ với HideAndDontSave, lưu
-    /// prefab thẳng thì mọi tham chiếu thành null và prefab mở ra trắng bệch. Nên trước
-    /// khi lưu, mỗi texture được ghi thành file PNG thật, import lại kèm border 9-slice,
-    /// rồi nối lại vào Image.
-    ///
-    /// Prefab này là BẢN THAM CHIẾU để nhìn và đo, KHÔNG phải thứ game dùng lúc chạy —
-    /// game vẫn tự dựng UI bằng code. Sửa trên prefab rồi thì chép số về file .cs.
+    /// Phần xuất-toàn-bộ-UI đã bị xoá cùng code dựng UI: prefab giờ là nguồn duy nhất,
+    /// không còn gì để xuất ra từ code nữa.
     /// </summary>
     public static class UiPrefabExporter
     {
-        private const string PrefabPath = "Assets/ConnectPuzzle/Prefabs/PuzzleUI.prefab";
         private const string SpriteFolder = "Assets/ConnectPuzzle/Art/Generated";
         private const string OwnFolder = "Assets/ConnectPuzzle";
 
-        [MenuItem("Connect Puzzle/Xuất UI ra prefab", priority = 62)]
-        public static void Export()
-        {
-            Directory.CreateDirectory(SpriteFolder);
-            Directory.CreateDirectory(Path.GetDirectoryName(PrefabPath));
-
-            var host = new GameObject("PuzzleUI");
-            try
-            {
-                PuzzleGame game = host.AddComponent<PuzzleGame>();
-                game.BuildAll();
-                game.ShowMenu();
-                Canvas.ForceUpdateCanvases();
-
-                int sprites = BakeSprites(host, pruneOrphans: true);
-
-                // Bỏ component điều khiển: prefab này để NHÌN. Giữ lại thì kéo vào scene
-                // là nó dựng thêm một bộ UI nữa chồng lên bộ đã có sẵn trong prefab.
-                Object.DestroyImmediate(game);
-
-                PrefabUtility.SaveAsPrefabAsset(host, PrefabPath, out bool ok);
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
-
-                Debug.Log(ok
-                    ? "EXPORT_OK " + PrefabPath + " — đã nướng " + sprites + " sprite ra " + SpriteFolder
-                    : "EXPORT_FAIL không lưu được prefab");
-            }
-            finally
-            {
-                Object.DestroyImmediate(host);
-            }
-        }
-
-        public static void ExportBatch()
-        {
-            Export();
-            EditorApplication.Exit(0);
-        }
-
-        /// <summary>
-        /// Ghi mọi texture sinh runtime thành file PNG rồi trỏ Image sang sprite asset.
-        /// Trả về số sprite đã nướng.
-        /// </summary>
         /// <summary>
         /// Nướng sprite runtime của một cây thành PNG rồi trỏ Image sang asset. Công khai để
         /// các bộ dựng prefab đơn lẻ (LevelButton, Cell) dùng chung — nhờ vậy prefab TỰ CHỨA

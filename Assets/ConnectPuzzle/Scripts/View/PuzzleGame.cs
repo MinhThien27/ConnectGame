@@ -96,42 +96,34 @@ namespace ConnectPuzzle.View
         }
 
         /// <summary>
-        /// Dựng UI bằng code.
+        /// Nối UI đã có sẵn từ prefab gốc vào ván chơi.
         ///
-        /// GIAI ĐOẠN CHUYỂN TIẾP: khi UI đến từ prefab gốc thì mọi tham chiếu đã được nối
-        /// sẵn, và dựng thêm lần nữa sẽ tạo ra một bộ UI thứ hai chồng lên bộ có sẵn. Kiểm
-        /// canvas là đủ để phân biệt: nó là thứ đầu tiên BuildAll tạo ra.
+        /// KHÔNG dựng gì cả — prefab là nguồn duy nhất. Trước đây hàm này có hai đường:
+        /// một đường dựng toàn bộ UI bằng code, một đường dùng prefab. Giữ cả hai nghĩa
+        /// là giữ hai bản mô tả cùng một giao diện, và chúng trôi khỏi nhau lặng lẽ.
         ///
-        /// Hàm này sẽ bị XOÁ ở bước cuối, khi prefab là nguồn duy nhất. Tới lúc đó không
-        /// còn hai đường nữa.
+        /// Tên giữ nguyên BuildAll vì bài kiểm và scene gọi nó; đổi tên là việc riêng.
         /// </summary>
         public void BuildAll()
         {
             if (this.built) return;
+            this.built = true;
 
-            if (this.canvas != null)
+            if (this.canvas == null)
             {
-                this.built = true;
-                // Vẫn phải chạy: font ảnh hưởng những Text dựng ĐỘNG lúc chơi (thẻ overlay),
-                // còn camera là đồ của scene nên prefab không lưu được tham chiếu tới nó —
-                // hai thứ này không phải là "dựng UI", nên không sinh bản sao nào.
-                if (this.uiFont != null) Ui.OverrideFont = this.uiFont;
-                BuildCamera();
-                if (this.menu != null) this.menu.BuildGrid();   // lưới màn dựng theo tiến trình
-                WireAll();
-                this.audioPlayer = new PuzzleAudio(this.gameObject) { Enabled = PuzzleProgress.Sound };
+                Debug.LogError("[UI] Chưa nối canvas. PuzzleGame phải chạy trên một bản " +
+                               "instantiate của Resources/UI/PuzzleRoot.prefab.");
                 return;
             }
 
-            this.built = true;
-            // phải đặt TRƯỚC khi dựng: Text lấy font ngay lúc tạo, gán sau không đổi được
+            // Font ảnh hưởng những Text dựng ĐỘNG lúc chơi (thẻ overlay), còn camera là
+            // đồ của scene nên prefab không lưu được tham chiếu tới nó.
             if (this.uiFont != null) Ui.OverrideFont = this.uiFont;
             BuildCamera();
-            BuildCanvas();
-            BuildMenuScreen();
-            BuildGameScreen();
-            BuildOverlay();
-            BuildToast();
+
+            // Lưới màn dựng theo TIẾN TRÌNH nên phải làm lúc chạy, không nằm sẵn trong prefab.
+            if (this.menu != null) this.menu.BuildGrid();
+
             WireAll();
             this.audioPlayer = new PuzzleAudio(this.gameObject) { Enabled = PuzzleProgress.Sound };
         }
@@ -206,46 +198,6 @@ namespace ConnectPuzzle.View
             this.uiCamera.backgroundColor = PuzzlePalette.Background;
         }
 
-        private void BuildCanvas()
-        {
-            var canvasGo = new GameObject("PuzzleCanvas", typeof(RectTransform));
-            canvasGo.transform.SetParent(this.transform, false);
-            this.canvas = canvasGo.AddComponent<Canvas>();
-            this.canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-
-            var scaler = canvasGo.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1080, 1920);
-            // PHẢI là MatchWidthOrHeight. Với Expand, Unity lấy min(w/refW, h/refH) và
-            // `matchWidthOrHeight` bên dưới bị BỎ QUA hoàn toàn — nên trên màn 640x480
-            // hệ số thành 0.25 và chiều rộng logic ra 2560 thay vì 1080, kéo lệch mọi số
-            // đo trong file này. Đúng triệu chứng smoke test bắt được.
-            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-            // Khớp theo CHIỀU RỘNG (0), không phải 0.5: mọi số đo trong file này đều tính
-            // trên chiều rộng logic 1080 (lề 30, ba ô HUD chia đều 1080...). Với 0.5 thì
-            // chiều rộng logic đổi theo tỉ lệ màn hình và bố cục ngang bị lệch.
-            scaler.matchWidthOrHeight = 0f;
-            canvasGo.AddComponent<GraphicRaycaster>();
-
-            if (EventSystem.current == null)
-            {
-                var eventGo = new GameObject("EventSystem", typeof(EventSystem));
-                eventGo.transform.SetParent(this.transform, false);
-                eventGo.AddComponent<StandaloneInputModule>();
-            }
-
-            // Nền TRÀN HẾT màn hình, cố ý nằm ngoài safe area: màu phải phủ cả dưới tai
-            // thỏ và vạch home, đúng như viewport-fit=cover của bản HTML.
-            Image background = Ui.Image("Background", canvasGo.transform, Color.white,
-                PuzzleSprites.BackgroundGradient);
-            Ui.Stretch(background.rectTransform, 0, 0, 0, 0);
-
-            // Toàn bộ NỘI DUNG nằm trong vùng an toàn.
-            this.contentRoot = Ui.Node("SafeArea", canvasGo.transform);
-            Ui.Stretch(this.contentRoot, 0, 0, 0, 0);
-            this.safeArea = this.contentRoot.gameObject.AddComponent<SafeAreaPanel>();
-        }
-
         // ------------------------------------------------------------------
 
 
@@ -261,48 +213,6 @@ namespace ConnectPuzzle.View
 
         /// <summary>Khoá ngày của thử thách đang chơi; 0 nếu không phải ván thử thách.</summary>
         private int dailyKey;
-
-        private void BuildMenuScreen()
-        {
-            this.menuScreen = Ui.Node("MenuScreen", this.contentRoot);
-            Ui.Stretch(this.menuScreen, 0, 0, 0, 0);
-
-            Text title = Ui.Text("Title", this.menuScreen, "Connect Puzzle", 78, PuzzlePalette.Foreground,
-                TextAnchor.UpperCenter, FontStyle.Bold);
-            Ui.TopBand(title.rectTransform, 70, 95, 40);
-
-            Text subtitle = Ui.Text("Subtitle", this.menuScreen,
-                "Nối các ô cùng màu. Dọn sạch bàn trong số lượt cho phép", 30,
-                PuzzlePalette.Dim, TextAnchor.UpperCenter);
-            Ui.TopBand(subtitle.rectTransform, 172, 50, 60);
-
-            // Ví sao. Nằm ĐÈ lên dải tiêu đề chứ không chiếm dải riêng: tiêu đề căn giữa
-            // nên hai mép luôn trống, và menu đã phải nhường chỗ cho ba nút chế độ rồi —
-            // thêm một dải nữa là lưới màn bị đẩy xuống lần thứ ba.
-            Text wallet = Ui.Text("Wallet", this.menuScreen, "", 30,
-                PuzzlePalette.Star, TextAnchor.UpperRight, FontStyle.Bold);
-            wallet.supportRichText = true;
-
-            // Nút Vô tận nằm NGAY DƯỚI tiêu đề chứ không lẫn trong footer: nó là một chế
-            // độ chơi riêng, không phải một tuỳ chọn.
-            Button endless = Ui.Button("MenuEndless", this.menuScreen, "", 32,
-                PuzzlePalette.Accent, new Color(0.05f, 0.06f, 0.14f), PuzzlePalette.RadiusPanel, true);
-
-            // Thử thách hôm nay: một bàn dùng chung cho mọi máy, đổi lúc 0h UTC.
-            Button daily = Ui.Button("MenuDaily", this.menuScreen, "", 32,
-                PuzzlePalette.Good, new Color(0.05f, 0.06f, 0.14f), PuzzlePalette.RadiusPanel, true);
-
-            // Đấu seed: cùng một mã ra cùng một bàn trên mọi máy — đã đo trên ARM64 thật,
-            // không phải giả định (xem BoardFingerprint).
-            Button duelOpen = Ui.Button("MenuDuel", this.menuScreen, "⚔  Đấu seed bạn bè", 32,
-                PuzzlePalette.Foreground, PuzzlePalette.Panel, PuzzlePalette.RadiusPanel, true);
-
-            this.menu = this.menuScreen.gameObject.AddComponent<MenuScreen>();
-            this.menu.BindForAuthoring(wallet, endless, daily, duelOpen);
-
-            BuildDuelPanel();      // dựng luôn bảng Wi-Fi bên trong
-            this.menu.BuildContents();
-        }
 
         /// <summary>Vẽ lại trạng thái các nút màn và nhãn các nút gạt.</summary>
         private void RefreshMenu()
@@ -375,241 +285,6 @@ namespace ConnectPuzzle.View
         }
 
         // ------------------------------------------------------------------
-
-        private void BuildGameScreen()
-        {
-            this.gameScreen = Ui.Node("GameScreen", this.contentRoot);
-            Ui.Stretch(this.gameScreen, 0, 0, 0, 0);
-
-            // ---- thanh trên
-            Button backButton = Ui.Button("Back", this.gameScreen, "←", 42, PuzzlePalette.Panel, PuzzlePalette.Foreground);
-            RectTransform backRect = backButton.GetComponent<RectTransform>();
-            backRect.anchorMin = backRect.anchorMax = new Vector2(0, 1);
-            backRect.pivot = new Vector2(0, 1);
-            backRect.sizeDelta = new Vector2(92, 84);
-            backRect.anchoredPosition = new Vector2(30, -26);
-
-            Text levelName = Ui.Text("LevelName", this.gameScreen, "", 38, PuzzlePalette.Foreground,
-                TextAnchor.UpperLeft, FontStyle.Bold);
-            Ui.TopBand(levelName.rectTransform, 26, 44, 140);
-            Text levelSub = Ui.Text("LevelSub", this.gameScreen, "", 26, PuzzlePalette.Dim, TextAnchor.UpperLeft);
-            Ui.TopBand(levelSub.rectTransform, 68, 38, 140);
-
-            Button soundButton = Ui.Button("Sound", this.gameScreen, "", 34, PuzzlePalette.Panel, PuzzlePalette.Foreground);
-            RectTransform soundRect = soundButton.GetComponent<RectTransform>();
-            soundRect.anchorMin = soundRect.anchorMax = new Vector2(1, 1);
-            soundRect.pivot = new Vector2(1, 1);
-            soundRect.sizeDelta = new Vector2(92, 84);
-            soundRect.anchoredPosition = new Vector2(-30, -26);
-
-            // ---- HUD ba ô
-            BuildStat("Moves", 0, "LƯỢT CÒN", out Text movesValue, out Text movesMax, out Text movesLabel);
-            BuildStat("Cells", 1, "Ô CÒN LẠI", out Text cellsValue, out _, out Text cellsLabel);
-            BuildStat("Score", 2, "ĐIỂM", out Text scoreValue, out _);
-
-            // ---- dải phụ: sao / par / hàng chờ
-            var starTexts = new Text[3];
-            for (int i = 0; i < 3; i++)
-            {
-                starTexts[i] = Ui.Text("Star" + i, this.gameScreen, "★", 30, PuzzlePalette.Star,
-                    TextAnchor.MiddleLeft);
-                RectTransform rect = starTexts[i].rectTransform;
-                rect.anchorMin = rect.anchorMax = new Vector2(0, 1);
-                rect.pivot = new Vector2(0, 1);
-                rect.sizeDelta = new Vector2(40, 42);
-                rect.anchoredPosition = new Vector2(34 + i * 34, -276);
-            }
-
-            Text parText = Ui.Text("Par", this.gameScreen, "", 26, PuzzlePalette.Dim, TextAnchor.MiddleLeft);
-            Ui.TopBand(parText.rectTransform, 274, 44, 150);
-            Text queueText = Ui.Text("Queue", this.gameScreen, "", 26, PuzzlePalette.Accent, TextAnchor.MiddleRight);
-            Ui.TopBand(queueText.rectTransform, 274, 44, 34);
-
-            // Component số liệu sống TRÊN GameScreen và tự giữ 11 ô chữ của nó.
-            this.hud = this.gameScreen.gameObject.AddComponent<GameHud>();
-            this.hud.BindForAuthoring(levelName, levelSub, movesValue, movesMax, movesLabel,
-                                      cellsValue, cellsLabel, scoreValue, parText, queueText, starTexts);
-
-            // ---- vùng bàn
-            RectTransform area = Ui.Node("BoardArea", this.gameScreen);
-            area.anchorMin = new Vector2(0, 0);
-            area.anchorMax = new Vector2(1, 1);
-            area.offsetMin = new Vector2(24, 230);   // ApplyLayout chỉnh lại theo hàng vật phẩm
-            area.offsetMax = new Vector2(-24, -336);
-
-            // vùng nhận kéo, phủ hết khu bàn
-            Image inputArea = Ui.Image("InputArea", area, new Color(0, 0, 0, 0), PuzzleSprites.Square);
-            Ui.Stretch(inputArea.rectTransform, 0, 0, 0, 0);
-            inputArea.raycastTarget = true;
-            BoardPointerInput input = inputArea.gameObject.AddComponent<BoardPointerInput>();
-
-            // ---- chip xem trước điểm
-            // chip xem trước điểm: bo mạnh cho gần dạng viên thuốc của HTML.
-            // Cao 64 nên phải dùng RadiusChip (28) — bán kính 38 sẽ làm border 9-slice
-            // hai cạnh chồng lên nhau và góc bị khuyết.
-            RectTransform preview = Ui.Panel("ChainPreview", area,
-                new Color(0.04f, 0.05f, 0.11f, 0.94f), PuzzlePalette.Line, PuzzlePalette.RadiusChip);
-            preview.sizeDelta = new Vector2(250, 64);
-            Text previewLabel = Ui.Text("Label", preview, "", 30, PuzzlePalette.Foreground,
-                TextAnchor.MiddleCenter, FontStyle.Bold);
-            Ui.Stretch(previewLabel.rectTransform, 0, 0, 0, 0);
-            preview.gameObject.SetActive(false);
-
-            this.boardArea = area.gameObject.AddComponent<BoardArea>();
-            this.boardArea.BindForAuthoring(input, preview, previewLabel);
-
-            this.board = new BoardView(area);
-            this.effects = new EffectLayer(this, this.gameScreen);
-            this.effects.AttachFlash(area);
-
-            // ---- banner chẩn đoán
-            RectTransform diag = Ui.Node("DiagBanner", this.gameScreen);
-            diag.anchorMin = diag.anchorMax = new Vector2(0.5f, 1);
-            diag.pivot = new Vector2(0.5f, 1);
-            diag.sizeDelta = new Vector2(900, 150);
-            diag.anchoredPosition = new Vector2(0, -348);
-            Image diagBg = Ui.Image("Bg", diag, PuzzlePalette.DiagPanel,
-                PuzzleSprites.RoundedFill(PuzzlePalette.RadiusPanel), Image.Type.Sliced);
-            Ui.Stretch(diagBg.rectTransform, 0, 0, 0, 0);
-            Image diagBorder = Ui.Image("Border", diag, PuzzlePalette.DiagBorder,
-                PuzzleSprites.RoundedOutline(PuzzlePalette.RadiusPanel), Image.Type.Sliced);
-            Ui.Stretch(diagBorder.rectTransform, 0, 0, 0, 0);
-            Text diagTitle = Ui.Text("Title", diag, "", 38, PuzzlePalette.Bad,
-                TextAnchor.UpperCenter, FontStyle.Bold);
-            Ui.Stretch(diagTitle.rectTransform, 20, 20, 14, 90);
-            Text diagHint = Ui.Text("Hint", diag, "", 27, new Color(0.79f, 0.8f, 0.92f),
-                TextAnchor.UpperCenter);
-            Ui.Stretch(diagHint.rectTransform, 20, 20, 60, 30);
-            Text tapHint = Ui.Text("Tap", diag, "CHẠM ĐỂ TIẾP TỤC", 20,
-                new Color(0.42f, 0.44f, 0.6f), TextAnchor.LowerCenter);
-            Ui.Stretch(tapHint.rectTransform, 20, 20, 110, 10);
-            diag.gameObject.SetActive(false);
-
-            // ---- bắt chạm để bỏ qua chẩn đoán
-            // Bắt chạm phủ CẢ màn hình, không chỉ vùng an toàn: chạm vào dải tai thỏ
-            // cũng phải bỏ qua được bước chẩn đoán. Đặt sau safe area nên nằm trên nội
-            // dung, và trước Overlay nên không che thẻ thắng/thua.
-            Button skip = Ui.Button("SkipCatcher", this.canvas.transform, "", 1,
-                new Color(0, 0, 0, 0), Color.clear, PuzzlePalette.RadiusPanel, false, false);
-            Ui.Stretch(skip.GetComponent<RectTransform>(), 0, 0, 0, 0);
-            // vùng bắt chạm trong suốt: dùng ô đặc, không cần 9-slice
-            Image catcherImage = skip.GetComponent<Image>();
-            catcherImage.sprite = PuzzleSprites.Square;
-            catcherImage.type = Image.Type.Simple;
-            skip.gameObject.SetActive(false);
-
-            // Component sống TRÊN node DiagBanner. Lớp bắt chạm là ANH EM chứ không
-            // phải con — nó phủ cả màn hình — nhưng tham chiếu thì không đòi quan hệ
-            // cha con, nên banner vẫn tự giữ được.
-            this.diagBanner = diag.gameObject.AddComponent<DiagnosisBanner>();
-            this.diagBanner.BindForAuthoring(diagTitle, diagHint, skip);
-
-            // ---- bốn nút điều khiển
-            Button undoButton = BuildControl("Undo", 0, "↶", "Hoàn tác", out Text undoBadge);
-            Button shuffleButton = BuildControl("Shuffle", 1, "⇄", "Xáo lại", out Text shuffleBadge);
-            Button hintButton = BuildControl("Hint", 2, "?", "Gợi ý", out _);
-            Button restartButton = BuildControl("Restart", 4, "↻", "Chơi lại", out _);
-
-            // Component hàng nút cũng sống TRÊN GameScreen. Nút quay lại và nút âm thanh
-            // ở thanh trên vẫn thuộc nó: chúng cũng là nút điều khiển ván, chỉ khác chỗ đứng.
-            this.controls = this.gameScreen.gameObject.AddComponent<ControlBar>();
-            this.controls.BindForAuthoring(undoButton, undoBadge, shuffleButton, shuffleBadge,
-                                           hintButton, restartButton, soundButton, backButton);
-
-            BuildItemControls();
-        }
-
-        private void BuildStat(string name, int slot, string caption, out Text value, out Text suffix)
-        {
-            BuildStat(name, slot, caption, out value, out suffix, out _);
-        }
-
-        /// <summary>
-        /// `caption` trả ra ngoài vì hai ô đầu ĐỔI NHÃN theo chế độ: "Lượt còn" thành
-        /// "Nước đã đi" ở vô tận, "Ô còn lại" thành "Ô đích còn" ở màn mục tiêu.
-        /// </summary>
-        private void BuildStat(string name, int slot, string caption, out Text value, out Text suffix,
-                               out Text captionOut)
-        {
-            RectTransform panel = Ui.Panel("Stat" + name, this.gameScreen,
-                PuzzlePalette.Panel, PuzzlePalette.Line, PuzzlePalette.RadiusPanel);
-
-            const float margin = 30f;
-            const float gap = 14f;
-            float width = (1080f - margin * 2f - gap * 2f) / 3f;
-            panel.anchorMin = panel.anchorMax = new Vector2(0, 1);
-            panel.pivot = new Vector2(0, 1);
-            panel.sizeDelta = new Vector2(width, 126);
-            panel.anchoredPosition = new Vector2(margin + slot * (width + gap), -132);
-
-            Text captionText = Ui.Text("Caption", panel, caption, 22, PuzzlePalette.Dim, TextAnchor.UpperLeft);
-            Ui.Stretch(captionText.rectTransform, 20, 12, 12, 78);
-            captionOut = captionText;
-
-            value = Ui.Text("Value", panel, "0", 50, PuzzlePalette.Foreground, TextAnchor.UpperLeft, FontStyle.Bold);
-            Ui.Stretch(value.rectTransform, 20, 12, 42, 8);
-
-            suffix = Ui.Text("Suffix", panel, "", 28, PuzzlePalette.Dim, TextAnchor.LowerRight);
-            Ui.Stretch(suffix.rectTransform, 12, 16, 48, 14);
-        }
-
-        private Button BuildControl(string name, int slot, string icon, string label, out Text counter)
-        {
-            // NĂM ô, không phải bốn: nút Vật phẩm nhập luôn vào hàng này thay vì có hàng
-            // riêng — hàng riêng ăn 132px mà chỉ để chứa ba nút hiếm khi bấm.
-            const float margin = 30f;
-            const float gap = 14f;
-            float width = (1080f - margin * 2f - gap * 4f) / 5f;
-
-            Button button = Ui.Button("Ctl" + name, this.gameScreen, "", 1, PuzzlePalette.Panel, PuzzlePalette.Foreground);
-            RectTransform rect = button.GetComponent<RectTransform>();
-            rect.anchorMin = rect.anchorMax = new Vector2(0, 0);
-            rect.pivot = new Vector2(0, 0);
-            rect.sizeDelta = new Vector2(width, 136);
-            rect.anchoredPosition = new Vector2(margin + slot * (width + gap), 46);
-
-            // Nhãn tự động của Ui.Button để rỗng và giữ nguyên: Object.Destroy bị hoãn
-            // tới cuối frame, xoá ở đây sẽ làm lệch chỉ số con của các lần GetChild sau.
-            Text iconText = Ui.Text("Icon", rect, icon, 42, PuzzlePalette.Foreground, TextAnchor.MiddleCenter);
-            Ui.Stretch(iconText.rectTransform, 4, 4, 16, 54);
-            Text labelText = Ui.Text("Label", rect, label, 24, PuzzlePalette.Foreground, TextAnchor.MiddleCenter,
-                FontStyle.Bold);
-            Ui.Stretch(labelText.rectTransform, 4, 4, 84, 12);
-
-            counter = Ui.Text("Count", rect, "", 22, new Color(0.05f, 0.06f, 0.14f), TextAnchor.MiddleCenter,
-                FontStyle.Bold);
-            RectTransform badge = counter.rectTransform;
-            badge.anchorMin = badge.anchorMax = new Vector2(1, 1);
-            badge.pivot = new Vector2(1, 1);
-            badge.sizeDelta = new Vector2(42, 42);
-            badge.anchoredPosition = new Vector2(-8, -8);
-            Image badgeBg = Ui.Image("BadgeBg", rect, PuzzlePalette.Accent, PuzzleSprites.Circle);
-            badgeBg.rectTransform.anchorMin = badgeBg.rectTransform.anchorMax = new Vector2(1, 1);
-            badgeBg.rectTransform.pivot = new Vector2(1, 1);
-            badgeBg.rectTransform.sizeDelta = new Vector2(42, 42);
-            badgeBg.rectTransform.anchoredPosition = new Vector2(-8, -8);
-            badge.SetAsLastSibling();
-
-            return button;
-        }
-
-        private void BuildOverlay()
-        {
-            RectTransform root = Ui.Node("Overlay", this.canvas.transform);
-            Ui.Stretch(root, 0, 0, 0, 0);
-            Image shade = Ui.Image("Shade", root, new Color(0.03f, 0.04f, 0.08f, 0.86f));
-            Ui.Stretch(shade.rectTransform, 0, 0, 0, 0);
-            shade.raycastTarget = true;
-
-            RectTransform cardRect = Ui.Panel("Card", root,
-                PuzzlePalette.Panel, PuzzlePalette.Line, PuzzlePalette.RadiusCard);
-            cardRect.sizeDelta = new Vector2(760, 620);
-
-            // Component sống TRÊN node Overlay và tự giữ ref tới khung thẻ.
-            this.card = root.gameObject.AddComponent<OverlayCard>();
-            this.card.BindByNameForAuthoring();
-            root.gameObject.SetActive(false);
-        }
 
         // ==================================================================
         // Điều hướng
@@ -1312,28 +987,6 @@ namespace ConnectPuzzle.View
         [SerializeField] private ToastView toast;
 
         /// <summary>
-        /// Dựng trên CANVAS chứ không trên màn hình game: toast phải hiện được cả ở menu
-        /// (bấm màn khoá, bật/tắt chơi tự do) lẫn trong ván.
-        /// </summary>
-        private void BuildToast()
-        {
-            RectTransform root = Ui.Panel("Toast", this.canvas.transform,
-                PuzzlePalette.DiagPanel, PuzzlePalette.Line, PuzzlePalette.RadiusPanel);
-            root.anchorMin = root.anchorMax = new Vector2(0.5f, 0);
-            root.pivot = new Vector2(0.5f, 0);
-            root.sizeDelta = new Vector2(940, 120);
-            root.anchoredPosition = new Vector2(0, 220);
-
-            Text label = Ui.Text("Text", root, "", 28,
-                PuzzlePalette.Foreground, TextAnchor.MiddleCenter);
-            Ui.Stretch(label.rectTransform, 26, 26, 12, 12);
-
-            this.toast = root.gameObject.AddComponent<ToastView>();
-            this.toast.BindByNameForAuthoring();
-            root.gameObject.SetActive(false);
-        }
-
-        /// <summary>
         /// Giữ lại làm cửa vào cho hơn 40 chỗ gọi trong lớp này, thay vì sửa hết
         /// thành this.toast.Show(...). Bản thân toast do ToastView lo.
         /// </summary>
@@ -1616,68 +1269,6 @@ namespace ConnectPuzzle.View
         private bool ItemsUsable =>
             this.session != null && this.session.ItemsAllowed && !IsDaily && !IsDuel;
 
-        private void BuildItemControls()
-        {
-            Button open = BuildControl("Items", 3, "", "Vật phẩm", out Text balance);
-
-            // Nút này dùng ICON VẼ thay vì ký tự: chỗ chữ của BuildControl để rỗng rồi
-            // đặt ảnh đè lên, nên không phải sửa BuildControl cho riêng một nút.
-            Transform iconSlot = open.transform.Find("Icon");
-            Image icon = Ui.Image("IconArt", (RectTransform)iconSlot.parent,
-                                  Color.white, PuzzleSprites.HammerIcon);
-            RectTransform ir = icon.rectTransform;
-            ir.anchorMin = ir.anchorMax = new Vector2(0.5f, 1f);
-            ir.pivot = new Vector2(0.5f, 1f);
-            ir.sizeDelta = new Vector2(46, 46);
-            ir.anchoredPosition = new Vector2(0, -18);
-
-            BuildItemPanel(open, balance);
-        }
-
-        /// <summary>
-        /// Nạp bảng vật phẩm TỪ PREFAB. Lớp chặn vẫn dựng bằng code, xem BuildDuelPanel.
-        ///
-        /// Bảng dựng sẵn rồi ẩn đi, không dựng lại mỗi lần mở: dựng lại nghĩa là Destroy
-        /// các con cũ, mà Destroy bị hoãn tới cuối frame — mở nhanh hai lần là có hai bộ
-        /// nút chồng lên nhau.
-        /// </summary>
-        private void BuildItemPanel(Button open, Text balance)
-        {
-            Button catcherButton = Ui.Button("ItemCatcher", this.gameScreen, "", 1,
-                new Color(0.03f, 0.04f, 0.08f, 0.72f), Color.clear, PuzzlePalette.RadiusPanel, false, false);
-            Ui.Stretch(catcherButton.GetComponent<RectTransform>(), 0, 0, 0, 0);
-            Image catcher = catcherButton.GetComponent<Image>();
-            catcher.sprite = PuzzleSprites.Square;
-            catcher.type = Image.Type.Simple;
-            catcherButton.gameObject.SetActive(false);
-
-            var prefab = Resources.Load<GameObject>(ItemPanelResourcePath);
-            if (prefab == null)
-            {
-                Debug.LogError("[UI] Thiếu prefab " + ItemPanelResourcePath +
-                               ". Chạy menu Connect Puzzle > Prefab > Cắt bảng vật phẩm.");
-                return;
-            }
-
-            GameObject instance = Instantiate(prefab, this.gameScreen, false);
-            instance.name = "ItemPanel";
-            this.items = instance.GetComponent<ItemPanel>();
-            if (this.items == null)
-            {
-                Debug.LogError("[UI] Prefab bảng vật phẩm thiếu ItemPanel.");
-                return;
-            }
-
-            System.Collections.Generic.List<string> missing = this.items.MissingFields();
-            if (missing.Count > 0)
-                Debug.LogError("[UI] Prefab bảng vật phẩm chưa gán: " + string.Join(", ", missing));
-
-            // Ba thứ nằm NGOÀI prefab bảng, nối vào component của bảng chứ không giữ lại
-            // trên PuzzleGame.
-            this.items.BindOutsideForAuthoring(open, balance, catcherButton);
-            instance.SetActive(false);
-        }
-
         /// <summary>
         /// Chạy hoạt ảnh của một lần dùng vật phẩm rồi đánh giá lại ván.
         ///
@@ -1765,105 +1356,6 @@ namespace ConnectPuzzle.View
         public float LanContentHeight => Lan == null ? 0f : Lan.ContentHeight;
 
         private LanPanel Lan => this.duel == null ? null : this.duel.Lan;
-
-        /// <summary>
-        /// Nạp bảng đấu TỪ PREFAB. Lớp chặn vẫn dựng bằng code và vẫn là EM RUỘT của bảng,
-        /// không phải con — đưa nó vào prefab thành con chính là thứ đã gây lỗi "chạm đâu
-        /// cũng tắt bảng" ở bảng Wi-Fi.
-        /// </summary>
-        /// <summary>
-        /// Nạp bảng đấu TỪ PREFAB, và dựng luôn bảng Wi-Fi mà nó sở hữu.
-        ///
-        /// Bảng Wi-Fi dựng TRƯỚC vì bảng đấu phải cầm tham chiếu tới nó — quan hệ phụ
-        /// thuộc là LanPanel -> DuelPanel, nên chủ là bảng đấu.
-        /// </summary>
-        private void BuildDuelPanel()
-        {
-            LanPanel lanPanel = BuildLanPanel();
-
-            Button duelCatcher = Ui.Button("DuelCatcher", this.menuScreen, "", 1,
-                new Color(0.03f, 0.04f, 0.08f, 0.78f), Color.clear, PuzzlePalette.RadiusPanel, false, false);
-            Ui.Stretch(duelCatcher.GetComponent<RectTransform>(), 0, 0, 0, 0);
-            Image catcherImage = duelCatcher.GetComponent<Image>();
-            catcherImage.sprite = PuzzleSprites.Square;
-            catcherImage.type = Image.Type.Simple;
-            duelCatcher.gameObject.SetActive(false);
-
-            var prefab = Resources.Load<GameObject>(DuelPanelResourcePath);
-            if (prefab == null)
-            {
-                Debug.LogError("[UI] Thiếu prefab " + DuelPanelResourcePath +
-                               ". Chạy menu Connect Puzzle > Prefab > Cắt bảng đấu seed.");
-                return;
-            }
-
-            GameObject instance = Instantiate(prefab, this.menuScreen, false);
-            instance.name = "DuelPanel";
-            this.duel = instance.GetComponent<DuelPanel>();
-            if (this.duel == null)
-            {
-                Debug.LogError("[UI] Prefab bảng đấu thiếu DuelPanel.");
-                return;
-            }
-
-            System.Collections.Generic.List<string> missing = this.duel.MissingFields();
-            if (missing.Count > 0)
-                Debug.LogError("[UI] Prefab bảng đấu chưa gán: " + string.Join(", ", missing));
-
-            this.duel.BindOutsideForAuthoring(this.menu.DuelButton, duelCatcher, lanPanel);
-            instance.SetActive(false);
-        }
-
-        /// <summary>
-        /// Nạp bảng Wi-Fi TỪ PREFAB thay vì dựng bằng code.
-        ///
-        /// Không có nhánh dự phòng "thiếu prefab thì dựng bằng code". Có nhánh đó thì bài
-        /// kiểm sẽ chạy nhánh dự phòng còn game chạy nhánh prefab, và ta có test xanh trên
-        /// một sản phẩm hỏng — kiểu thất bại tệ nhất. Thiếu prefab thì phải NỔ ngay.
-        /// </summary>
-        private LanPanel BuildLanPanel()
-        {
-            var prefab = Resources.Load<GameObject>(LanPanelResourcePath);
-            if (prefab == null)
-            {
-                Debug.LogError("[UI] Thiếu prefab " + LanPanelResourcePath +
-                               ". Chạy menu Connect Puzzle > Dựng lại prefab bảng Wi-Fi.");
-                return null;
-            }
-
-            GameObject instance = Instantiate(prefab, this.menuScreen, false);
-            instance.name = "LanPanel";
-            var lanPanel = instance.GetComponent<LanPanel>();
-            if (lanPanel == null)
-            {
-                Debug.LogError("[UI] Prefab bảng Wi-Fi thiếu component LanPanel.");
-                return null;
-            }
-
-            System.Collections.Generic.List<string> missing = lanPanel.MissingFields();
-            if (missing.Count > 0)
-                Debug.LogError("[UI] Prefab bảng Wi-Fi chưa gán: " + string.Join(", ", missing));
-
-            // Lớp chặn dựng bằng CODE, là em ruột của bảng — giống bảng đấu và bảng vật
-            // phẩm. Không đưa vào prefab: xem chú thích ở DuelPanel.
-            Button lanCatcher = Ui.Button("LanCatcher", this.menuScreen, "", 1,
-                new Color(0.03f, 0.04f, 0.08f, 0.78f), Color.clear, PuzzlePalette.RadiusPanel, false, false);
-            Ui.Stretch(lanCatcher.GetComponent<RectTransform>(), 0, 0, 0, 0);
-            Image lanCatcherImage = lanCatcher.GetComponent<Image>();
-            lanCatcherImage.sprite = PuzzleSprites.Square;
-            lanCatcherImage.type = Image.Type.Simple;
-            lanCatcher.gameObject.SetActive(false);
-
-            // DuelLanLink phải sống trên node LUÔN BẬT: nó có Update() gọi Poll(), mà
-            // bảng Wi-Fi thì tắt gần như suốt ván. Đặt nó lên bảng là mất luôn phần nhận
-            // gói tin.
-            var link = gameObject.GetComponent<DuelLanLink>();
-            if (link == null) link = gameObject.AddComponent<DuelLanLink>();
-
-            lanPanel.BindOutsideForAuthoring(lanCatcher, link);
-            instance.SetActive(false);
-            return lanPanel;
-        }
 
         // ---- lối vào cho kiểm thử: đi qua ĐÚNG các hàm mà nút thật gọi
         public void DebugStartDuel(int seed, int preset) { this.duel.StartDuel(seed, preset); }

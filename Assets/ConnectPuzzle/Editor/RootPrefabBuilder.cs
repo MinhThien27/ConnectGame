@@ -7,95 +7,39 @@ using UnityEngine;
 namespace ConnectPuzzle.EditorTools
 {
     /// <summary>
-    /// Gói TOÀN BỘ UI thành một prefab gốc có sẵn PuzzleGame, rồi đặt một bản vào scene.
+    /// Đặt prefab gốc vào scene, và các lối vào batch để kiểm prefab.
     ///
-    /// Vì sao prefab gốc chứ không dựng thẳng vào scene file: rig kiểm thử phải dựng lại
-    /// được UI, mà nạp cả một scene đòi đồng bộ scene + mọi asset nó tham chiếu sang project
-    /// rác của rig. Prefab thì rig đã nạp được sẵn — đúng cách nó đang làm với 5 prefab kia.
-    /// Bạn vẫn thấy và sửa mọi thứ trong scene, vì scene chứa một instance của prefab này.
+    /// Phần DỰNG prefab từ code đã bị xoá cùng code dựng UI: prefab giờ là nguồn duy
+    /// nhất, sửa nó bằng Editor. Cái còn lại ở đây là đặt nó vào scene và canh cho nó
+    /// không lệch khỏi ảnh chụp đã chốt.
     ///
-    /// KHÔNG cần bản đồ tên nào: BuildAll() vốn đã gán đúng cả ~40 tham chiếu, và từ khi
-    /// chúng mang [SerializeField] thì Unity tự lưu lại những gì đã gán.
+    /// Vì sao là prefab gốc chứ không dựng thẳng vào scene file: rig kiểm thử phải nạp
+    /// lại được UI, mà nạp cả một scene đòi đồng bộ scene + mọi asset nó tham chiếu sang
+    /// project rác của rig. Prefab thì rig đã nạp được sẵn. Bạn vẫn thấy và sửa mọi thứ
+    /// trong scene, vì scene chứa một instance của prefab này.
     /// </summary>
     public static class RootPrefabBuilder
     {
         public const string ResourcePath = "UI/PuzzleRoot";
         private const string AssetPath = "Assets/ConnectPuzzle/Resources/UI/PuzzleRoot.prefab";
 
-        [MenuItem("Connect Puzzle/Prefab/Dựng prefab gốc (toàn bộ UI)", priority = 65)]
-        public static void Build()
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(AssetPath));
-
-            var host = new GameObject("ConnectPuzzle");
-            try
-            {
-                PuzzleGame game = host.AddComponent<PuzzleGame>();
-                game.BuildAll();
-                game.ShowMenu();
-                Canvas.ForceUpdateCanvases();
-
-                System.Collections.Generic.List<string> missing = game.MissingSceneRefs();
-                if (missing.Count > 0)
-                {
-                    Debug.LogError("[Root] BuildAll không nối đủ tham chiếu: " +
-                                   string.Join(", ", missing));
-                    return;
-                }
-
-                int baked = UiPrefabExporter.BakeSprites(host, pruneOrphans: false);
-
-                PrefabUtility.SaveAsPrefabAsset(host, AssetPath, out bool ok);
-                AssetDatabase.Refresh();
-                if (!ok)
-                {
-                    Debug.LogError("[Root] LƯU THẤT BẠI: " + AssetPath);
-                    return;
-                }
-
-                // Đếm component MẤT SCRIPT trong file vừa ghi.
-                //
-                // Đây là lỗi câm nhất trong cả chuỗi việc này: prefab lưu thành công, cây
-                // node đủ, nhìn không khác gì — nhưng ô Script trống nên component không
-                // chạy. Đã dính hai lần (CellView, BoardPointerInput), cùng một nguyên
-                // nhân: MonoBehaviour nằm trong file khác tên lớp.
-                int orphanScripts = 0;
-                foreach (string line in File.ReadAllLines(AssetPath))
-                    if (line.Contains("m_Script: {fileID: 0}")) orphanScripts++;
-
-                if (orphanScripts > 0)
-                    Debug.LogError("[Root] " + orphanScripts + " component MẤT SCRIPT trong prefab. " +
-                                   "Mỗi MonoBehaviour phải nằm trong file trùng tên lớp.");
-
-                Debug.Log("[Root] Đã lưu " + AssetPath + " · nướng " + baked + " sprite · " +
-                          orphanScripts + " script mất");
-            }
-            finally
-            {
-                Object.DestroyImmediate(host);
-            }
-        }
-
-        /// <summary>
-        /// Lối vào cho batch mode: dựng prefab, đặt vào scene, rồi kiểm luôn.
-        ///
-        /// Gộp làm một lệnh vì ba việc này phải đi cùng nhau — dựng lại prefab mà quên
-        /// đặt lại vào scene thì scene giữ bản cũ, và đó là kiểu lệch không ai nhìn ra
-        /// cho tới lúc bấm Play.
-        ///
-        /// Thoát với mã 1 khi có bất kỳ lỗi nào, để script gọi biết mà dừng.
-        /// </summary>
-        /// <summary>Ghi ảnh chụp bố cục prefab, cho batch gọi sau khi dựng lại.</summary>
+        /// <summary>Ghi lại ảnh chụp bố cục prefab. Chạy sau khi sửa prefab có chủ ý.</summary>
         public static void SnapshotBatch()
         {
             PrefabSnapshot.Write();
             EditorApplication.Exit(0);
         }
 
-        /// <summary>Chỉ KIỂM, không dựng lại — dùng khi prefab đã là nguồn duy nhất.</summary>
+        /// <summary>
+        /// Kiểm prefab: không ô ảnh nào trống, và bố cục đúng như ảnh chụp đã chốt.
+        ///
+        /// Thoát mã 1 khi có lỗi, để script gọi biết mà dừng — một bài kiểm không chặn
+        /// được gì thì gần như không phải bài kiểm.
+        /// </summary>
         public static void CheckBatch()
         {
             bool failed = false;
+
             if (UiPrefabExporter.CountDeadSprites() > 0)
             {
                 Debug.LogError("[Batch] còn Image trống trong prefab");
@@ -106,38 +50,8 @@ namespace ConnectPuzzle.EditorTools
                 Debug.LogError("[Batch] prefab lệch so với ảnh chụp");
                 failed = true;
             }
+
             Debug.Log(failed ? "CHECK_FAILED" : "CHECK_OK");
-            EditorApplication.Exit(failed ? 1 : 0);
-        }
-
-        public static void RebuildBatch()
-        {
-            bool failed = false;
-            void Fail(string why) { Debug.LogError("[Batch] " + why); failed = true; }
-
-            Build();
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(AssetPath);
-            if (prefab == null) Fail("không dựng được " + AssetPath);
-            else
-            {
-                var game = prefab.GetComponent<PuzzleGame>();
-                if (game == null) Fail("prefab gốc thiếu PuzzleGame");
-                else
-                {
-                    System.Collections.Generic.List<string> missing = game.MissingSceneRefs();
-                    if (missing.Count > 0) Fail("thiếu tham chiếu: " + string.Join(", ", missing));
-                }
-            }
-
-            if (!failed) PlaceInScene();
-
-            // Hai bài kiểm này phải GATE chứ không chỉ in ra. Bản đầu tôi để chúng chạy
-            // rồi vẫn báo REBUILD_OK — một bài kiểm không chặn được gì thì gần như không
-            // phải bài kiểm.
-            if (UiPrefabExporter.CountDeadSprites() > 0) Fail("còn Image trống trong prefab");
-            if (UiPrefabDiff.CountDifferences() > 0) Fail("prefab lệch so với code");
-
-            Debug.Log(failed ? "REBUILD_FAILED" : "REBUILD_OK");
             EditorApplication.Exit(failed ? 1 : 0);
         }
 
