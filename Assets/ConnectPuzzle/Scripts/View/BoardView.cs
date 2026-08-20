@@ -43,6 +43,11 @@ namespace ConnectPuzzle.View
         private readonly RectTransform innerLayer;
         private readonly RectTransform cellLayer;
 
+        // Canvas gốc — dùng để đổi vị trí mảnh khoét sang toạ độ chuẩn hoá của màn.
+        // Tra một lần rồi giữ: GetComponentInParent leo cả cây, mà nó chạy cho từng
+        // mảnh của từng khung hình suốt lúc kéo.
+        private RectTransform canvasRect;
+
         private readonly List<Image> glowWideParts = new List<Image>();
         private readonly List<Image> glowCoreParts = new List<Image>();
         private readonly List<Image> outlineParts = new List<Image>();
@@ -520,14 +525,22 @@ namespace ConnectPuzzle.View
             // tròn và dải nối chồng nhau; nếu tô trong suốt thì alpha cộng dồn ở chỗ
             // chồng, ra mảng đậm nhạt loang lổ chứ không phải viền mềm. Muốn mềm thì
             // phải dùng sprite có biên mềm, và đó là việc của hai lớp quầng.
-            BuildUnion(this.outlineParts, radius, thickness, Color.white);
-            BuildUnion(this.innerParts, radius, 0f, PuzzlePalette.Background);
+            BuildUnion(this.outlineParts, radius, thickness, Color.white, false);
+
+            // Lớp khoét lấy màu TỪ GRADIENT chứ không dùng hằng số nền.
+            //
+            // Nền là gradient: #14182A ở đỉnh, #0F1220 ở giữa và đáy. Khoét bằng hằng số
+            // #0F1220 thì ở nửa trên màn hình nó lệch (5,6,10)/255 so với nền thật, và
+            // hiện thành một mảng phẳng tối hơn đúng theo hình cái viền — rõ nhất ở hàng
+            // ô trên cùng.
+            BuildUnion(this.innerParts, radius, 0f, PuzzlePalette.Background, true);
 
             BuildGlow(color, radius, thickness);
         }
 
         /// <summary>Hợp của các hình tròn (mỗi ô) và dải nối (mỗi cặp liền nhau).</summary>
-        private void BuildUnion(List<Image> parts, float radius, float expand, Color color)
+        private void BuildUnion(List<Image> parts, float radius, float expand, Color color,
+                                bool sampleBackground)
         {
             int count = this.chainCells.Count;
             int part = 0;
@@ -537,8 +550,10 @@ namespace ConnectPuzzle.View
                 int cellIndex = this.chainCells[i];
                 float scale = this.cells[cellIndex].IsWall ? 1f : this.cells[cellIndex].ScaleCurrent;
                 float r = radius * scale + expand;
-                Place(parts[part++], CellCenter(cellIndex), new Vector2(r * 2f, r * 2f), 0f,
+                Image circle = parts[part++];
+                Place(circle, CellCenter(cellIndex), new Vector2(r * 2f, r * 2f), 0f,
                     color, PuzzleSprites.Circle);
+                if (sampleBackground) circle.color = BackgroundAt(circle.rectTransform);
             }
 
             for (int i = 0; i + 1 < count; i++)
@@ -551,11 +566,40 @@ namespace ConnectPuzzle.View
                 // Cổ nối gần bằng bán kính quả bóng. Hẹp hơn nữa thì cạnh thẳng của dải
                 // cắt vào cung tròn thành góc gãy thấy rõ, nhất là ở đoạn chéo dài hơn.
                 float r = radius * scale * 0.90f + expand;
-                Place(parts[part++], a + delta * 0.5f, new Vector2(delta.magnitude, r * 2f),
+                Image bar = parts[part++];
+                Place(bar, a + delta * 0.5f, new Vector2(delta.magnitude, r * 2f),
                     Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg, color, PuzzleSprites.Square);
+                if (sampleBackground) bar.color = BackgroundAt(bar.rectTransform);
             }
 
             DisableFrom(parts, part);
+        }
+
+        /// <summary>
+        /// Màu nền THẬT ở đúng chỗ một mảnh khoét đang đứng.
+        ///
+        /// Đi qua toạ độ WORLD của chính mảnh đó chứ không tự suy từ toạ độ bàn: chuỗi
+        /// neo và pivot từ mảnh leo lên tới canvas dài, mỗi tầng một kiểu; tự suy là
+        /// chép ra một bản luật neo thứ hai, để rồi nó trôi khỏi bản thật lúc nào không
+        /// hay.
+        ///
+        /// Hỏng đường nào cũng lùi về màu nền phẳng: lệch màu một chút vẫn hơn ném
+        /// exception giữa lúc vẽ từng khung hình.
+        /// </summary>
+        private Color BackgroundAt(RectTransform part)
+        {
+            if (this.canvasRect == null)
+            {
+                Canvas canvas = this.root.GetComponentInParent<Canvas>();
+                if (canvas == null) return PuzzlePalette.Background;
+                this.canvasRect = (RectTransform)canvas.rootCanvas.transform;
+            }
+
+            Vector2 local = this.canvasRect.InverseTransformPoint(part.position);
+            Rect area = this.canvasRect.rect;
+            return PuzzleSprites.BackgroundColorAt(
+                Mathf.InverseLerp(area.xMin, area.xMax, local.x),
+                Mathf.InverseLerp(area.yMin, area.yMax, local.y));
         }
 
         /// <summary>

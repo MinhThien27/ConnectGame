@@ -813,24 +813,32 @@ namespace ConnectPuzzle.View
             return Sprite.Create(texture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), PixelsPerUnit);
         }
 
+        /// <summary>
+        /// Màu nền tại một điểm, theo toạ độ chuẩn hoá của màn (0,0 = góc dưới-trái).
+        ///
+        /// Tách khỏi MakeBackground để chỗ khác lấy được ĐÚNG màu nền tại một điểm mà
+        /// không phải đọc pixel: texture nền sau khi bake ra PNG thì không đọc được
+        /// (isReadable tắt), và nội suy từ ảnh 128px còn kém chính xác hơn tính thẳng.
+        /// </summary>
+        public static Color BackgroundColorAt(float u, float v)
+        {
+            // tâm ở 50% ngang, -10% dọc (trên đỉnh); ellipse rộng hơn cao
+            float dx = (u - 0.5f) / 0.62f;
+            float dy = (v - 1.1f) / 0.55f;
+            float d = Mathf.Clamp01(Mathf.Sqrt(dx * dx + dy * dy));
+            return Color.Lerp(PuzzlePalette.BackgroundTop, PuzzlePalette.Background, d);
+        }
+
         /// <summary>Nền: radial-gradient(... at 50% -10%, --bg2, --bg).</summary>
         private static Sprite MakeBackground(int size)
         {
             Texture2D texture = NewTexture(size, size);
             var pixels = new Color32[size * size];
-            Color top = PuzzlePalette.BackgroundTop;
-            Color bottom = PuzzlePalette.Background;
 
             for (int y = 0; y < size; y++)
                 for (int x = 0; x < size; x++)
-                {
-                    // tâm ở 50% ngang, -10% dọc (trên đỉnh); ellipse rộng hơn cao
-                    float dx = (x / (float)(size - 1) - 0.5f) / 0.62f;
-                    float dy = (y / (float)(size - 1) - 1.1f) / 0.55f;
-                    float d = Mathf.Clamp01(Mathf.Sqrt(dx * dx + dy * dy));
-                    Color c = Color.Lerp(top, bottom, d);
-                    pixels[y * size + x] = c;
-                }
+                    pixels[y * size + x] = BackgroundColorAt(x / (float)(size - 1),
+                                                             y / (float)(size - 1));
 
             texture.SetPixels32(pixels);
             texture.Apply();
