@@ -1,0 +1,133 @@
+<div id="app">
+
+  <!-- ==================== MÀN MENU ==================== -->
+  <section id="scMenu" class="screen on">
+    <div id="menuTop">
+      <div id="wallet">★ 0</div>
+      <h1 id="title">Connect Puzzle</h1>
+      <p id="subtitle">Nối các ô cùng màu. Dọn sạch bàn trong số lượt cho phép</p>
+      <div id="modeRow">
+        <button class="btn primary" id="btnEndless">∞&nbsp;&nbsp;Vô tận — kỷ lục 0</button>
+        <button class="btn good" id="btnDaily">✦&nbsp;&nbsp;Thử thách hôm nay — bàn mới mỗi ngày</button>
+        <button class="btn" id="btnDuel">⚔&nbsp;&nbsp;Đấu seed bạn bè</button>
+      </div>
+    </div>
+
+    <div id="levelScroll"></div>
+
+    <div id="menuFooter">
+      <button class="btn" id="btnFree">Chơi tự do: Tắt</button>
+      <div class="footRow">
+        <button class="btn" id="btnSound">Âm thanh: Bật</button>
+        <button class="btn" id="btnSymbols">◆ Ký hiệu</button>
+      </div>
+      <button class="btn link" id="btnReset">Xoá tiến độ</button>
+    </div>
+
+    <!-- Lớp chặn của hai bảng là EM RUỘT của bảng, không phải con của nó. -->
+    <div class="catcher" id="duelCatcher"></div>
+    <div class="sheet" id="duelSheet">
+      <h2>Đấu seed bạn bè</h2>
+      <p class="note">Cùng một mã = cùng một bàn trên mọi máy.<br>Gửi mã cho bạn, ai ít lượt hơn thì thắng.</p>
+      <div id="duelCode">K7M2-QX9F</div>
+      <div class="row3">
+        <button class="btn" id="btnReroll">Mã khác</button>
+        <button class="btn" id="btnCopy">Sao chép</button>
+      </div>
+      <button class="btn primary" id="btnPlayMine" style="width:100%">Chơi bàn này</button>
+      <div class="hr"></div>
+      <div class="lbl">Hoặc dán mã bạn gửi:</div>
+      <input id="duelInput" maxlength="9" placeholder="XXXX-XXXX" autocomplete="off" spellcheck="false">
+      <div class="row3">
+        <button class="btn" id="btnPaste">Dán mã từ tin nhắn</button>
+        <button class="btn primary" id="btnPlayTheirs">Chơi mã đã nhập</button>
+      </div>
+      <div id="duelStatus"></div>
+      <div class="hr"></div>
+      <button class="btn" id="btnLanOpen" style="width:100%">Đấu cùng Wi-Fi (cùng mạng)</button>
+    </div>
+
+    <div class="catcher" id="lanCatcher"></div>
+    <div class="sheet" id="lanSheet">
+      <h2>Đấu cùng Wi-Fi</h2>
+      <p class="note">Hai máy cùng một mạng Wi-Fi. Ai xong trước thì chờ —<br>thắng thua tính theo dọn sạch bàn rồi tới ít lượt.</p>
+      <div class="row3">
+        <button class="btn primary" id="btnHost">Mở phòng</button>
+        <button class="btn" id="btnSeek">Tìm phòng của bạn</button>
+      </div>
+      <div id="lanStatus">Mở phòng: máy này chọn bàn rồi mời.</div>
+      <div class="hr"></div>
+      <button class="btn" id="btnLanClose" style="width:100%">Đóng</button>
+    </div>
+  </section>
+
+  <!-- ==================== MÀN CHƠI ==================== -->
+  <section id="scGame" class="screen">
+    <div id="gameTop">
+      <div class="topBar">
+        <button class="iconBtn" id="btnBack">←</button>
+        <div style="flex:1 1 auto; min-width:0">
+          <div id="levelName">Khởi động</div>
+          <div id="levelSub">Thế giới 1 · 5×5 · 3 màu</div>
+        </div>
+        <button class="iconBtn" id="btnSound2">♪</button>
+      </div>
+
+      <div id="hud">
+        <div class="stat"><div class="cap">LƯỢT CÒN</div><div class="val"><span id="movesLeft">0</span><small id="movesMax">/0</small></div></div>
+        <div class="stat"><div class="cap">Ô CÒN LẠI</div><div class="val" id="cellsLeft">0</div></div>
+        <div class="stat"><div class="cap">ĐIỂM</div><div class="val" id="score">0</div></div>
+      </div>
+      <div id="starRow"><span>★</span><span>★</span><span>★</span></div>
+      <div id="parLine">par 0 · 3★ ≤ 0 lượt · 2★ ≤ 0 lượt</div>
+    </div>
+
+    <div id="boardWrap">
+      <div id="diag">
+        <div class="t">Bế tắc</div>
+        <div class="h">Không ô nào còn ô cùng màu bên cạnh</div>
+        <div class="tap">CHẠM ĐỂ TIẾP TỤC</div>
+      </div>
+      <div id="board"></div>
+      <div id="chainChip">3 ô · +6</div>
+    </div>
+
+    <div id="controls">
+      <button class="ctrl" id="btnUndo"><div class="ic">↶</div><div class="cap">Hoàn tác</div><div class="cnt" id="undoCount">0</div></button>
+      <button class="ctrl" id="btnShuffle"><div class="ic">⇄</div><div class="cap">Xáo lại</div><div class="cnt" id="shuffleCount">0</div></button>
+      <button class="ctrl" id="btnHint"><div class="ic">?</div><div class="cap">Gợi ý</div></button>
+      <button class="ctrl" id="btnItems">
+        <svg class="ic" id="itemIcon" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#EEF1FF" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 3l7 7-3 3-7-7z"/><path d="M11.5 5.5L4 13v7h7l7.5-7.5"/>
+        </svg>
+        <div class="cap">Vật phẩm</div><div class="badge" id="itemBadge">★0</div>
+      </button>
+      <button class="ctrl" id="btnRestart"><div class="ic">↻</div><div class="cap">Chơi lại</div></button>
+    </div>
+
+    <div class="catcher" id="itemCatcher"></div>
+    <div class="sheet" id="itemSheet">
+      <h2>Vật phẩm</h2>
+      <button class="itemRow" data-item="hammer">
+        <span class="art"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#EEF1FF" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3l7 7-3 3-7-7z"/><path d="M11.5 5.5L4 13v7h7l7.5-7.5"/></svg></span>
+        <span><span class="nm">Búa</span><br><span class="ds">Đập 1 ô. Đá và băng chỉ mất 1 lớp.</span></span>
+        <span class="cost">★3</span>
+      </button>
+      <button class="itemRow" data-item="paint">
+        <span class="art"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#EEF1FF" stroke-width="2.1" stroke-linejoin="round"><path d="M12 2.6l3.1 6.3 6.9 1-5 4.9 1.2 6.9L12 18.4 5.8 21.7 7 14.8l-5-4.9 6.9-1z"/></svg></span>
+        <span><span class="nm">Sơn</span><br><span class="ds">Biến 1 ô thành ô đa sắc, nối được mọi màu.</span></span>
+        <span class="cost">★5</span>
+      </button>
+      <button class="itemRow" data-item="extra">
+        <span class="art"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#EEF1FF" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+        <span><span class="nm">Thêm lượt</span><br><span class="ds">Nới ngân sách thêm 1 lượt.</span></span>
+        <span class="cost">★2</span>
+      </button>
+      <div id="itemWallet">★ 0</div>
+    </div>
+  </section>
+
+  <!-- ==================== THẺ KẾT QUẢ + TOAST ==================== -->
+  <div id="overlay"><div id="card"></div></div>
+  <div id="toast"></div>
+</div>

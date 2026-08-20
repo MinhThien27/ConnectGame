@@ -1,0 +1,73 @@
+# ============================================================
+# Unity — thư mục máy tự sinh, KHÔNG bao giờ commit.
+# Library một mình đã 6,1 GB và Unity dựng lại nó từ Assets +
+# ProjectSettings, nên đưa lên chỉ tốn chỗ chứ không thêm gì.
+# ============================================================
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+
+# Unity sinh lại toàn bộ .csproj/.sln từ Assets mỗi lần mở project.
+# Commit chúng chỉ tạo ra xung đột vô nghĩa mỗi lần hai máy mở khác giờ.
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# IDE
+.vs/
+.idea/
+.vscode/
+*.DotSettings.user
+
+# Bản build ra
+*.apk
+*.aab
+*.unitypackage
+*.app
+crashlytics-build.properties
+sysinfo.txt
+
+# ============================================================
+# Riêng project này
+# ============================================================
+
+# Chỉ mục CodeGraph — 770 MB, sinh lại được từ mã nguồn.
+.codegraph/
+
+# Gói Unity AI Assistant nhúng trong Packages/: 554 MB, và có HAI file
+# vượt giới hạn CỨNG 100 MB của GitHub (relay_win.exe 124 MB,
+# relay_linux 108 MB). Không loại ra thì push bị từ chối giữa chừng.
+#
+# Nó không thuộc game — Unity tự nạp lại khi mở project.
+Packages/com.unity.ai.assistant@*/
+
+# manifest.json và packages-lock.json thì PHẢI giữ: thiếu chúng, máy khác
+# clone về sẽ nạp bộ package khác và project không dựng lại được như cũ.
+!Packages/manifest.json
+!Packages/packages-lock.json
+
+# Thư mục tạm của bước build Android (object file CMake, ninja log).
+# Sinh lại mỗi lần build, không có gì để lưu.
+.utmp/
+
+# Bản clone cũ bị đặt nhầm vào trong Assets/. Xoá được khi đóng Unity
+# (Unity đang giữ file nên rm không xoá nổi). Bỏ qua tạm để nó không
+# lẫn vào commit.
+Assets/ConnectPuzzle/ConnectGame/
+Assets/ConnectPuzzle/ConnectGame.meta

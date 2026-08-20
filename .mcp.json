@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "unity-connectgame": {
+      "command": "C:/Users/Admin/.unity/relay/relay_win.exe",
+      "args": [
+        "--mcp",
+        "--name",
+        "ConnectGame",
+        "--project-path",
+        "D:/Dev-Game/ConnectGame"
+      ],
+      "env": {}
+    }
+  }
+}

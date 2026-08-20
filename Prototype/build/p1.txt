@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Connect Puzzle — giao diện v3</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+/* ============================================================
+   BẢNG MÀU — chép đúng số từ PuzzlePalette.cs.
+
+   Không phải "màu na ná cho giống": bản Unity là nguồn sự thật,
+   nên đổi màu ở đây mà không đổi bên kia là hai bản trôi khỏi
+   nhau ngay ở thứ dễ thấy nhất.
+   ============================================================ */
+:root{
+  --bg:#0F1220; --bg2:#161A2E;
+  --panel:#1C2140; --panel-light:#242A4F; --line:#2E3560;
+  --fg:#EEF1FF; --dim:#9AA2C9;
+  --accent:#7C8CFF; --accent-top:#8B9BFF;
+  --good:#34D399; --bad:#FB7185; --star:#FBBF24;
+  --diag-panel:#1A0C14; --diag-border:#7F1D33;
+
+  /* Bán kính = RadiusSmall/Panel/Chip/Card của Unity CHIA 2.
+     Canvas Unity rộng 1080 đơn vị logic, khung này rộng 540px,
+     nên mọi số đo dưới đây đọc thẳng được sang bản Unity.      */
+  --r-small:16px; --r-panel:19px; --r-chip:14px; --r-card:29px;
+
+  --c0:#EF4444; --c1:#F59E0B; --c2:#22C55E;
+  --c3:#38BDF8; --c4:#A78BFA; --c5:#F472B6;
+}
+
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{ height:100%; margin:0; }
+body{
+  background:radial-gradient(125% 90% at 50% 0%, var(--bg2) 0%, var(--bg) 62%);
+  color:var(--fg);
+  font-family:"Nunito","Baloo 2","Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;
+  display:flex; justify-content:center;
+  overscroll-behavior:none;
+}
+#app{
+  position:relative; width:100%; max-width:540px; height:100dvh; overflow:hidden;
+  padding-top:env(safe-area-inset-top); padding-bottom:env(safe-area-inset-bottom);
+}
+.screen{ position:absolute; inset:0; display:none; flex-direction:column; }
+.screen.on{ display:flex; }
+
+button{ font:inherit; color:inherit; border:0; background:none; cursor:pointer; }
+.btn{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--r-panel);
+  color:var(--fg); padding:10px 16px; font-weight:700; font-size:16px;
+  transition:transform .09s ease, filter .12s ease;
+}
+.btn:active{ transform:scale(.97); filter:brightness(1.15); }
+.btn.primary{ background:linear-gradient(180deg,var(--accent-top),var(--accent)); border-color:transparent; color:#0D0F1C; }
+.btn.good{ background:linear-gradient(180deg,#4FE3AE,var(--good)); border-color:transparent; color:#0D0F1C; }
+.btn.link{ background:transparent; border-color:transparent; color:var(--dim); font-weight:600; font-size:13px; }
+.btn[disabled]{ opacity:.42; pointer-events:none; }
+.on-panel{ background:var(--panel-light); }
+
+/* ================= MÀN MENU ================= */
+#menuTop{ flex:0 0 auto; padding:14px 20px 0; position:relative; }
+#title{ font-size:39px; font-weight:800; text-align:center; margin:6px 0 0; }
+#subtitle{ font-size:15px; color:var(--dim); text-align:center; margin:6px 0 0; }
+/* Ví sao ĐÈ lên dải tiêu đề, không chiếm dải riêng: tiêu đề căn giữa nên hai
+   mép luôn trống, mà menu đã phải nhường chỗ cho ba nút chế độ rồi.        */
+#wallet{ position:absolute; top:16px; right:20px; font-size:15px; font-weight:800; }
+#modeRow{ display:flex; flex-direction:column; gap:8px; margin:14px 0 2px; }
+
+#levelScroll{ flex:1 1 auto; overflow-y:auto; padding:10px 20px 4px; }
+.worldHead{ font-size:13px; font-weight:800; color:var(--dim); letter-spacing:1.2px; margin:14px 0 8px; }
+.grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:10px; }
+.lv{
+  position:relative; aspect-ratio:1; border-radius:var(--r-small);
+  background:var(--panel); border:1px solid var(--line);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+}
+.lv.played{ background:var(--panel-light); }
+.lv .n{ font-size:19px; font-weight:800; }
+.lv.locked .n{ color:rgba(90,97,140,.55); }
+.lv .st{ font-size:9px; letter-spacing:1.5px; }
+.lv .grav{ position:absolute; top:3px; right:6px; font-size:10px; color:var(--accent); font-weight:800; }
+#menuFooter{ flex:0 0 auto; padding:8px 20px 12px; display:grid; gap:8px; }
+.footRow{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+
+/* ================= MÀN CHƠI ================= */
+#gameTop{ flex:0 0 auto; padding:12px 15px 0; }
+.topBar{ display:flex; align-items:flex-start; gap:10px; }
+.iconBtn{ width:46px; height:42px; flex:0 0 auto; border-radius:var(--r-panel);
+          background:var(--panel); border:1px solid var(--line); font-size:21px; display:grid; place-items:center; }
+#levelName{ font-size:19px; font-weight:800; line-height:1.15; }
+#levelSub{ font-size:13px; color:var(--dim); margin-top:2px; }
+#hud{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px; }
+.stat{ background:var(--panel); border:1px solid var(--line); border-radius:var(--r-panel); padding:7px 6px; text-align:center; }
+.stat .cap{ font-size:10px; letter-spacing:1.1px; color:var(--dim); font-weight:700; }
+.stat .val{ font-size:24px; font-weight:800; line-height:1.15; }
+.stat .val small{ font-size:14px; color:var(--dim); }
+#starRow{ display:flex; justify-content:center; gap:7px; margin-top:8px; font-size:15px; }
+#parLine{ text-align:center; font-size:12px; color:var(--dim); margin-top:4px; }
+
+#boardWrap{ flex:1 1 auto; position:relative; display:grid; place-items:center; padding:8px 12px; min-height:0; }
+#board{ position:relative; touch-action:none; }
+.cell{ position:absolute; border-radius:22%; display:grid; place-items:center;
+       transition:transform .12s ease, opacity .18s ease, background-color .18s ease; }
+.cell .glyph{ color:rgba(0,0,0,.33); font-weight:900; }
+.cell.sel{ transform:scale(1.1); box-shadow:0 0 0 3px rgba(255,255,255,.92), 0 0 20px 5px rgba(255,255,255,.32); z-index:3; }
+.cell.dead{ opacity:0; transform:scale(.35); pointer-events:none; }
+.cell.stone{ background:#3A4064 !important; border-radius:12%; box-shadow:inset 0 0 0 2px #4A5180; }
+.cell.stone .glyph{ color:#8A91C0; }
+.cell.wild{ background:conic-gradient(var(--c0),var(--c1),var(--c2),var(--c3),var(--c4),var(--c5),var(--c0)) !important; }
+.cell.ice::after{ content:''; position:absolute; inset:0; border-radius:inherit;
+                  background:rgba(186,224,255,.52); box-shadow:inset 0 0 0 2px rgba(232,246,255,.92); }
+.cell.goal::before{ content:''; position:absolute; inset:15%; border-radius:50%; box-shadow:0 0 0 3px #fff; }
+.cell .fuse{ position:absolute; top:-3px; right:-3px; background:#0D0F1C; color:var(--bad);
+             font-size:10px; font-weight:900; border-radius:9px; padding:0 5px; }
+.cell .link{ position:absolute; bottom:-2px; left:50%; transform:translateX(-50%);
+             font-size:9px; font-weight:900; color:#0D0F1C; background:#fff; border-radius:6px; padding:0 4px; }
+#chainChip{ position:absolute; left:50%; transform:translateX(-50%); bottom:4px;
+  background:rgba(10,13,28,.94); border:1px solid var(--line); border-radius:var(--r-chip);
+  padding:5px 16px; font-size:15px; font-weight:800; display:none; }
+#chainChip.on{ display:block; }
+#diag{ position:absolute; left:12px; right:12px; top:4px; z-index:5;
+  background:var(--diag-panel); border:1px solid var(--diag-border); border-radius:var(--r-panel);
+  padding:10px 14px; display:none; }
+#diag.on{ display:block; }
+#diag .t{ color:var(--bad); font-weight:800; font-size:16px; text-align:center; }
+#diag .h{ color:#C9CBE8; font-size:13px; text-align:center; margin-top:3px; }
+#diag .tap{ color:#6B70A0; font-size:10px; text-align:center; margin-top:6px; letter-spacing:1.2px; }
+
+#controls{ flex:0 0 auto; display:grid; grid-template-columns:repeat(5,1fr); gap:8px; padding:6px 15px 12px; }
+.ctrl{ position:relative; background:var(--panel); border:1px solid var(--line);
+       border-radius:var(--r-panel); padding:7px 2px 5px; text-align:center; }
+.ctrl .ic{ font-size:19px; line-height:1.15; }
+.ctrl .cap{ font-size:10px; color:var(--dim); font-weight:700; }
+.ctrl .cnt{ position:absolute; top:3px; right:7px; font-size:10px; color:var(--dim); font-weight:800; }
+.ctrl .badge{ position:absolute; top:2px; right:3px; background:var(--star); color:#241A00;
+              font-size:9px; font-weight:900; border-radius:7px; padding:0 4px; }
+#itemIcon{ display:block; margin:0 auto; }
+
+/* ================= LỚP NỔI =================
+   Lớp chặn là EM RUỘT của bảng, không phải con. Đưa nó vào trong bảng
+   chính là lỗi "chạm đâu cũng tắt bảng" đã gặp ở bản Unity.            */
+.catcher{ position:absolute; inset:0; background:rgba(8,10,20,.78); z-index:40; display:none; }
+.catcher.on{ display:block; }
+.sheet{
+  position:absolute; left:12px; right:12px; z-index:41;
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--r-card);
+  padding:16px 16px 18px; display:none;
+  box-shadow:0 18px 50px rgba(0,0,0,.55);
+}
+.sheet.on{ display:block; }
+.sheet h2{ margin:0 0 4px; font-size:19px; font-weight:800; text-align:center; }
+.sheet .note{ font-size:12px; color:var(--dim); text-align:center; line-height:1.45; margin-bottom:12px; }
+#itemSheet{ bottom:74px; }
+#duelSheet, #lanSheet{ top:50%; transform:translateY(-50%); }
+
+.itemRow{ display:flex; align-items:center; gap:12px; width:100%; text-align:left;
+  background:var(--panel-light); border:1px solid var(--line); border-radius:var(--r-panel);
+  padding:10px 12px; margin-bottom:8px; }
+.itemRow:active{ filter:brightness(1.15); }
+.itemRow .art{ width:38px; height:38px; flex:0 0 auto; display:grid; place-items:center; }
+.itemRow .nm{ font-size:16px; font-weight:800; }
+.itemRow .ds{ font-size:11px; color:var(--dim); line-height:1.35; }
+.itemRow .cost{ margin-left:auto; font-size:15px; font-weight:900; color:var(--star); white-space:nowrap; }
+.itemRow.poor{ opacity:.45; }
+#itemWallet{ text-align:center; font-size:14px; font-weight:800; margin-top:2px; }
+
+#duelCode{ font-size:32px; font-weight:900; letter-spacing:4px; text-align:center;
+  background:#0D0F1C; border:1px solid var(--line); border-radius:var(--r-panel); padding:10px 0; margin-bottom:10px; }
+.row3{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
+#duelInput{ width:100%; font:inherit; font-size:19px; font-weight:800; letter-spacing:3px; text-align:center;
+  text-transform:uppercase; background:#0D0F1C; color:var(--fg);
+  border:1px solid var(--line); border-radius:var(--r-panel); padding:9px 10px; margin-bottom:8px; }
+#duelInput:focus{ outline:none; border-color:var(--accent); }
+#duelStatus, #lanStatus{ font-size:12px; text-align:center; color:var(--dim); min-height:16px; margin-top:8px; line-height:1.4; }
+.hr{ height:1px; background:var(--line); margin:12px 0; }
+.lbl{ font-size:12px; color:var(--dim); margin-bottom:6px; }
+
+/* ================= THẺ KẾT QUẢ + TOAST ================= */
+#overlay{ position:absolute; inset:0; background:rgba(8,10,20,.82); z-index:60;
+          display:none; place-items:center; padding:20px; }
+#overlay.on{ display:grid; }
+#card{ width:100%; max-width:380px; background:var(--panel); border:1px solid var(--line);
+       border-radius:var(--r-card); padding:22px 20px; text-align:center; }
+#card .big{ font-size:26px; font-weight:800; }
+#card .stars{ font-size:34px; letter-spacing:6px; margin:10px 0 4px; }
+#card .sub{ font-size:14px; color:var(--dim); line-height:1.5; }
+#card .medal{ font-size:14px; font-weight:800; color:var(--good); margin-top:6px; }
+#card .acts{ display:grid; gap:8px; margin-top:16px; }
+
+#toast{ position:absolute; left:50%; bottom:92px; transform:translate(-50%,14px); z-index:70;
+  background:rgba(12,15,30,.96); border:1px solid var(--line); border-radius:var(--r-panel);
+  padding:10px 16px; font-size:13px; max-width:88%; text-align:center; line-height:1.45;
+  opacity:0; pointer-events:none; transition:opacity .2s ease, transform .2s ease; }
+#toast.on{ opacity:1; transform:translate(-50%,0); }
+</style>
+</head>
+<body>

@@ -1,0 +1,2688 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Connect Puzzle — prototype</title>
+<style>
+/* ============================================================
+   THEME
+   ============================================================ */
+:root{
+  --bg:#0f1220; --bg2:#161a2e; --panel:#1c2140; --panel2:#242a4f;
+  --line:#2e3560; --fg:#eef1ff; --fg-dim:#9aa2c9; --accent:#7c8cff;
+  --good:#34d399; --bad:#fb7185; --star:#fbbf24;
+  --r:14px; --gap:9px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{
+  background:radial-gradient(1200px 700px at 50% -10%,var(--bg2),var(--bg));
+  color:var(--fg);
+  font:15px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  overscroll-behavior:none;
+}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+.btn{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+     padding:10px 16px;font-weight:600;transition:.15s transform,.15s background}
+.btn:hover{background:var(--panel2)}
+.btn:active{transform:scale(.96)}
+.btn.primary{background:linear-gradient(180deg,#8b9bff,#6272f0);border-color:#8b9bff;color:#0d1024}
+.btn.ghost{background:transparent}
+.btn.ghost.on{background:#8b9bff22;border-color:#8b9bff;color:#cdd5ff}
+.btn:disabled{opacity:.32;cursor:not-allowed}
+.btn.icon{padding:9px 12px}
+
+#app{max-width:520px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;
+     padding:12px 12px calc(12px + env(safe-area-inset-bottom))}
+.screen{display:none;flex:1;flex-direction:column;min-height:0}
+.screen.on{display:flex}
+
+/* ============================================================
+   MENU
+   ============================================================ */
+.hero{text-align:center;padding:16px 0 12px}
+.hero h1{margin:0;font-size:29px;letter-spacing:-.5px}
+.hero p{margin:6px 0 0;color:var(--fg-dim);font-size:13px}
+.world{margin:14px 0 6px;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;
+       color:var(--fg-dim);display:flex;align-items:center;gap:8px}
+.world::after{content:'';flex:1;height:1px;background:var(--line)}
+.levels{display:grid;grid-template-columns:repeat(5,1fr);gap:var(--gap)}
+.lv{position:relative;aspect-ratio:1;border-radius:12px;
+    background:var(--panel);border:1px solid var(--line);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    font-weight:700;font-size:17px;transition:.15s transform}
+.lv:active{transform:scale(.93)}
+.lv.locked{color:var(--fg-dim);opacity:.42;cursor:not-allowed}
+.lv.done{border-color:#3f4a86;background:linear-gradient(180deg,var(--panel2),var(--panel))}
+.lv .st{font-size:8px;letter-spacing:.5px;color:#454d80;line-height:1}
+.lv .st b{color:var(--star);font-weight:400}
+.lv .gv{position:absolute;top:3px;right:4px;font-size:9px;opacity:.5}
+.menu-foot{margin-top:auto;padding-top:16px;display:flex;flex-direction:column;gap:8px;
+           align-items:center;color:var(--fg-dim);font-size:12.5px}
+.menu-foot .row{display:flex;gap:8px;justify-content:center}
+
+/* ============================================================
+   GAME — bar + HUD
+   ============================================================ */
+.topbar{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.topbar .title{flex:1;min-width:0}
+.topbar .title b{display:block;font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar .title span{font-size:11px;color:var(--fg-dim)}
+
+.hud{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap)}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:7px 11px}
+.stat .k{font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--fg-dim)}
+.stat .v{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.2;
+         transition:transform .18s cubic-bezier(.34,1.7,.64,1)}
+.stat .v small{font-size:11.5px;font-weight:600;color:var(--fg-dim)}
+.stat.warn .v{color:var(--bad)}
+.stat.bump .v{transform:scale(1.22)}
+
+.subhud{display:flex;align-items:center;gap:10px;margin:8px 2px 6px;
+        font-size:11.5px;color:var(--fg-dim)}
+.stars{font-size:14px;letter-spacing:1px}
+.stars i{opacity:.2;font-style:normal;transition:.25s opacity}
+.stars i.on{opacity:1;color:var(--star)}
+.subhud .q{margin-left:auto;font-variant-numeric:tabular-nums}
+.subhud .q b{color:var(--accent);font-weight:700}
+
+/* ============================================================
+   BOARD
+   ============================================================ */
+.board-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;position:relative}
+#boardBox{position:relative;touch-action:none;user-select:none}
+#boardBox.shake{animation:shake .34s cubic-bezier(.36,.07,.19,.97)}
+@keyframes shake{
+  10%{transform:translate(-3px,1px)} 25%{transform:translate(4px,-2px)}
+  40%{transform:translate(-4px,-1px)} 55%{transform:translate(3px,2px)}
+  70%{transform:translate(-2px,1px)} 85%{transform:translate(2px,-1px)}
+  100%{transform:none}
+}
+#board{display:grid;width:100%;height:100%;
+       grid-template-columns:repeat(var(--cols),1fr);grid-template-rows:repeat(var(--rows),1fr)}
+#board.clip{overflow:hidden}
+.cell{position:relative;display:flex;align-items:center;justify-content:center}
+.cell::before{content:'';position:absolute;inset:11%;border-radius:28%;
+              background:#ffffff07;box-shadow:inset 0 0 0 1px #ffffff08}
+.cell.wall::before,.cell.wall .bub{display:none}
+.bub{position:absolute;inset:8%;border-radius:50%;
+     background:radial-gradient(circle at 32% 28%,#ffffff70,#ffffff00 55%),var(--c,#666);
+     box-shadow:0 3px 10px -2px #0009, inset 0 -3px 8px -3px #0007;
+     display:flex;align-items:center;justify-content:center;
+     font-size:min(4vw,16px);color:#00000055;font-weight:900;
+     transition:transform .16s cubic-bezier(.34,1.56,.64,1),opacity .16s,box-shadow .16s}
+.bub .gl{display:none}
+body.symbols .bub .gl{display:block}
+.cell.empty .bub{transform:scale(0);opacity:0}
+.cell.sel .bub{transform:scale(1.12);box-shadow:0 0 0 3px #fff,0 0 18px 2px var(--c),0 4px 14px -2px #000a}
+.cell.hint .bub{animation:hintPulse .7s ease-in-out 3}
+@keyframes hintPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+
+/* ---------- ô đặc biệt ---------- */
+
+/* ĐA SẮC — nối được mọi màu. Vẽ hẳn quang phổ để không ai nhầm nó với một
+   màu cụ thể, và cho nó quay chậm để mắt bắt ngay giữa bàn tĩnh. */
+.bub.wild{background:conic-gradient(#ef4444,#f59e0b,#22c55e,#38bdf8,#a78bfa,#f472b6,#ef4444);
+          animation:wildSpin 7s linear infinite}
+.bub.wild::after{content:'';position:absolute;inset:22%;border-radius:50%;
+                 background:radial-gradient(circle at 34% 30%,#fff,#ffffffcc 45%,#ffffff55)}
+@keyframes wildSpin{to{transform:rotate(360deg)}}
+.cell.sel .bub.wild{animation:wildSpin 1.6s linear infinite}
+
+/* ĐÁ — vuông, xám, không có ánh bóng tròn: nhìn là biết không bấm được. */
+.bub.stone{border-radius:22%;
+           background:linear-gradient(155deg,#8b93ad,#59607a 55%,#454b60);
+           box-shadow:inset 0 2px 0 #ffffff35, inset 0 -3px 6px -2px #0009, 0 3px 10px -3px #000a;
+           color:#e8ecff;font-size:min(3.4vw,13px);text-shadow:0 1px 2px #0008}
+.bub.stone.hp2::after{content:'';position:absolute;inset:32% 18%;
+                      background:#ffffff30;transform:rotate(24deg);border-radius:2px}
+.cell.crack .bub.stone{animation:crack .34s ease-out}
+@keyframes crack{
+  0%{transform:scale(1)} 35%{transform:scale(1.14) rotate(-4deg)}
+  70%{transform:scale(.92) rotate(3deg)} 100%{transform:scale(1)}
+}
+
+/* NGÒI NỔ — số đếm ngược ngay trên ô; đỏ dần khi sắp hết. */
+.fz{position:absolute;top:-4%;right:-4%;min-width:42%;height:42%;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:50%;background:#111827;color:#fff;
+    font-size:min(3vw,12px);font-weight:900;
+    box-shadow:0 0 0 2px #ffffff55,0 2px 6px -1px #000a}
+.fz.warn{background:var(--bad);animation:fzPulse .55s ease-in-out infinite}
+@keyframes fzPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.22)}}
+
+/* MỤC TIÊU — vòng đích vàng quanh ô, nằm ngoài .bub nên không bị pop nuốt. */
+.cell.goal::after{content:'';position:absolute;inset:2%;border-radius:50%;
+                  box-shadow:0 0 0 3px #fbbf24, 0 0 12px 1px #fbbf2466;
+                  pointer-events:none;animation:goalRing 1.9s ease-in-out infinite}
+@keyframes goalRing{0%,100%{opacity:.55}50%{opacity:1}}
+
+/* chẩn đoán thua: mờ cả bàn, chỉ thắp sáng các ô là bằng chứng */
+#board.diag .bub{filter:grayscale(.85) brightness(.5);opacity:.42;transition:.3s}
+#board.diag .cell.cul .bub{filter:none;opacity:1;animation:culprit .62s ease-in-out infinite}
+@keyframes culprit{
+  0%,100%{transform:scale(1);   box-shadow:0 0 0 2px var(--bad),0 0 14px 2px #fb718588}
+  50%    {transform:scale(1.15);box-shadow:0 0 0 4px var(--bad),0 0 24px 7px #fb7185aa}
+}
+/* left:0/right:0 + margin auto, KHÔNG dùng left:50%: với position absolute thì
+   left:50% làm chiều rộng khả dụng chỉ còn nửa bàn, chữ xuống 5-6 dòng và che bàn */
+#diag{
+  position:absolute;left:0;right:0;margin:0 auto;top:4px;z-index:9;
+  width:fit-content;max-width:96%;text-align:center;
+  pointer-events:none;opacity:0;transform:translateY(-16px);transition:.28s ease-out;
+  background:#1a0c14f2;border:1px solid #7f1d33;border-radius:14px;padding:8px 15px;
+  box-shadow:0 14px 34px -12px #000;
+}
+#diag.on{opacity:1;transform:translateY(0)}
+#diag b{display:block;font-size:14.5px;color:var(--bad)}
+#diag i{display:block;font-style:normal;font-size:11.5px;color:#c9cdea;margin-top:2px}
+#diag em{display:block;font-style:normal;font-size:9.5px;color:#6a7099;margin-top:5px;
+         letter-spacing:.6px;text-transform:uppercase}
+.cell.pop .bub{animation:pop .3s ease-out var(--d,0ms) forwards}
+@keyframes pop{35%{transform:scale(1.3);box-shadow:0 0 0 6px #ffffff55,0 0 26px 6px var(--c)}
+               100%{transform:scale(.08);opacity:0}}
+
+/* đường nối: 1 lớp phát sáng + 1 lớp nét chạy */
+#line{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+#line polyline{fill:none;stroke-linecap:round;stroke-linejoin:round}
+#glow{opacity:.3;filter:blur(2px)}
+#poly{opacity:.95;stroke-dasharray:.44 .3;animation:flow .55s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-.74}}
+
+/* chip xem trước điểm, bám theo đầu chuỗi */
+#prev{position:absolute;z-index:5;pointer-events:none;transform:translate(-50%,-140%);
+      background:#0b0e1cf0;border:1px solid var(--line);border-radius:99px;
+      padding:3px 10px;font-size:12px;font-weight:800;white-space:nowrap;
+      opacity:0;transition:opacity .12s,transform .16s cubic-bezier(.34,1.7,.64,1)}
+#prev.on{opacity:1;transform:translate(-50%,-160%)}
+#prev b{color:var(--good)}
+
+/* ============================================================
+   HIỆU ỨNG (lớp phủ toàn màn hình)
+   ============================================================ */
+#fx{position:fixed;inset:0;z-index:15;pointer-events:none;overflow:hidden}
+#fx .pt{position:absolute;border-radius:50%;will-change:transform,opacity}
+#fx .sq{position:absolute;border-radius:2px;will-change:transform,opacity}
+#fx .ftext{position:absolute;font-weight:900;white-space:nowrap;
+           text-shadow:0 2px 10px #000b;will-change:transform,opacity}
+#fx .ring{position:absolute;border-radius:50%;border:2px solid #fff;will-change:transform,opacity}
+#flash{position:absolute;inset:0;pointer-events:none;background:#fff;opacity:0;border-radius:8px}
+
+/* ============================================================
+   CONTROLS + OVERLAY
+   ============================================================ */
+.controls{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--gap);margin-top:10px}
+.ctl{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;
+     padding:8px 4px 7px}
+.ctl .ic{font-size:17px;line-height:1.1}
+.ctl .lb{font-size:10.5px;font-weight:600;letter-spacing:.2px}
+.ctl .ct{position:absolute;top:3px;right:5px;min-width:15px;height:15px;
+         border-radius:99px;background:var(--accent);color:#0d1024;
+         font-size:9.5px;font-weight:800;line-height:15px;text-align:center}
+.ctl:disabled .ct{background:var(--line);color:var(--fg-dim)}
+
+.overlay{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;
+         padding:20px;background:#080a14cc;backdrop-filter:blur(6px)}
+.overlay.on{display:flex}
+.card{width:100%;max-width:330px;text-align:center;padding:26px 22px;
+      background:var(--panel);border:1px solid var(--line);border-radius:22px;
+      box-shadow:0 24px 60px -12px #000;animation:rise .25s ease-out}
+@keyframes rise{from{transform:translateY(14px) scale(.96);opacity:0}}
+.card h2{margin:0 0 4px;font-size:24px}
+.card .sub{color:var(--fg-dim);font-size:13.5px;margin-bottom:14px}
+.card .sub b{color:var(--fg)}
+.card .bigstars{font-size:36px;letter-spacing:4px;margin:6px 0 10px}
+.card .bigstars i{font-style:normal;opacity:.18}
+.card .bigstars i.on{opacity:1;color:var(--star);animation:pop2 .45s backwards ease-out var(--d)}
+@keyframes pop2{from{transform:scale(0) rotate(-40deg);opacity:0}}
+.card .acts{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:30;
+       background:#0b0e1ce6;border:1px solid var(--line);border-radius:99px;padding:9px 18px;
+       font-size:13px;opacity:0;transition:.25s;pointer-events:none}
+.toast.on{opacity:1;bottom:34px}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ============== MENU ============== -->
+  <section id="scMenu" class="screen on">
+    <div class="hero">
+      <h1>Connect Puzzle</h1>
+      <p>Nối các ô cùng màu. Dọn sạch bàn trong số lượt cho phép.</p>
+    </div>
+    <div class="row" style="padding:0 14px 6px">
+      <button class="btn primary" id="mEndless" style="width:100%">∞ Vô tận — <span id="mEndlessBest">0</span></button>
+    </div>
+    <div id="worlds"></div>
+    <div class="menu-foot">
+      <div class="row">
+        <button class="btn ghost icon" id="mSound">🔊 Âm thanh</button>
+        <button class="btn ghost icon" id="mSym">◆ Ký hiệu</button>
+      </div>
+      <div class="row"><button class="btn ghost icon" id="mFree">🔓 Chơi tự do</button></div>
+      <div class="row"><button class="btn ghost icon" id="mReset" style="font-size:12px;color:var(--fg-dim)">Xoá tiến độ</button></div>
+    </div>
+  </section>
+
+  <!-- ============== GAME ============== -->
+  <section id="scGame" class="screen">
+    <div class="topbar">
+      <button class="btn icon ghost" id="gBack">←</button>
+      <div class="title"><b id="gName">—</b><span id="gSub">—</span></div>
+      <button class="btn icon ghost" id="gSound">🔊</button>
+    </div>
+
+    <div class="hud">
+      <div class="stat" id="stMoves"><div class="k" id="kMoves">Lượt còn</div><div class="v"><span id="vMoves">0</span><small id="vMax">/0</small></div></div>
+      <div class="stat" id="stLeft"><div class="k" id="kLeft">Ô còn lại</div><div class="v" id="vLeft">0</div></div>
+      <div class="stat" id="stScore"><div class="k">Điểm</div><div class="v" id="vScore">0</div></div>
+    </div>
+
+    <div class="subhud">
+      <span class="stars" id="vStars"><i>★</i><i>★</i><i>★</i></span>
+      <span id="vPar">—</span>
+      <span class="q" id="vQueue"></span>
+    </div>
+
+    <div class="board-wrap">
+      <div id="diag"></div>
+      <div id="boardBox">
+        <div id="board"></div>
+        <svg id="line" preserveAspectRatio="none">
+          <polyline id="glow"></polyline><polyline id="poly"></polyline>
+        </svg>
+        <div id="flash"></div>
+        <div id="prev"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn ctl" id="gUndo"><span class="ic">↶</span><span class="lb">Hoàn tác</span><span class="ct" id="cUndo">0</span></button>
+      <button class="btn ctl" id="gShuf"><span class="ic">🔀</span><span class="lb">Xáo lại</span><span class="ct" id="cShuf">0</span></button>
+      <button class="btn ctl" id="gHint"><span class="ic">💡</span><span class="lb">Gợi ý</span></button>
+      <button class="btn ctl" id="gRestart"><span class="ic">↻</span><span class="lb">Chơi lại</span></button>
+    </div>
+  </section>
+</div>
+
+<div id="fx"></div>
+<div class="overlay" id="ov"><div class="card" id="ovCard"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ==================================================================
+   0. HẰNG SỐ & TIỆN ÍCH
+   ================================================================== */
+const WALL = -2, EMPTY = -1, STONE = -3;
+
+/* Loại ô đặc biệt. PLAIN nằm trong `mark = null` để bàn thường không tốn gì. */
+const K_WILD = 1, K_STONE = 2, K_BOMB = 3;
+const DIRS = [[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]]; // 8 hướng, giống source
+const HEX = ['#ef4444','#f59e0b','#22c55e','#38bdf8','#a78bfa','#f472b6'];
+const GLYPHS = ['●','▲','■','◆','★','✚'];            // chế độ ký hiệu (thân thiện mù màu)
+const SAVE_KEY = 'connectPuzzle.v2';
+
+/** Điểm của một chuỗi — giữ đúng công thức của source (GameManager.OnElementsDespawned). */
+const chainScore = n => n * (n - 1);
+
+/** Nhãn khen theo độ dài chuỗi. */
+function praise(n){
+  if (n >= 10) return 'SIÊU PHẨM!';
+  if (n >= 8)  return 'ĐỈNH!';
+  if (n >= 6)  return 'TUYỆT!';
+  if (n >= 5)  return 'Hay!';
+  return '';
+}
+
+/** PRNG có seed: màn chơi tái lập được y hệt trên mọi máy. */
+function mulberry32(a){
+  return function(){
+    a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+const $ = id => document.getElementById(id);
+const clamp = (v,a,b) => v < a ? a : (v > b ? b : v);
+
+/* ==================================================================
+   1. BẢNG MÀN CHƠI
+   ------------------------------------------------------------------
+   Núm điều khiển của mỗi màn:
+     slack   : số lượt dư ngoài par  -> càng nhỏ càng ngặt
+     fuse    : xác suất 2 nhóm kề nhau ĐƯỢC trùng màu (0..1)
+               0   = mỗi nhóm màu là đúng 1 đường, nhìn là thấy
+               cao = nhóm dính thành cục lớn, phải tự tìm cách chẻ
+     undos   : số lần hoàn tác cho phép trong màn
+     pathLen : độ dài nhóm khi sinh (nhóm ngắn -> nhiều lượt hơn)
+     gravity : bật thì ô rơi xuống sau mỗi lượt
+     queue   : (chỉ gravity) số slot ẩn phía trên MỖI CỘT.
+               Tổng ô = cols * (rows + queue) — nhiều hơn số ô nhìn thấy.
+   ================================================================== */
+const S = {
+  diamond:['...#...','..###..','.#####.','#######','.#####.','..###..','...#...'],
+  plus:   ['..###..','..###..','#######','#######','#######','..###..','..###..'],
+  ring:   ['#######','#######','##...##','##...##','##...##','#######','#######'],
+  stairs: ['###.....','####....','#####...','..#####.','...#####','.....###'],
+  hourgl: ['#######','.#####.','..###..','..###..','..###..','.#####.','#######'],
+  bigX:   ['##...##','###.###','.#####.','..###..','.#####.','###.###','##...##'],
+  wide:   ['..####..','.######.','########','########','########','.######.','..####..'],
+  arrow:  ['...#...','..###..','.#####.','#######','..###..','..###..','..###..'],
+  bowl:   ['#.....#','#.....#','#.....#','##...##','#######','.#####.','..###..'],
+  tower:  ['..###..','..###..','.#####.','#######','#######','.#####.','..###..'],
+  // Khung: vành ngoài và vành trong CÁCH NHAU 2 ô nên rời hẳn nhau — thành hai
+  // sân riêng, không nhóm nào cứu được nhóm nào.
+  frame:  ['#######','#.....#','#.###.#','#.#.#.#','#.###.#','#.....#','#######'],
+  zig:    ['###....','.###...','..###..','...###.','....###','...###.','..###..']
+};
+
+const LEVELS = [
+  /* ---------- Thế giới 1 · Bàn tĩnh — học cơ chế ---------- */
+  {w:1, name:'Khởi động',    cols:5, rows:5, colors:3, seed:1101, slack:5, fuse:0,   undos:5, pathLen:[3,4]},
+  {w:1, name:'Bắt nhịp',     cols:5, rows:6, colors:3, seed:1207, slack:5, fuse:0,   undos:5, pathLen:[3,4]},
+  {w:1, name:'Sáu nhân sáu', cols:6, rows:6, colors:3, seed:1319, slack:4, fuse:.12, undos:5, pathLen:[3,5]},
+  {w:1, name:'Kim cương',    shape:S.diamond, colors:3, seed:1427, slack:4, fuse:.12, undos:4, pathLen:[3,5]},
+  {w:1, name:'Chật hơn',     cols:6, rows:7, colors:3, seed:1523, slack:4, fuse:.2,  undos:4, pathLen:[3,5]},
+  {w:1, name:'Mũi tên',      shape:S.arrow,   colors:3, seed:1601, slack:4, fuse:.15, undos:4, pathLen:[3,5]},
+  {w:1, name:'Cái chén',     shape:S.bowl,    colors:3, seed:1709, slack:4, fuse:.18, undos:4, pathLen:[3,5]},
+  {w:1, name:'Bảy nhân sáu', cols:7, rows:6, colors:3, seed:1811, slack:4, fuse:.2,  undos:4, pathLen:[3,5]},
+  {w:1, name:'Ngọn tháp',    shape:S.tower,   colors:3, seed:1913, slack:3, fuse:.22, undos:4, pathLen:[3,5]},
+  {w:1, name:'Tốt nghiệp',   cols:7, rows:7, colors:3, seed:2003, slack:3, fuse:.25, undos:3, pathLen:[3,5]},
+
+  /* ---------- Thế giới 2 · Hình dạng & cục dính ---------- */
+  {w:2, name:'Bốn màu',      cols:6, rows:6, colors:4, seed:2111, slack:4, fuse:.15, undos:4, pathLen:[3,5]},
+  {w:2, name:'Dấu cộng',     shape:S.plus,   colors:4, seed:2213, slack:4, fuse:.22, undos:4, pathLen:[3,5]},
+  {w:2, name:'Vành khuyên',  shape:S.ring,   colors:4, seed:2317, slack:3, fuse:.25, undos:3, pathLen:[3,5]},
+  {w:2, name:'Bậc thang',    shape:S.stairs, colors:4, seed:2423, slack:3, fuse:.25, undos:3, pathLen:[3,5]},
+  {w:2, name:'Đồng hồ cát',  shape:S.hourgl, colors:4, seed:2531, slack:3, fuse:.3,  undos:3, pathLen:[3,5]},
+  {w:2, name:'Bảy nhân bảy', cols:7, rows:7, colors:4, seed:2637, slack:3, fuse:.3,  undos:3, pathLen:[3,5]},
+  {w:2, name:'Chữ X',        shape:S.bigX,   colors:4, seed:2741, slack:3, fuse:.32, undos:3, pathLen:[3,5]},
+  {w:2, name:'Hai sân',      shape:S.frame,  colors:4, seed:2851, slack:4, fuse:.25, undos:3, pathLen:[3,5]},
+  {w:2, name:'Năm màu',      cols:7, rows:7, colors:5, seed:3113, slack:3, fuse:.28, undos:3, pathLen:[3,5]},
+  {w:2, name:'Bành trướng',  shape:S.wide,   colors:5, seed:3217, slack:3, fuse:.33, undos:2, pathLen:[3,5]},
+
+  /* ---------- Thế giới 3 · GRAVITY + hàng chờ ---------- */
+  {w:3, gravity:true, queue:4,  name:'Thác màu',    cols:6, rows:6, colors:4, seed:4101, slack:5, fuse:.2,  undos:4, pathLen:[3,5]},
+  {w:3, gravity:true, queue:5,  name:'Rơi tự do',   cols:6, rows:7, colors:4, seed:4207, slack:5, fuse:.25, undos:4, pathLen:[3,5]},
+  {w:3, gravity:true, queue:5,  name:'Dòng chảy',   cols:7, rows:7, colors:4, seed:4313, slack:4, fuse:.28, undos:3, pathLen:[3,5]},
+  {w:3, gravity:true, queue:6,  name:'Năm sắc rơi', cols:7, rows:7, colors:5, seed:4419, slack:4, fuse:.3,  undos:3, pathLen:[3,5]},
+  {w:3, gravity:true, queue:6,  name:'Hàng chờ',    cols:7, rows:8, colors:5, seed:4523, slack:4, fuse:.32, undos:3, pathLen:[3,5]},
+  {w:3, gravity:true, queue:6,  name:'Sâu hơn',     cols:8, rows:8, colors:5, seed:4629, slack:4, fuse:.33, undos:3, pathLen:[3,5]},
+  {w:3, gravity:true, queue:7,  name:'Sáu sắc rơi', cols:8, rows:8, colors:6, seed:4733, slack:3, fuse:.3,  undos:2, pathLen:[3,5]},
+  {w:3, gravity:true, queue:8,  name:'Ngặt nghèo',  cols:8, rows:8, colors:5, seed:4841, slack:3, fuse:.4,  undos:2, shuffles:1, pathLen:[3,6]},
+  {w:3, gravity:true, queue:8,  name:'Trút xuống',  cols:8, rows:9, colors:5, seed:4943, slack:3, fuse:.42, undos:2, shuffles:1, pathLen:[3,6]},
+  {w:3, gravity:true, queue:10, name:'Vô cực',      cols:8, rows:9, colors:5, seed:5051, slack:3, fuse:.45, undos:1, shuffles:1, pathLen:[3,6]},
+
+  /* ---------- Thế giới 4 · ĐÁ — ô không nối được, phải phá bằng chuỗi kề ---------- */
+  {w:4, name:'Vỡ đá',        cols:6, rows:6, colors:3, seed:6101, slack:5, fuse:.15, undos:4, pathLen:[3,5], stones:3},
+  {w:4, name:'Kẹt giữa',     cols:6, rows:7, colors:4, seed:6207, slack:4, fuse:.2,  undos:4, pathLen:[3,5], stones:4},
+  {w:4, name:'Đá rải',       cols:7, rows:6, colors:4, seed:6311, slack:4, fuse:.22, undos:4, pathLen:[3,5], stones:5},
+  {w:4, name:'Tường đôi',    cols:7, rows:7, colors:4, seed:6413, slack:4, fuse:.25, undos:3, pathLen:[3,5], stones:5, stoneHp:2},
+  {w:4, name:'Mê đá',        shape:S.wide,  colors:4, seed:6519, slack:3, fuse:.3,   undos:3, pathLen:[3,5], stones:6, stoneHp:2},
+  {w:4, name:'Đá trong khuyên', shape:S.ring, colors:4, seed:6623, slack:4, fuse:.28, undos:3, pathLen:[3,5], stones:4, stoneHp:2},
+  {w:4, name:'Đá dựng tháp', shape:S.tower, colors:4, seed:6729, slack:3, fuse:.3,   undos:3, pathLen:[3,5], stones:5, stoneHp:2},
+  {w:4, name:'Đá dày',       cols:7, rows:7, colors:5, seed:6833, slack:3, fuse:.3,  undos:3, pathLen:[3,5], stones:6, stoneHp:2},
+  {w:4, name:'Bãi đá',       cols:8, rows:7, colors:5, seed:6937, slack:3, fuse:.32, undos:2, pathLen:[3,5], stones:7, stoneHp:2},
+  {w:4, name:'Núi đá',       cols:8, rows:8, colors:5, seed:7043, slack:3, fuse:.35, undos:2, pathLen:[3,6], stones:8, stoneHp:2},
+
+  /* ---------- Thế giới 5 · ĐA SẮC — ô nối được mọi màu, đổi lại nhiều màu hơn ---------- */
+  {w:5, name:'Cầu vồng',     cols:6, rows:6, colors:5, seed:7101, slack:4, fuse:.2,  undos:4, pathLen:[3,5], wilds:2},
+  {w:5, name:'Một điểm sáng',cols:6, rows:7, colors:5, seed:7207, slack:4, fuse:.24, undos:4, pathLen:[3,5], wilds:1},
+  {w:5, name:'Sáu sắc',      cols:7, rows:7, colors:6, seed:7313, slack:4, fuse:.25, undos:3, pathLen:[3,5], wilds:3},
+  {w:5, name:'Ít mà tinh',   cols:7, rows:7, colors:6, seed:7419, slack:3, fuse:.3,  undos:3, pathLen:[3,5], wilds:2},
+  {w:5, name:'Đá & sắc',     cols:7, rows:7, colors:5, seed:7523, slack:3, fuse:.3,  undos:3, pathLen:[3,5], wilds:2, stones:4},
+  {w:5, name:'Sắc trong khuyên', shape:S.ring, colors:6, seed:7629, slack:4, fuse:.28, undos:3, pathLen:[3,5], wilds:2},
+  {w:5, name:'Sắc chật',     cols:7, rows:8, colors:6, seed:7733, slack:3, fuse:.32, undos:3, pathLen:[3,5], wilds:3},
+  {w:5, name:'Bốn điểm sáng',cols:8, rows:7, colors:6, seed:7837, slack:3, fuse:.3,  undos:3, pathLen:[3,5], wilds:4},
+  {w:5, name:'Sắc & đá dày', cols:8, rows:7, colors:5, seed:7943, slack:3, fuse:.32, undos:2, pathLen:[3,5], wilds:3, stones:5, stoneHp:2},
+  {w:5, name:'Vạn sắc',      cols:8, rows:8, colors:6, seed:8047, slack:3, fuse:.35, undos:2, pathLen:[3,6], wilds:3},
+
+  /* ---------- Thế giới 6 · NGÒI NỔ — ô đếm ngược, không kịp ăn là thua ---------- */
+  {w:6, name:'Ngòi ngắn',    cols:6, rows:6, colors:4, seed:8101, slack:5, fuse:.2,  undos:4, pathLen:[3,5], bombs:2},
+  {w:6, name:'Hai ngòi',     cols:6, rows:7, colors:4, seed:8207, slack:4, fuse:.24, undos:4, pathLen:[3,5], bombs:2},
+  {w:6, name:'Ba ngòi',      cols:7, rows:7, colors:4, seed:8311, slack:4, fuse:.25, undos:3, pathLen:[3,5], bombs:3},
+  {w:6, name:'Ngòi trong đá',cols:7, rows:7, colors:4, seed:8417, slack:4, fuse:.28, undos:3, pathLen:[3,5], bombs:3, stones:4},
+  {w:6, gravity:true, queue:5, name:'Nổ trong dòng', cols:6, rows:7, colors:4, seed:8523, slack:5, fuse:.28, undos:4, pathLen:[3,5], bombs:2},
+  {w:6, gravity:true, queue:6, name:'Chạy đua',      cols:7, rows:7, colors:5, seed:8629, slack:4, fuse:.3,  undos:3, pathLen:[3,5], bombs:3, wilds:1},
+  {w:6, name:'Bốn ngòi',     cols:7, rows:8, colors:5, seed:8733, slack:4, fuse:.3,  undos:3, pathLen:[3,5], bombs:4},
+  {w:6, name:'Ngòi & sắc',   cols:8, rows:7, colors:5, seed:8837, slack:3, fuse:.3,  undos:3, pathLen:[3,5], bombs:3, wilds:2},
+  {w:6, gravity:true, queue:7, name:'Dòng lửa',      cols:7, rows:8, colors:5, seed:8941, slack:4, fuse:.32, undos:3, pathLen:[3,5], bombs:4},
+  {w:6, gravity:true, queue:8, name:'Năm ngòi',      cols:8, rows:8, colors:5, seed:9047, slack:3, fuse:.35, undos:2, shuffles:1, pathLen:[3,6], bombs:5, wilds:1},
+
+  /* ---------- Thế giới 7 · MỤC TIÊU — chỉ cần dọn ô có vòng đích ---------- */
+  {w:7, name:'Bốn đích',     cols:6, rows:6, colors:4, seed:9101, slack:3, fuse:.2,  undos:4, pathLen:[3,5], goals:4},
+  {w:7, name:'Năm đích',     cols:6, rows:7, colors:4, seed:9207, slack:3, fuse:.24, undos:4, pathLen:[3,5], goals:5},
+  {w:7, name:'Đích sâu',     cols:7, rows:7, colors:5, seed:9311, slack:3, fuse:.25, undos:3, pathLen:[3,5], goals:6, wilds:1},
+  {w:7, name:'Đích trong đá',cols:7, rows:7, colors:4, seed:9417, slack:2, fuse:.28, undos:3, pathLen:[3,5], goals:5, stones:4},
+  {w:7, gravity:true, queue:5, name:'Đích rơi',      cols:6, rows:7, colors:4, seed:9523, slack:4, fuse:.28, undos:4, pathLen:[3,5], goals:4},
+  {w:7, name:'Sáu đích',     cols:7, rows:7, colors:5, seed:9629, slack:3, fuse:.3,  undos:3, pathLen:[3,5], goals:6},
+  {w:7, name:'Đích & ngòi',  cols:7, rows:8, colors:5, seed:9733, slack:3, fuse:.3,  undos:3, pathLen:[3,5], goals:5, bombs:2},
+  {w:7, gravity:true, queue:6, name:'Đích xa',       cols:7, rows:7, colors:5, seed:9837, slack:4, fuse:.3, undos:3, pathLen:[3,5], goals:6, wilds:1},
+  {w:7, name:'Bảy đích',     cols:8, rows:7, colors:5, seed:9941, slack:3, fuse:.32, undos:3, pathLen:[3,5], goals:7, wilds:2},
+  {w:7, gravity:true, queue:6, name:'Tổng lực', cols:7, rows:8, colors:5, seed:10047, slack:4, fuse:.3, undos:3, shuffles:1, pathLen:[3,6], goals:6, wilds:2, bombs:2}
+];
+const WORLD_NAMES = {
+  1:'Thế giới 1 · Nhập môn', 2:'Thế giới 2 · Hình dạng', 3:'Thế giới 3 · Gravity',
+  4:'Thế giới 4 · Đá tảng',  5:'Thế giới 5 · Đa sắc',    6:'Thế giới 6 · Ngòi nổ',
+  7:'Thế giới 7 · Mục tiêu'
+};
+
+/* ==================================================================
+   2A. SINH MÀN TĨNH — phân hoạch bàn thành các đường
+   ------------------------------------------------------------------
+   Phân hoạch TOÀN BỘ ô thành các "đường" (ô phân biệt, kề 8 hướng)
+   độ dài >= 2, rồi tô mỗi đường một màu. Mỗi đường tự nó đã là một
+   chuỗi hợp lệ => par = số đường là mốc CHẮC CHẮN đạt được.
+   ================================================================== */
+/** Hình học từ một mặt nạ ô sống bất kỳ (dùng cả khi sinh màn và khi xáo lại). */
+function geometryFromMask(cols, rows, active){
+  const neighbors = active.map((on,i)=>{
+    if (!on) return [];
+    const x = i % cols, y = (i - x) / cols, out = [];
+    for (const [dx,dy] of DIRS){
+      const nx = x+dx, ny = y+dy;
+      if (nx<0 || ny<0 || nx>=cols || ny>=rows) continue;
+      if (active[ny*cols+nx]) out.push(ny*cols+nx);
+    }
+    return out;
+  });
+
+  const cells = [];
+  active.forEach((on,i)=>{ if(on) cells.push(i); });
+  return {cols, rows, active, neighbors, cells};
+}
+
+function makeGeometry(cfg){
+  let cols, rows;
+  if (cfg.shape){ rows = cfg.shape.length; cols = cfg.shape[0].length; }
+  else { cols = cfg.cols; rows = cfg.rows; }
+  const active = new Array(cols*rows).fill(false);
+  for (let y=0;y<rows;y++) for (let x=0;x<cols;x++)
+    active[y*cols+x] = cfg.shape ? cfg.shape[y][x] === '#' : true;
+  return geometryFromMask(cols, rows, active);
+}
+
+/**
+ * Heuristic then chốt: luôn xuất phát (và ưu tiên đi tới) ô CÒN ÍT LÁNG
+ * GIỀNG TRỐNG NHẤT. Ô ở góc/khe hẹp bị ăn trước nên gần như không sót ô
+ * lẻ. Trả null nếu vẫn sót => gọi lại với seed khác.
+ */
+function tryPartition(geo, cfg, rand){
+  const [minLen, maxLen] = cfg.pathLen || [3,5];
+  const free = new Set(geo.cells);
+  const paths = [];
+  const freeDeg = i => geo.neighbors[i].reduce((a,j)=> a + (free.has(j)?1:0), 0);
+
+  while (free.size){
+    let start = -1, best = Infinity;
+    for (const i of free){
+      const d = freeDeg(i);
+      if (d < best){ best = d; start = i; }
+      else if (d === best && rand() < .25) start = i;
+    }
+    free.delete(start);
+
+    const path = [start];
+    const target = minLen + Math.floor(rand() * (maxLen - minLen + 1));
+    while (path.length < target){
+      const cands = geo.neighbors[path[path.length-1]].filter(j => free.has(j));
+      if (!cands.length) break;
+      cands.sort((a,b)=> freeDeg(a) - freeDeg(b));
+      const pick = rand() < .7 ? cands[0] : cands[Math.floor(rand()*cands.length)];
+      free.delete(pick);
+      path.push(pick);
+    }
+
+    if (path.length === 1){
+      // Ô lẻ chỉ được nối vào ĐẦU/CUỐI một đường có sẵn — nối vào giữa thì
+      // tập ô mới có thể không còn xoá được trong 1 lượt.
+      let ok = false;
+      for (const p of paths){
+        if (geo.neighbors[start].includes(p[p.length-1])){ p.push(start); ok = true; break; }
+        if (geo.neighbors[start].includes(p[0]))         { p.unshift(start); ok = true; break; }
+      }
+      if (!ok) return null;
+    } else paths.push(path);
+  }
+  return paths;
+}
+
+function assignColors(geo, paths, cfg, rand){
+  const C = cfg.colors, fuse = cfg.fuse || 0;
+  const owner = new Array(geo.cols*geo.rows).fill(-1);
+  paths.forEach((p,idx)=> p.forEach(i => owner[i] = idx));
+
+  const adj = paths.map(()=> new Set());
+  paths.forEach((p,idx)=> p.forEach(i => geo.neighbors[i].forEach(j=>{
+    const o = owner[j];
+    if (o >= 0 && o !== idx) adj[idx].add(o);
+  })));
+
+  const colorOfPath = new Array(paths.length).fill(-1);
+  for (let idx=0; idx<paths.length; idx++){
+    const banned = new Set();
+    for (const o of adj[idx])
+      if (colorOfPath[o] >= 0 && rand() >= fuse) banned.add(colorOfPath[o]);
+    let pool = [];
+    for (let c=0;c<C;c++) if (!banned.has(c)) pool.push(c);
+    if (!pool.length) for (let c=0;c<C;c++) pool.push(c);
+    colorOfPath[idx] = pool[Math.floor(rand()*pool.length)];
+  }
+  return colorOfPath;
+}
+
+/* ==================================================================
+   2B. SINH MÀN GRAVITY — mô phỏng ván chơi xuôi, tô màu lười
+   ------------------------------------------------------------------
+   Mô hình: mỗi CỘT là một chồng slot (rows slot nhìn thấy + queue slot
+   ẩn phía trên). Gravity chỉ xoá phần tử trong chồng — thứ tự nội bộ
+   của cột KHÔNG BAO GIỜ đổi, và ô không bao giờ nhảy sang cột khác.
+   Nên vị trí hiện tại của slot thứ k (tính từ đáy, trong các slot còn
+   lại) chính là hàng k. Mô phỏng là tất định.
+
+   Mẹo đảm bảo giải được: KHÔNG tô màu trước. Máy tự chơi trên bàn chưa
+   có màu, mỗi lượt chọn một chuỗi rồi mới gán màu cho đúng các ô vừa ăn.
+   Vì mọi ô chưa ăn đều chưa có màu nên chuỗi nào cũng gán được
+   => dãy nước đi ghi lại luôn là một lời giải hợp lệ, par = số nước đi.
+   ================================================================== */
+function simulateGravity(cfg, rand, heights){
+  const cols = cfg.cols, rows = cfg.rows;
+  // heights = số slot của từng cột. Mặc định là màn mới (rows + queue);
+  // khi XÁO LẠI thì truyền vào chiều cao hiện tại của từng cột.
+  const hs = heights || new Array(cols).fill(rows + (cfg.queue || 0));
+  const [minLen, maxLen] = cfg.pathLen || [3,5];
+  const fuse = cfg.fuse || 0, C = cfg.colors;
+
+  // remaining[x] = danh sách origK còn lại, từ đáy lên
+  const remaining = [], colorOf = [];
+  for (let x=0;x<cols;x++){
+    const a = [];
+    for (let k=0;k<hs[x];k++) a.push(k);
+    remaining.push(a);
+    colorOf.push(new Array(hs[x]).fill(-1));
+  }
+
+  const total = hs.reduce((a,b)=> a+b, 0);
+  let left = total;
+  const solution = [];
+  let guard = 0;
+  if (left === 0) return {columns:colorOf, solution, H:0, total:0};
+
+  /** ô nhìn thấy = idx < rows trong remaining[x]; kề nhau khi |dx|<=1 và |didx|<=1 */
+  const visible = (x,idx) => idx < Math.min(remaining[x].length, rows);
+  function neighborsOf(x, idx, used){
+    const out = [];
+    for (let dx=-1; dx<=1; dx++) for (let di=-1; di<=1; di++){
+      if (!dx && !di) continue;
+      const nx = x+dx, ni = idx+di;
+      if (nx<0 || nx>=cols || ni<0) continue;
+      if (!visible(nx,ni)) continue;
+      if (used.has(nx + ',' + ni)) continue;
+      out.push([nx,ni]);
+    }
+    return out;
+  }
+
+  while (left > 0){
+    if (guard++ > 20000) return null;
+    if (left === 1) return null;                       // sót 1 ô => bất khả thi
+
+    // --- chọn chuỗi: ưu tiên cột còn NHIỀU ô nhất để các cột cạn đều nhau,
+    //     giữ độ cao xấp xỉ => luôn còn ô kề nhau, tránh phân mảnh cuối ván.
+    let path = null;
+    for (let tries=0; tries<40 && !path; tries++){
+      const order = [];
+      for (let x=0;x<cols;x++) if (remaining[x].length) order.push(x);
+      if (!order.length) return null;
+      order.sort((a,b)=> remaining[b].length - remaining[a].length);
+      const sx = rand() < .75 ? order[0] : order[Math.floor(rand()*order.length)];
+      const maxIdx = Math.min(remaining[sx].length, rows);
+      const si = Math.floor(rand() * maxIdx);
+
+      let target = minLen + Math.floor(rand()*(maxLen-minLen+1));
+      if (left - target === 1) target++;
+      target = clamp(target, 2, left);
+
+      const used = new Set([sx + ',' + si]);
+      const p = [[sx,si]];
+      while (p.length < target){
+        const [cx,ci] = p[p.length-1];
+        const cands = neighborsOf(cx, ci, used);
+        if (!cands.length) break;
+        // ưu tiên đi sang cột còn nhiều ô (giữ bàn cân bằng)
+        cands.sort((a,b)=> remaining[b[0]].length - remaining[a[0]].length);
+        const pick = rand() < .6 ? cands[0] : cands[Math.floor(rand()*cands.length)];
+        used.add(pick[0] + ',' + pick[1]);
+        p.push(pick);
+      }
+
+      // không được để sót đúng 1 ô sau nước này
+      if (left - p.length === 1){
+        const ext = neighborsOf(p[p.length-1][0], p[p.length-1][1], used);
+        if (ext.length) p.push(ext[0]);
+        else if (p.length >= 3) p.pop();
+        else continue;
+      }
+      if (p.length >= 2) path = p;
+    }
+    if (!path) return null;
+
+    // --- slot thật của từng ô trong chuỗi
+    const slots = path.map(([x,idx]) => ({x, k: remaining[x][idx], idx}));
+
+    // --- tô màu: chỉ ràng buộc theo BỐ CỤC BAN ĐẦU (các slot k < rows là
+    //     những ô người chơi thấy lúc mở màn) để `fuse` vẫn điều khiển được
+    //     độ "dính" của bàn khởi đầu.
+    const banned = new Set();
+    for (const s of slots){
+      if (s.k >= rows) continue;
+      for (let dx=-1; dx<=1; dx++) for (let dk=-1; dk<=1; dk++){
+        if (!dx && !dk) continue;
+        const nx = s.x+dx, nk = s.k+dk;
+        if (nx<0 || nx>=cols || nk<0 || nk>=rows || nk>=hs[nx]) continue;
+        const c = colorOf[nx][nk];
+        if (c >= 0 && rand() >= fuse) banned.add(c);
+      }
+    }
+    let pool = [];
+    for (let c=0;c<C;c++) if (!banned.has(c)) pool.push(c);
+    if (!pool.length) for (let c=0;c<C;c++) pool.push(c);
+    const color = pool[Math.floor(rand()*pool.length)];
+    slots.forEach(s => colorOf[s.x][s.k] = color);
+
+    // --- ăn: xoá khỏi remaining (xoá idx lớn trước để không lệch chỉ số)
+    const byCol = {};
+    slots.forEach(s => (byCol[s.x] = byCol[s.x] || []).push(s.idx));
+    for (const x in byCol){
+      byCol[x].sort((a,b)=> b-a).forEach(idx => remaining[x].splice(idx,1));
+    }
+    left -= slots.length;
+    solution.push(slots.map(s => ({x:s.x, k:s.k})));
+  }
+
+  return {columns: colorOf, solution, H: Math.max.apply(null, hs), total};
+}
+
+/* ==================================================================
+   2B-bis. Ô ĐẶC BIỆT
+   ------------------------------------------------------------------
+   Nguyên tắc chung, giống hệt phần sinh màn gốc: KHÔNG rắc ô đặc biệt
+   rồi cầu cho màn vẫn giải được. Mọi ô đặc biệt đều được gắn SAU khi
+   đã có lời giải tham chiếu, và gắn theo cách mà chính lời giải đó vẫn
+   chạy được. Nhờ vậy "giải được" vẫn là tính chất đúng theo cấu trúc,
+   không phải thứ phải đi kiểm bằng may rủi.
+
+     · ĐA SẮC  — nối được mọi màu, mỗi chuỗi tối đa 1 ô. Đặt mỗi đường
+                 nhiều nhất 1 ô => ăn nguyên đường vẫn hợp lệ.
+     · ĐÁ      — không nối được, vỡ khi có chuỗi bị ăn KỀ nó. Chọn đá
+                 TRƯỚC khi phân hoạch, và chỉ giữ lại đá nào kề đủ số
+                 đường phân biệt bằng máu của nó.
+     · NGÒI NỔ — đếm ngược theo lượt. Biết ô bị ăn ở nước thứ t của lời
+                 giải tham chiếu nên đặt ngòi = t + dư; lời giải tham
+                 chiếu luôn kịp.
+     · MỤC TIÊU— thắng khi dọn hết ô có vòng đích, không cần sạch bàn.
+                 par tính lại = số nước tối thiểu của lời giải tham
+                 chiếu đủ chạm hết đích.
+   ================================================================== */
+const newMark = () => ({k:0, hp:0, fz:0, goal:false});
+
+/** Lấy n phần tử khác nhau từ mảng, theo rand xác định. */
+function pickSome(arr, n, rand){
+  const pool = arr.slice(), out = [];
+  while (out.length < n && pool.length)
+    out.push(pool.splice(Math.floor(rand()*pool.length), 1)[0]);
+  return out;
+}
+
+/**
+ * Chọn ô đá trước khi phân hoạch. Trả về mảng chỉ số ô, hoặc null nếu
+ * cfg không dùng đá.
+ *
+ * Tránh ô ở rìa ngoài cùng: đá ở rìa ít láng giềng nên hay không đủ
+ * đường kề để phá, và nhìn cũng không ra "chướng ngại giữa đường".
+ */
+function pickStones(geo, cfg, rand){
+  const n = cfg.stones || 0;
+  if (!n) return [];
+  const inner = geo.cells.filter(i => geo.neighbors[i].length >= 5);
+  return pickSome(inner.length >= n ? inner : geo.cells, n, rand);
+}
+
+/**
+ * Gắn ô đặc biệt cho màn TĨNH. Trả về {marks, par, goalsLeft} hoặc null
+ * nếu bố cục vừa sinh không đỡ nổi yêu cầu (gọi lại với seed khác).
+ */
+function decorateStatic(geo, paths, colorOfPath, stones, cfg, rand){
+  const size = geo.cols*geo.rows;
+  const marks = new Array(size).fill(null);
+  const pathOf = new Array(size).fill(-1);
+  paths.forEach((p,idx)=> p.forEach(i => pathOf[i] = idx));
+
+  /* --- ĐÁ: mỗi hòn phải kề đủ số đường phân biệt bằng máu của nó --- */
+  const hp0 = cfg.stoneHp || 1;
+  for (const s of stones){
+    const near = new Set();
+    for (const j of geo.neighbors[s]) if (pathOf[j] >= 0) near.add(pathOf[j]);
+    if (near.size === 0) return null;              // đá bị vây kín => bỏ bố cục
+    const m = newMark();
+    m.k = K_STONE;
+    m.hp = Math.min(hp0, near.size);               // không đặt máu quá số lần va có được
+    marks[s] = m;
+  }
+
+  /* --- ĐA SẮC: tối đa 1 ô mỗi đường --- */
+  const wilds = cfg.wilds || 0;
+  if (wilds){
+    if (paths.length < wilds) return null;
+    for (const idx of pickSome(paths.map((_,i)=>i), wilds, rand)){
+      const cell = paths[idx][Math.floor(rand()*paths[idx].length)];
+      (marks[cell] = marks[cell] || newMark()).k = K_WILD;
+    }
+  }
+
+  /* --- MỤC TIÊU: par = số đường có chứa đích --- */
+  const goals = cfg.goals || 0;
+  let par = paths.length, goalCells = [];
+  if (goals){
+    if (paths.length < goals) return null;
+    // mỗi đích một đường khác nhau => par đúng bằng số đích
+    for (const idx of pickSome(paths.map((_,i)=>i), goals, rand)){
+      const cell = paths[idx][Math.floor(rand()*paths[idx].length)];
+      (marks[cell] = marks[cell] || newMark()).goal = true;
+      goalCells.push(cell);
+    }
+    par = goals;
+  }
+
+  /* --- NGÒI NỔ: đặt theo THỨ TỰ ăn của lời giải tham chiếu --- */
+  const bombs = cfg.bombs || 0;
+  if (bombs){
+    // ở màn mục tiêu, ngòi phải nằm trên chính ô đích, nếu không người
+    // chơi có thể thắng mà chưa từng cần đụng tới ô mang ngòi
+    const hosts = goals
+      ? goalCells
+      : pickSome(paths.map((_,i)=>i), bombs, rand)
+          .map(idx => paths[idx][Math.floor(rand()*paths[idx].length)]);
+    if (hosts.length < bombs) return null;
+    for (const cell of pickSome(hosts, bombs, rand)){
+      const t = pathOf[cell] + 1;                  // nước ăn được ô này (1-based)
+      const m = (marks[cell] = marks[cell] || newMark());
+      m.k = K_BOMB;
+      m.fz = t + (cfg.bombSlack == null ? 3 : cfg.bombSlack);
+    }
+  }
+
+  return {marks, par, goalTotal: goalCells.length};
+}
+
+/**
+ * Gắn ô đặc biệt cho màn GRAVITY. Ở đây lời giải là một DÃY nước, nên
+ * mọi thứ tính theo chỉ số nước — chính xác hơn màn tĩnh.
+ * Không dùng đá: đá rơi được thì phải chèn vào cột sau khi đã mô phỏng,
+ * mà chèn xong thì thứ tự rơi đổi và lời giải ghi sẵn hỏng theo.
+ */
+function decorateGravity(r, cfg, rand){
+  // r.solution[t] = mảng slot {x,k} bị ăn ở nước t
+  const marks = r.columns.map(col => col.map(()=> null));
+  const clearedAt = r.columns.map(col => col.map(()=> -1));
+  r.solution.forEach((mv,t)=> mv.forEach(s => { clearedAt[s.x][s.k] = t; }));
+
+  const all = [];
+  for (let x=0;x<r.columns.length;x++)
+    for (let k=0;k<r.columns[x].length;k++)
+      if (clearedAt[x][k] >= 0) all.push({x, k, t:clearedAt[x][k]});
+  if (!all.length) return null;
+
+  const markAt = (s)=> (marks[s.x][s.k] = marks[s.x][s.k] || newMark());
+
+  /* --- ĐA SẮC: tối đa 1 ô mỗi nước --- */
+  const wilds = cfg.wilds || 0;
+  if (wilds){
+    const byMove = new Map();
+    for (const s of all) if (!byMove.has(s.t)) byMove.set(s.t, s);
+    const picked = pickSome([...byMove.values()], wilds, rand);
+    if (picked.length < wilds) return null;
+    picked.forEach(s => { markAt(s).k = K_WILD; });
+  }
+
+  /* --- MỤC TIÊU: par = nước cuối cùng còn phải đi để chạm hết đích --- */
+  const goals = cfg.goals || 0;
+  let par = r.solution.length, goalTotal = 0, goalSlots = [];
+  if (goals){
+    // rải đích ra nhiều mốc thời gian khác nhau cho có nhịp
+    const spread = [];
+    const step = Math.max(1, Math.floor(all.length / goals));
+    for (let g=0; g<goals; g++){
+      const bucket = all.slice(g*step, (g+1)*step);
+      if (!bucket.length) return null;
+      spread.push(bucket[Math.floor(rand()*bucket.length)]);
+    }
+    spread.forEach(s => { markAt(s).goal = true; goalSlots.push(s); });
+    goalTotal = spread.length;
+    par = Math.max(...spread.map(s => s.t)) + 1;
+  }
+
+  /* --- NGÒI NỔ --- */
+  const bombs = cfg.bombs || 0;
+  if (bombs){
+    const hosts = goals ? goalSlots : pickSome(all.filter(s => s.t >= 1), bombs, rand);
+    if (hosts.length < bombs) return null;
+    for (const s of pickSome(hosts, bombs, rand)){
+      const m = markAt(s);
+      m.k = K_BOMB;
+      m.fz = s.t + 1 + (cfg.bombSlack == null ? 3 : cfg.bombSlack);
+    }
+  }
+
+  return {marks, par, goalTotal};
+}
+
+/* ==================================================================
+   2C. DỰNG MÀN
+   ================================================================== */
+function buildLevel(cfg){
+  const slack = cfg.slack == null ? 4 : cfg.slack;
+  const shuffles = cfg.shuffles == null ? (cfg.w === 1 ? 3 : 2) : cfg.shuffles;
+
+  if (cfg.gravity){
+    for (let attempt=0; attempt<300; attempt++){
+      const rand = mulberry32((cfg.seed||1) + attempt*7919);
+      const r = simulateGravity(cfg, rand);
+      if (!r) continue;
+      const dec = decorateGravity(r, cfg, rand);
+      if (!dec) continue;
+      const geo = makeGeometry({cols:cfg.cols, rows:cfg.rows});
+      const par = dec.par;
+      return {
+        cfg, geo, gravity:true,
+        columns:r.columns, markCols:dec.marks, slotsPerCol:r.H, solution:r.solution,
+        totalCells:r.total, visibleCells:cfg.cols*cfg.rows,
+        goalMode: dec.goalTotal > 0, goalTotal: dec.goalTotal,
+        par, maxMoves:par+slack, star2:par+Math.max(1,Math.ceil(slack/2)),
+        undos:cfg.undos == null ? 3 : cfg.undos, shuffles
+      };
+    }
+    throw new Error('Không sinh được màn gravity: ' + cfg.name);
+  }
+
+  const full = makeGeometry(cfg);
+  for (let attempt=0; attempt<400; attempt++){
+    const rand = mulberry32((cfg.seed||1) + attempt*7919);
+    const use = attempt < 200 ? cfg : Object.assign({}, cfg, {pathLen:[2,3]});
+
+    // Đá bị lấy khỏi hình học TRƯỚC khi phân hoạch: chúng không phải ô nối
+    // được, để lẫn vào thì đường đi sẽ xuyên qua đá.
+    const stones = pickStones(full, cfg, rand);
+    const active = full.active.slice();
+    stones.forEach(i => active[i] = false);
+    const geo = stones.length ? geometryFromMask(full.cols, full.rows, active) : full;
+    if (!geo.cells.length) continue;
+
+    const paths = tryPartition(geo, use, rand);
+    if (!paths) continue;
+    const colorOfPath = assignColors(geo, paths, cfg, rand);
+    const dec = decorateStatic(full, paths, colorOfPath, stones, cfg, rand);
+    if (!dec) continue;
+
+    const template = new Array(full.cols*full.rows).fill(WALL);
+    paths.forEach((p,idx)=> p.forEach(i => template[i] = colorOfPath[idx]));
+    stones.forEach(i => template[i] = STONE);
+
+    const par = dec.par;
+    return {
+      cfg, geo: full, gravity:false, template, paths, marks: dec.marks, stones,
+      totalCells: geo.cells.length + stones.length, visibleCells: geo.cells.length + stones.length,
+      goalMode: dec.goalTotal > 0, goalTotal: dec.goalTotal,
+      par, maxMoves:par+slack, star2:par+Math.max(1,Math.ceil(slack/2)),
+      undos:cfg.undos == null ? 4 : cfg.undos, shuffles
+    };
+  }
+  throw new Error('Không sinh được màn: ' + cfg.name);
+}
+
+/* ==================================================================
+   2D. KIỂM CHỨNG — chơi lại lời giải tham chiếu theo ĐÚNG luật
+   ------------------------------------------------------------------
+   Hàm thuần, không đụng DOM, để chạy được bằng node ngoài trình duyệt.
+   Nó là bằng chứng cho câu "màn nào cũng giải được": nếu một cơ chế mới
+   làm hỏng lời giải tham chiếu thì hàm này báo ngay, không cần chờ tự
+   tay chơi thử 40 màn.
+   ================================================================== */
+function validateLevel(L){
+  const {cols, rows} = L.geo;
+  const problems = [];
+  let moves = 0, goalsLeft = L.goalTotal || 0;
+
+  if (L.gravity){
+    const stacks = L.columns.map((col,x)=> col.map((c,k)=> ({c, m:L.markCols[x][k]})));
+    const fuses = [];
+    stacks.forEach((st,x)=> st.forEach((cell,k)=>{
+      if (cell.m && cell.m.k === K_BOMB) fuses.push({x, k, fz:cell.m.fz, alive:true});
+    }));
+
+    for (const mv of L.solution){
+      // chuỗi phải hợp lệ: cùng màu, tối đa 1 ô đa sắc
+      const cells = mv.map(s => stacks[s.x][s.k]);
+      const colors = new Set(), wilds = cells.filter(c => c.m && c.m.k === K_WILD).length;
+      cells.forEach(c => { if (!(c.m && c.m.k === K_WILD)) colors.add(c.c); });
+      if (colors.size > 1) problems.push('nước ' + (moves+1) + ': chuỗi lẫn ' + colors.size + ' màu');
+      if (wilds > 1) problems.push('nước ' + (moves+1) + ': chuỗi có ' + wilds + ' ô đa sắc');
+
+      mv.forEach(s=>{
+        const cell = stacks[s.x][s.k];
+        if (cell.m && cell.m.goal) goalsLeft--;
+        cell.dead = true;
+        const f = fuses.find(f => f.x === s.x && f.k === s.k);
+        if (f) f.alive = false;
+      });
+      moves++;
+      for (const f of fuses)
+        if (f.alive && f.fz <= moves) problems.push('nước ' + moves + ': ngòi nổ cháy hết trước khi tới');
+      if (goalsLeft === 0 && L.goalMode) break;
+    }
+  } else {
+    const board = L.template.slice();
+    const marks = L.marks.map(m => m ? Object.assign({}, m) : null);
+    const order = L.goalMode
+      ? L.paths.map((p,i)=>i).filter(i => L.paths[i].some(c => marks[c] && marks[c].goal))
+      : L.paths.map((p,i)=>i);
+
+    for (const idx of order){
+      const p = L.paths[idx];
+      const colors = new Set(), wilds = p.filter(i => marks[i] && marks[i].k === K_WILD).length;
+      p.forEach(i => { if (!(marks[i] && marks[i].k === K_WILD)) colors.add(board[i]); });
+      if (colors.size > 1) problems.push('đường ' + idx + ': lẫn ' + colors.size + ' màu');
+      if (wilds > 1) problems.push('đường ' + idx + ': có ' + wilds + ' ô đa sắc');
+
+      p.forEach(i=>{
+        if (marks[i] && marks[i].goal) goalsLeft--;
+        board[i] = EMPTY;
+      });
+      // đá kề chuỗi vừa ăn mất 1 máu (mỗi nước tối đa 1, dù kề mấy ô)
+      const hit = new Set();
+      p.forEach(i => L.geo.neighbors[i].forEach(j => { if (board[j] === STONE) hit.add(j); }));
+      hit.forEach(j=>{ if (--marks[j].hp <= 0) board[j] = EMPTY; });
+      moves++;
+      for (let i=0;i<marks.length;i++)
+        if (marks[i] && marks[i].k === K_BOMB && board[i] !== EMPTY && marks[i].fz <= moves)
+          problems.push('nước ' + moves + ': ngòi nổ ở ô ' + i + ' cháy hết');
+    }
+    if (!L.goalMode){
+      const stuck = board.filter(v => v === STONE).length;
+      if (stuck) problems.push(stuck + ' hòn đá không phá được');
+      const rest = board.filter(v => v >= 0).length;
+      if (rest) problems.push(rest + ' ô còn sót');
+    }
+  }
+
+  if (goalsLeft > 0) problems.push(goalsLeft + ' ô đích chưa dọn');
+  if (moves > L.maxMoves) problems.push('lời giải tham chiếu tốn ' + moves + ' > ' + L.maxMoves + ' lượt');
+  return {ok: problems.length === 0, moves, problems};
+}
+/* ===== HẾT PHẦN LOGIC THUẦN — dưới đây có đụng DOM ===== */
+
+/* ==================================================================
+   3. TIẾN ĐỘ
+   ================================================================== */
+const save = {
+  // free MẶC ĐỊNH BẬT: đây là bản dựng thử, mở lên là phải xem được cả 40 màn
+  // ngay. Tắt trong menu để chơi theo tiến trình như bản phát hành.
+  data:{stars:{}, best:{}, sound:true, symbols:false, free:true},
+  load(){
+    try{ Object.assign(this.data, JSON.parse(localStorage.getItem(SAVE_KEY)) || {}); }catch(e){}
+    if (!this.data.stars) this.data.stars = {};
+    if (!this.data.best)  this.data.best  = {};
+  },
+  flush(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(this.data)); }catch(e){} },
+  stars(i){ return this.data.stars[i] || 0; },
+  best(i){ return this.data.best[i] || 0; },
+  record(i, stars, score){
+    let dirty = false;
+    if (stars > this.stars(i)){ this.data.stars[i] = stars; dirty = true; }
+    if (score > this.best(i)){ this.data.best[i]  = score; dirty = true; }
+    if (dirty) this.flush();
+  },
+  /**
+   * Chơi tự do: bỏ hẳn hàng rào tiến trình.
+   * Tiến độ (sao, điểm) VẪN ghi bình thường — bật cái này chỉ mở cửa, không
+   * xoá gì, nên tắt đi là mọi thứ trở về đúng như cũ.
+   */
+  endlessBest(){ return this.data.endless || 0; },
+  recordEndless(score){
+    if (score > this.endlessBest()){ this.data.endless = score; this.flush(); }
+  },
+
+  freePlay(){ return !!this.data.free; },
+  setFreePlay(on){ this.data.free = !!on; this.flush(); },
+
+  unlocked(i){ return this.data.free || i === 0 || this.stars(i-1) > 0; }
+};
+
+/* ==================================================================
+   4. ÂM THANH (WebAudio, không cần file)
+   ------------------------------------------------------------------
+   Giữ chi tiết dễ thương của source: pitch tăng dần theo độ dài chuỗi
+   (GameGridInput.AddElementToSelection).
+   ================================================================== */
+const Sfx = {
+  ctx:null,
+  get on(){ return save.data.sound; },
+  tone(freq, dur, type, gain, delay){
+    if (!this.on) return;
+    try{
+      if (!this.ctx) this.ctx = new (window.AudioContext||window.webkitAudioContext)();
+      const c = this.ctx, t0 = c.currentTime + (delay||0);
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = type || 'sine'; o.frequency.setValueAtTime(freq, t0);
+      g.gain.setValueAtTime(gain == null ? .16 : gain, t0);
+      g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+      o.connect(g); g.connect(c.destination);
+      o.start(t0); o.stop(t0 + dur);
+    }catch(e){}
+  },
+  select(n){ this.tone(392 * Math.pow(1.0595, n), .10, 'sine', .12); },
+  clear(n){  this.tone(190 + n*38, .22, 'triangle', .17);
+             for (let k=0;k<Math.min(n,8);k++) this.tone(700+k*90, .07, 'sine', .05, k*.035); },
+  fall(){    this.tone(120, .16, 'sine', .09); },
+  bad(){     this.tone(150, .25, 'sawtooth', .10); },
+  undo(){    this.tone(300, .12, 'sine', .10); },
+  shuffle(){ [392,523,659,784].forEach((f,k)=> this.tone(f,.12,'sine',.09,k*.05)); },
+  win(){     [523,659,784,1047].forEach((f,k)=> this.tone(f,.3,'sine',.14,k*.09)); },
+  lose(){    [330,262,196].forEach((f,k)=> this.tone(f,.3,'triangle',.13,k*.13)); }
+};
+const buzz = ms => { try{ if (navigator.vibrate) navigator.vibrate(ms); }catch(e){} };
+
+/* ==================================================================
+   5. HIỆU ỨNG
+   ================================================================== */
+const FX = $('fx');
+
+/**
+ * Gắn node hiệu ứng, chạy animation, và ĐẢM BẢO xoá.
+ * Không tin vào onfinish một mình: khi tab bị ẩn, khi người dùng bật
+ * reduced-motion, hay khi timeline của document dừng, onfinish không bao
+ * giờ nổ và node sẽ tích luỹ vô hạn. setTimeout là chốt hạ.
+ */
+function fxAnim(d, frames, opts){
+  FX.appendChild(d);
+  let dead = false;
+  const kill = ()=>{ if (!dead){ dead = true; d.remove(); } };
+  try{ d.animate(frames, opts).onfinish = kill; }
+  catch(e){ kill(); return; }
+  setTimeout(kill, (opts.duration||0) + (opts.delay||0) + 150);
+}
+
+/** Vòng sáng lan ra tại ô — dùng khi nối ô. */
+function fxRing(rect, color){
+  const d = document.createElement('i');
+  d.className = 'ring';
+  const s = rect.width;
+  d.style.cssText = 'width:'+s+'px;height:'+s+'px;border-color:'+color+
+                    ';left:'+(rect.left+rect.width/2)+'px;top:'+(rect.top+rect.height/2)+'px';
+  fxAnim(d, [{transform:'translate(-50%,-50%) scale(.7)',opacity:.9},
+             {transform:'translate(-50%,-50%) scale(1.9)',opacity:0}],
+         {duration:420, easing:'cubic-bezier(.2,.7,.3,1)'});
+}
+
+/** Vụn bay ra khi phá ô. */
+function fxBurst(rect, color, n){
+  const cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
+  for (let i=0;i<n;i++){
+    const d = document.createElement('i');
+    d.className = i % 3 === 0 ? 'sq' : 'pt';
+    const s = 3 + Math.random()*5;
+    d.style.cssText = 'width:'+s+'px;height:'+s+'px;background:'+color+
+                      ';left:'+cx+'px;top:'+cy+'px';
+    const a = Math.random()*Math.PI*2, dist = 14 + Math.random()*44;
+    fxAnim(d, [
+      {transform:'translate(-50%,-50%) scale(1) rotate(0deg)', opacity:1},
+      {transform:'translate(calc(-50% + '+(Math.cos(a)*dist)+'px), calc(-50% + '+(Math.sin(a)*dist+18)+'px)) scale(.15) rotate('+(Math.random()*360|0)+'deg)', opacity:0}
+    ], {duration:380 + Math.random()*300, easing:'cubic-bezier(.2,.7,.3,1)'});
+  }
+}
+
+/** Chữ bay lên rồi tan — dùng cho +điểm và lời khen. */
+function fxText(x, y, txt, color, size, dy, delay){
+  const d = document.createElement('div');
+  d.className = 'ftext';
+  d.textContent = txt;
+  d.style.cssText = 'left:'+x+'px;top:'+y+'px;color:'+color+';font-size:'+size+'px';
+  fxAnim(d, [
+    {transform:'translate(-50%,-50%) scale(.4)', opacity:0, offset:0},
+    {transform:'translate(-50%,-50%) scale(1.15)', opacity:1, offset:.18},
+    {transform:'translate(-50%,calc(-50% - '+(dy*.55)+'px)) scale(1)', opacity:1, offset:.6},
+    {transform:'translate(-50%,calc(-50% - '+dy+'px)) scale(.92)', opacity:0, offset:1}
+  ], {duration:1000, delay:delay||0, easing:'cubic-bezier(.2,.8,.3,1)', fill:'backwards'});
+}
+
+function fxFlash(strength){
+  const f = $('flash');
+  f.animate([{opacity:0},{opacity:strength},{opacity:0}], {duration:220, easing:'ease-out'});
+}
+function fxShake(){
+  const b = $('boardBox');
+  b.classList.remove('shake');
+  void b.offsetWidth;
+  b.classList.add('shake');
+}
+function fxConfetti(){
+  const r = $('boardBox').getBoundingClientRect();
+  for (let i=0;i<70;i++){
+    const d = document.createElement('i');
+    d.className = 'sq';
+    const s = 5 + Math.random()*6;
+    d.style.cssText = 'width:'+s+'px;height:'+(s*1.6)+'px;background:'+HEX[Math.floor(Math.random()*HEX.length)]+
+                      ';left:'+(r.left + Math.random()*r.width)+'px;top:'+(r.top + r.height*.3)+'px';
+    fxAnim(d, [
+      {transform:'translate(-50%,-50%) rotate(0deg)', opacity:1},
+      {transform:'translate(calc(-50% + '+((Math.random()-.5)*220)+'px), '+(r.height*.8 + Math.random()*160)+'px) rotate('+(Math.random()*900-450|0)+'deg)', opacity:0}
+    ], {duration:1100 + Math.random()*700, easing:'cubic-bezier(.25,.6,.4,1)', delay:Math.random()*260});
+  }
+}
+
+/**
+ * Đếm điểm tăng dần trong HUD.
+ * rAF bị treo khi tab ẩn, nên luôn kèm một setTimeout chốt con số cuối:
+ * thà mất hiệu ứng đếm còn hơn để HUD hiện sai điểm.
+ */
+let scoreAnim = null, scoreFinal = null;
+function animateScore(from, to){
+  if (scoreAnim) cancelAnimationFrame(scoreAnim);
+  clearTimeout(scoreFinal);
+  const el = $('vScore'), t0 = performance.now(), dur = 420;
+  const step = now =>{
+    const p = Math.min(1, (now - t0) / dur);
+    el.textContent = Math.round(from + (to - from) * (1 - Math.pow(1-p, 3)));
+    if (p < 1) scoreAnim = requestAnimationFrame(step); else scoreAnim = null;
+  };
+  scoreAnim = requestAnimationFrame(step);
+  scoreFinal = setTimeout(()=>{
+    if (scoreAnim){ cancelAnimationFrame(scoreAnim); scoreAnim = null; }
+    el.textContent = to;
+  }, dur + 80);
+  bump('stScore');
+}
+function bump(id){
+  const el = $(id);
+  el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+  setTimeout(()=> el.classList.remove('bump'), 200);
+}
+
+/* ==================================================================
+   6. TRẠNG THÁI VÁN ĐANG CHƠI
+   ================================================================== */
+const G = {
+  idx:0, level:null,
+  board:null,            // lưới đang thấy: WALL / EMPTY / STONE / 0..5
+  mark:null,             // cùng chỉ số với board: null hoặc {k,hp,fz,goal}
+  stacks:null,           // (gravity) stacks[x] = [{c,m}, ...] từ đáy lên, phần CÒN LẠI
+  moves:0, score:0, undosLeft:0, goalsLeft:0,
+  shufflesLeft:0, shuffleN:0, shuffleImpossible:false,
+  selection:[], selColor:-1,
+  history:[], busy:false, dragging:false,
+  cellEls:[], cs:40
+};
+
+/* --- Trợ giúp đọc ô -------------------------------------------------
+   `board[i] >= 0` = ô có màu. Đá mang giá trị riêng nên KHÔNG lọt vào
+   các phép đếm theo màu, nhưng vẫn là ô sống và vẫn phải dọn. */
+const isColor  = v => v >= 0;
+const isStone  = v => v === STONE;
+const isAlive  = v => v >= 0 || v === STONE;
+const markAt   = i => (G.mark ? G.mark[i] : null);
+const isWild   = i => { const m = markAt(i); return !!m && m.k === K_WILD; };
+const goalsOnBoard = () => {
+  let n = 0;
+  if (G.level.gravity) G.stacks.forEach(s => s.forEach(c => { if (c.m && c.m.goal) n++; }));
+  else for (let i=0;i<G.board.length;i++) if (isAlive(G.board[i]) && markAt(i) && markAt(i).goal) n++;
+  return n;
+};
+
+/** Ô này có ghép được vào chuỗi đang có màu `c` không? */
+const matches = (i, c) => isWild(i) || (isColor(G.board[i]) && (c < 0 || G.board[i] === c));
+
+const visibleAlive = () => G.board.reduce((a,v)=> a + (isAlive(v) ? 1 : 0), 0);
+function totalLeft(){
+  if (!G.level.gravity) return visibleAlive();
+  return G.stacks.reduce((a,s)=> a + s.length, 0);
+}
+function queueLeft(){
+  if (!G.level.gravity) return 0;
+  return totalLeft() - visibleAlive();
+}
+
+/**
+ * Còn nước đi hợp lệ? = còn hai ô GHÉP được kề nhau trên bàn đang thấy.
+ * Ô đa sắc ghép với mọi màu, nên một ô đa sắc kề bất kỳ ô có màu nào cũng
+ * đã là một nước đi.
+ */
+function hasMove(){
+  const nb = G.level.geo.neighbors;
+  for (let i=0;i<G.board.length;i++){
+    const c = G.board[i];
+    if (!isColor(c) && !isWild(i)) continue;
+    for (const j of nb[i]){
+      if (isWild(i) && (isColor(G.board[j]) || isWild(j))) return true;
+      if (isColor(c) && (G.board[j] === c || isWild(j))) return true;
+    }
+  }
+  return false;
+}
+
+/** Các nhóm liên thông cùng màu trên bàn đang thấy. */
+function colorComponents(){
+  const nb = G.level.geo.neighbors, seen = new Set(), comps = [];
+  for (let i=0;i<G.board.length;i++){
+    const c = G.board[i];
+    if (c < 0 || seen.has(i)) continue;
+    const stack = [i], comp = [];
+    seen.add(i);
+    while (stack.length){
+      const k = stack.pop();
+      comp.push(k);
+      for (const j of nb[k]) if (!seen.has(j) && G.board[j] === c){ seen.add(j); stack.push(j); }
+    }
+    comps.push(comp);
+  }
+  return comps;
+}
+
+/** Các ô đang nhìn thấy trên bàn (kể cả đá — chúng cũng phải dọn). */
+function aliveVisible(){
+  const out = [];
+  for (let i=0;i<G.board.length;i++) if (isAlive(G.board[i])) out.push(i);
+  return out;
+}
+
+/** Các ô đích còn lại; màn thường thì rơi về toàn bộ ô còn trên bàn. */
+function goalOrAlive(){
+  if (!G.level.goalMode) return aliveVisible();
+  const out = [];
+  for (let i=0;i<G.board.length;i++){
+    const m = markAt(i);
+    if (isAlive(G.board[i]) && m && m.goal) out.push(i);
+  }
+  return out;
+}
+
+/**
+ * Số ô còn lại của từng màu, tính cả hàng chờ.
+ * Ô đa sắc KHÔNG tính vào màu nào: nó ghép được với tất cả, nên cộng nó vào
+ * một màu cụ thể sẽ làm các suy luận "màu này chỉ còn 1 ô" sai lệch.
+ */
+function countByColor(){
+  const n = new Array(HEX.length).fill(0);
+  if (G.level.gravity) G.stacks.forEach(s => s.forEach(c => { if (!(c.m && c.m.k === K_WILD)) n[c.c]++; }));
+  else G.board.forEach((v,i) => { if (isColor(v) && !isWild(i)) n[v]++; });
+  return n;
+}
+
+/** Còn ô đa sắc nào trên bàn không — nếu còn thì mọi ô lẻ đều còn cứu được. */
+function wildsLeft(){
+  if (G.level.gravity)
+    return G.stacks.reduce((a,s)=> a + s.filter(c => c.m && c.m.k === K_WILD).length, 0);
+  let n = 0;
+  for (let i=0;i<G.board.length;i++) if (isAlive(G.board[i]) && isWild(i)) n++;
+  return n;
+}
+
+/**
+ * Vì sao không thể thắng nữa? null = vẫn còn hy vọng.
+ *
+ * Mọi kiểm tra dưới đây đều CHẮC CHẮN ĐÚNG, không phỏng đoán — nếu báo thua
+ * thì thật sự không còn cách nào thắng. Ngược lại, KHÔNG bảo đảm điều ngược
+ * lại: trả về null chỉ nghĩa là chưa chứng minh được là thua, bàn vẫn có thể
+ * đã hỏng theo cách tinh vi hơn (muốn biết chắc phải chạy solver đầy đủ).
+ *
+ * Ngoài câu chữ, mỗi lý do còn trả về `groups`: các ô CHÍNH LÀ bằng chứng,
+ * để màn hình chỉ thẳng vào chỗ sai trước khi bật panel.
+ */
+function deadReason(){
+  const L = G.level, movesLeft = L.maxMoves - G.moves;
+
+  /* Các cận dưới (2)-(4) đều được suy ra từ giả định "phải dọn SẠCH bàn".
+     Ở màn mục tiêu giả định đó sai — thắng chỉ cần chạm hết ô đích, phần
+     bàn còn lại kệ nó. Dùng lại các cận đó sẽ báo thua oan ngay lúc người
+     chơi vẫn còn đường thắng, nên màn mục tiêu chỉ giữ kiểm tra (1). */
+  const clearAll = !L.goalMode;
+
+  // (1) Không còn hai ô cùng màu kề nhau => không đi được nước nào.
+  if (!hasMove()){
+    return {
+      t:'Bế tắc',
+      s:'Không còn hai ô cùng màu nào kề nhau' +
+        (L.gravity && queueLeft() ? ', mà hàng chờ chỉ tụt xuống khi có ô bị ăn.' : '.'),
+      hint:'Không ô nào còn ô cùng màu bên cạnh',
+      groups:[aliveVisible()]
+    };
+  }
+
+  // (2) Một màu chỉ còn đúng 1 ô => ô đó không bao giờ ăn được (chuỗi cần >= 2).
+  //     Trừ khi bàn còn ô đa sắc: một ô đa sắc kề nó là đã thành chuỗi 2 ô.
+  const cnt = countByColor();
+  const lonely = clearAll && !wildsLeft() ? cnt.findIndex(v => v === 1) : -1;
+  if (lonely >= 0){
+    const spot = aliveVisible().filter(i => G.board[i] === lonely);
+    return {
+      t:'Không thể dọn sạch',
+      s:'Còn đúng <b>1 ô</b> màu này mà chuỗi phải từ 2 ô trở lên — ' +
+        'ô đó không bao giờ ăn được nữa.' +
+        (spot.length ? '' : '<br>Nó đang nằm trong hàng chờ nên chưa thấy trên bàn.'),
+      hint: spot.length ? 'Ô này bị bỏ lại một mình' : 'Ô màu đơn độc đang nằm trong hàng chờ',
+      groups: spot.length ? [spot] : []
+    };
+  }
+
+  // (2b) Gravity: ô rơi xuống nhưng KHÔNG BAO GIỜ đổi cột. Nên hai ô cách nhau
+  //      từ 2 cột trở lên thì vĩnh viễn không thể kề nhau, dù bàn có rơi thế nào.
+  //      Nếu một màu chỉ còn đúng 1 ô trong cả dải cột liền nhau của nó thì ô đó
+  //      không bao giờ tìm được bạn cùng màu để ăn.
+  if (L.gravity && clearAll && !wildsLeft()){
+    const cols = L.geo.cols, rows = L.geo.rows;
+    for (let c=0;c<HEX.length;c++){
+      if (!cnt[c]) continue;
+      const perCol = new Array(cols).fill(0);
+      G.stacks.forEach((s,x)=> s.forEach(cell => { if (cell.c === c) perCol[x]++; }));
+
+      // cụm = dải cột liền nhau có ô màu này (một cột trống là đủ để cắt cụm,
+      // vì lúc đó hai bên cách nhau 2 cột)
+      let x = 0;
+      while (x < cols){
+        if (!perCol[x]){ x++; continue; }
+        let sum = 0, from = x;
+        while (x < cols && perCol[x]){ sum += perCol[x]; x++; }
+        if (sum === 1){
+          const lx = from;                                  // cột chứa ô đơn độc
+          const idx = G.stacks[lx].findIndex(cell => cell.c === c);
+          const seen = idx >= 0 && idx < rows;
+          return {
+            t:'Không thể dọn sạch',
+            s:'Ô màu này chỉ còn <b>1 ô</b> trong phạm vi cột quanh nó. Ô rơi xuống ' +
+              'nhưng không bao giờ đổi cột, nên nó vĩnh viễn không có bạn cùng màu để ăn.' +
+              (seen ? '' : '<br>Nó đang nằm trong hàng chờ nên chưa thấy trên bàn.'),
+            hint: seen ? 'Ô này không còn bạn cùng màu nào trong tầm cột'
+                       : 'Ô bị cô lập theo cột đang nằm trong hàng chờ',
+            groups: seen ? [[(rows-1-idx)*cols + lx]] : []
+          };
+        }
+      }
+    }
+  }
+
+  // (3) Mỗi nước chỉ ăn được đúng 1 màu => cần ít nhất "số màu còn lại" lượt.
+  const colorsLeft = cnt.filter(v => v > 0).length;
+  if (clearAll && colorsLeft > movesLeft){
+    const byColor = [];
+    cnt.forEach((v,c)=>{
+      if (!v) return;
+      const g = aliveVisible().filter(i => G.board[i] === c);
+      if (g.length) byColor.push(g);
+    });
+    return {
+      t:'Không đủ lượt',
+      s:'Còn <b>' + colorsLeft + '</b> màu trên bàn mà mỗi lượt chỉ ăn được 1 màu, ' +
+        'trong khi chỉ còn <b>' + movesLeft + '</b> lượt.',
+      hint: colorsLeft + ' màu còn lại, mỗi lượt chỉ ăn được 1 màu — mà còn ' + movesLeft + ' lượt',
+      groups: byColor
+    };
+  }
+
+  // (4) Bàn tĩnh: mỗi nước chỉ ăn trong MỘT nhóm liên thông, và ăn ô không bao
+  //     giờ làm hai nhóm nhập lại => cần ít nhất "số nhóm" lượt.
+  //     Với gravity thì cận này KHÔNG đúng: ô rơi xuống có thể nhập hai nhóm.
+  // (3b) Đá chỉ vỡ khi có chuỗi bị ăn KỀ nó. Hòn nào không còn ô màu nào bên
+  //      cạnh thì vĩnh viễn không ai chạm tới được.
+  if (clearAll){
+    const nb = L.geo.neighbors, dead = [];
+    for (let i=0;i<G.board.length;i++){
+      if (!isStone(G.board[i])) continue;
+      if (!nb[i].some(j => isColor(G.board[j]))) dead.push(i);
+    }
+    if (dead.length){
+      return {
+        t:'Đá không phá được',
+        s:'<b>' + dead.length + '</b> hòn đá không còn ô màu nào bên cạnh. Đá chỉ vỡ khi ' +
+          'có chuỗi bị ăn ngay cạnh nó, nên chúng sẽ nằm đó mãi.',
+        hint:'Đá này không còn ô nào bên cạnh để phá',
+        groups:[dead]
+      };
+    }
+  }
+
+  // Ô đa sắc nối được hai nhóm khác màu lại với nhau, nên cận "số nhóm" bên
+  // dưới không còn là cận dưới đúng nữa khi bàn còn ô đa sắc.
+  if (!L.gravity && clearAll && !wildsLeft()){
+    const comps = colorComponents();
+    if (comps.length > movesLeft){
+      return {
+        t:'Không đủ lượt',
+        s:'Bàn còn <b>' + comps.length + '</b> nhóm rời nhau mà mỗi lượt chỉ dọn ' +
+          'được trong một nhóm, trong khi chỉ còn <b>' + movesLeft + '</b> lượt.',
+        hint: comps.length + ' nhóm rời nhau, mỗi lượt chỉ dọn được 1 nhóm — mà còn ' + movesLeft + ' lượt',
+        groups: comps
+      };
+    }
+  }
+
+  return null;
+}
+
+/* ==================================================================
+   7. DỰNG BÀN + VẼ
+   ================================================================== */
+/* ==================================================================
+   6B. CHẾ ĐỘ VÔ TẬN
+   ------------------------------------------------------------------
+   Không lượt, không mục tiêu, không par. Bàn LUÔN ĐẦY: ăn bao nhiêu ô
+   thì bấy nhiêu ô mới rớt xuống từ trên. Ván chỉ kết thúc khi bàn thật
+   sự bế tắc — không còn hai ô nào ghép được với nhau.
+
+   Vì bàn đầy lại sau mỗi nước nên KHÔNG có lời giải tham chiếu, và cũng
+   không cần: ở đây không có gì để bảo đảm giải được. Đổi lại phải bảo
+   đảm điều khác — sau mỗi lần rớt, bàn phải còn ít nhất một nước đi,
+   nếu không người chơi thua vì xúc xắc chứ không phải vì chơi dở.
+
+   Áp lực đến từ SỐ MÀU tăng dần theo điểm: càng nhiều màu, ô càng khó
+   gặp bạn cùng màu, và bế tắc dần trở thành chuyện có thật.
+   ================================================================== */
+const ENDLESS = {
+  cols:7, rows:8,
+  wildChance:.035,          // thỉnh thoảng rớt xuống một ô đa sắc cho dễ thở
+  shuffles:3,
+  comboMin:4,               // chuỗi từ 4 ô trở lên mới nối được combo
+  comboCap:8
+};
+
+/** Số màu theo điểm — đây là toàn bộ đường cong khó của chế độ này. */
+function endlessColors(score){
+  return score >= 2500 ? 6 : score >= 800 ? 5 : 4;
+}
+
+/** Một ô mới rơi xuống. Vô tận nên dùng ngẫu nhiên thật, không cần tất định. */
+function endlessCell(){
+  const C = endlessColors(G.score);
+  let m = null;
+  if (Math.random() < ENDLESS.wildChance){ m = newMark(); m.k = K_WILD; }
+  return {c: Math.floor(Math.random()*C), k:0, m};
+}
+
+function buildEndless(){
+  const geo = makeGeometry({cols:ENDLESS.cols, rows:ENDLESS.rows});
+  return {
+    cfg:{name:'Vô tận', colors:4, seed:1},
+    geo, gravity:true, endless:true,
+    columns:[], markCols:[], solution:[], paths:null,
+    totalCells:geo.cells.length, visibleCells:geo.cells.length,
+    goalMode:false, goalTotal:0,
+    par:0, maxMoves:Infinity, star2:Infinity,
+    undos:0, shuffles:ENDLESS.shuffles
+  };
+}
+
+/**
+ * Đổ đầy lại các cột và ghi luôn quãng rơi cho hoạt ảnh.
+ * `from` cố tình đặt cao hơn mép bàn để ô mới bay từ ngoài màn hình vào,
+ * dùng chung đúng đường hoạt ảnh với ô rơi bình thường.
+ */
+function refillEndless(falls){
+  const {cols, rows} = G.level.geo;
+  const fresh = [];
+  for (let x=0;x<cols;x++){
+    const st = G.stacks[x];
+    let k = 0;
+    while (st.length < rows){
+      st.push(endlessCell());
+      falls.push({x, from: rows + k, to: st.length - 1});
+      fresh.push({x, idx: st.length - 1});
+      k++;
+    }
+  }
+
+  // Không được để người chơi thua vì bàn mới rớt xuống đã bế tắc sẵn.
+  // Gieo lại riêng các ô vừa rơi cho tới khi có ít nhất một nước đi.
+  for (let tries=0; tries<60; tries++){
+    syncBoard();
+    if (hasMove()) break;
+    fresh.forEach(f => { G.stacks[f.x][f.idx] = endlessCell(); });
+  }
+  return fresh;
+}
+
+/** Gieo lại toàn bộ bàn vô tận (nút Xáo). Luôn ra bàn còn đi được. */
+function reshuffleEndless(){
+  const {cols, rows} = G.level.geo;
+  for (let tries=0; tries<80; tries++){
+    for (let x=0;x<cols;x++)
+      for (let i=0;i<G.stacks[x].length;i++) G.stacks[x][i] = endlessCell();
+    syncBoard();
+    if (hasMove()) return true;
+  }
+  return false;
+}
+
+function startEndless(){
+  G.idx = -1;
+  G.level = buildEndless();
+  resetLevel();
+  show('scGame');
+  setTimeout(()=> toast('∞ Vô tận: ô rớt xuống mãi, không giới hạn lượt. Chuỗi ' +
+    ENDLESS.comboMin + '+ ô liên tiếp để nhân điểm. Hết nước đi là xong ván.'), 420);
+}
+
+/**
+ * Câu giới thiệu cho cơ chế LẦN ĐẦU gặp.
+ * Không có nó thì người chơi nhìn ô xám hay con số trên ô mà không biết nó
+ * là gì, và sẽ học luật bằng cách thua — kiểu học đắt nhất.
+ */
+const INTRO = [
+  {key:'stones',   msg:'▩ Đá không nối được. Nó chỉ vỡ khi bạn ăn một chuỗi NGAY CẠNH nó.'},
+  {key:'stoneHp2', msg:'▩ Đá dày cần bị va 2 lần mới vỡ.'},
+  {key:'wilds',    msg:'✦ Ô đa sắc ghép được với mọi màu — nhưng mỗi chuỗi chỉ được dùng 1 ô.'},
+  {key:'bombs',    msg:'⧗ Ô có số là ngòi nổ: hết số mà chưa ăn tới là thua ngay.'},
+  {key:'goals',    msg:'◎ Màn này chỉ cần dọn các ô có vòng vàng, không cần sạch bàn.'}
+];
+
+/**
+ * Mốc giới thiệu TỰ TÌM theo bảng màn, không ghi số cứng.
+ * Ghi số cứng thì mỗi lần thêm/bớt màn là các mốc lệch hết mà không ai báo —
+ * người chơi gặp đá ở màn 31 mà lời giải thích nhảy ra ở màn 25.
+ */
+const introAt = {};
+INTRO.forEach(t=>{
+  const has = t.key === 'stoneHp2'
+    ? (cfg => cfg.stones > 0 && cfg.stoneHp >= 2)
+    : (cfg => cfg[t.key] > 0);
+  const i = LEVELS.findIndex(has);
+  if (i >= 0) introAt[i] = (introAt[i] || []).concat(t);
+});
+const introShown = {};
+
+function startLevel(idx){
+  G.idx = idx;
+  G.level = buildLevel(LEVELS[idx]);
+  resetLevel();
+  show('scGame');
+
+  (introAt[idx] || []).forEach((t, k)=>{
+    if (introShown[t.key]) return;
+    introShown[t.key] = true;
+    setTimeout(()=> toast(t.msg), 420 + k*2600);
+  });
+}
+
+function resetLevel(){
+  const L = G.level, cfg = L.cfg;
+  cancelDiagnose();
+  G.moves = 0; G.score = 0;
+  G.undosLeft = L.undos;
+  G.shufflesLeft = L.shuffles; G.shuffleImpossible = false;
+  G.history = [];
+  G.selection = []; G.selColor = -1;
+  G.busy = false; G.dragging = false;
+  G.combo = 0;
+
+  if (L.endless){
+    // bàn đầy ngay từ đầu; refillEndless lo luôn việc bảo đảm có nước đi
+    G.stacks = [];
+    for (let x=0;x<L.geo.cols;x++) G.stacks.push([]);
+    G.board = new Array(L.geo.cols*L.geo.rows).fill(EMPTY);
+    G.mark  = new Array(L.geo.cols*L.geo.rows).fill(null);
+    refillEndless([]);
+  } else if (L.gravity){
+    // chồng slot đầy đủ (kể cả hàng chờ), từ đáy lên.
+    // Dấu đi THEO Ô chứ không theo vị trí: ô rơi xuống thì ngòi nổ và vòng
+    // đích phải rơi cùng, nếu gắn theo ô lưới thì chúng đứng yên tại chỗ.
+    G.stacks = L.columns.map((col,x)=> col.map((c,k)=> ({
+      c, k, m: L.markCols[x][k] ? Object.assign({}, L.markCols[x][k]) : null
+    })));
+    G.board = new Array(L.geo.cols*L.geo.rows).fill(EMPTY);
+    G.mark  = new Array(L.geo.cols*L.geo.rows).fill(null);
+    syncBoard();
+  } else {
+    G.stacks = null;
+    G.board = L.template.slice();
+    G.mark  = L.marks.map(m => m ? Object.assign({}, m) : null);
+  }
+  G.goalsLeft = L.goalMode ? goalsOnBoard() : 0;
+
+  $('gName').textContent = L.endless ? '∞ Vô tận' : ((G.idx+1) + '. ' + cfg.name);
+  $('gSub').textContent  = L.endless
+    ? ('kỷ lục ' + save.endlessBest() + ' · ô rớt xuống mãi')
+    : L.goalMode
+    ? (L.goalTotal + ' ô đích · ' + L.totalCells + ' ô' + (L.gravity ? ' · gravity' : ''))
+    : L.gravity
+      ? (L.totalCells + ' ô · ' + L.visibleCells + ' ô hiện · gravity')
+      : (L.totalCells + ' ô · ' + cfg.colors + ' màu · bàn tĩnh');
+  $('vPar').textContent = L.endless ? (endlessColors(0) + ' màu') : ('tối ưu ' + L.par + ' lượt');
+  $('vScore').textContent = '0';
+
+  buildBoardDom();
+  layout();
+  renderBoard();
+  updateHud();
+  hideOverlay();
+}
+
+function buildBoardDom(){
+  const {cols, rows, active} = G.level.geo;
+  const box = $('board');
+  box.style.setProperty('--cols', cols);
+  box.style.setProperty('--rows', rows);
+  box.innerHTML = '';
+  G.cellEls = new Array(cols*rows).fill(null);
+
+  for (let i=0;i<cols*rows;i++){
+    const d = document.createElement('div');
+    d.className = 'cell' + (active[i] ? '' : ' wall');
+    d.dataset.i = i;
+    if (active[i]){
+      const b = document.createElement('div');
+      b.className = 'bub';
+      b.innerHTML = '<span class="gl"></span><span class="fz" hidden></span>';
+      d.appendChild(b);
+    }
+    box.appendChild(d);
+    G.cellEls[i] = d;
+  }
+  $('line').setAttribute('viewBox', '0 0 ' + cols + ' ' + rows);
+}
+
+/** Ô vuông, bàn co theo không gian còn lại. */
+function layout(){
+  if (!G.level) return;
+  const {cols, rows} = G.level.geo;
+  const wrap = document.querySelector('.board-wrap');
+  const cs = Math.max(24, Math.min((wrap.clientWidth - 2)/cols, (wrap.clientHeight - 2)/rows, 62));
+  G.cs = cs;
+  const box = $('boardBox');
+  box.style.width  = (cs*cols) + 'px';
+  box.style.height = (cs*rows) + 'px';
+  updatePreview();
+}
+
+/** (gravity) dựng lại lưới đang thấy từ các chồng slot. */
+function syncBoard(){
+  const {cols, rows} = G.level.geo;
+  G.board.fill(EMPTY);
+  G.mark.fill(null);
+  for (let x=0;x<cols;x++){
+    const st = G.stacks[x], n = Math.min(st.length, rows);
+    for (let idx=0; idx<n; idx++){
+      const at = (rows-1-idx)*cols + x;
+      G.board[at] = st[idx].c;
+      G.mark[at]  = st[idx].m;
+    }
+  }
+}
+
+function renderBoard(){
+  for (let i=0;i<G.board.length;i++){
+    const el = G.cellEls[i], v = G.board[i];
+    if (!el || v === WALL) continue;
+    el.classList.toggle('empty', !isAlive(v));
+    el.classList.remove('pop', 'crack');
+    if (!isAlive(v)){ el.classList.remove('goal'); continue; }
+
+    const m = markAt(i);
+    const b = el.firstChild;
+    b.classList.toggle('wild',  !!m && m.k === K_WILD);
+    b.classList.toggle('stone', isStone(v));
+    b.classList.toggle('hp2',   isStone(v) && m && m.hp >= 2);
+    el.classList.toggle('goal', !!m && m.goal);
+
+    if (isStone(v)){
+      b.style.removeProperty('--c');
+      b.firstChild.textContent = m && m.hp >= 2 ? '' : '';
+    } else {
+      b.style.setProperty('--c', HEX[v]);
+      // ô đa sắc không mang ký hiệu màu nào cả — nó không thuộc màu nào
+      b.firstChild.textContent = (m && m.k === K_WILD) ? '✦' : GLYPHS[v];
+    }
+
+    // ngòi nổ: badge đếm ngược, đỏ khi còn <= 2 lượt
+    const fz = b.children[1];
+    if (m && m.k === K_BOMB){
+      fz.hidden = false;
+      fz.textContent = m.fz - G.moves;
+      fz.classList.toggle('warn', m.fz - G.moves <= 2);
+    } else {
+      fz.hidden = true;
+    }
+  }
+}
+
+function drawLine(){
+  const {cols} = G.level.geo;
+  const pts = G.selection.map(i=>{
+    const x = i % cols, y = (i - x) / cols;
+    return (x + .5) + ',' + (y + .5);
+  }).join(' ');
+  for (const id of ['poly','glow']){
+    const p = $(id);
+    p.setAttribute('points', G.selection.length ? pts : '');
+    p.setAttribute('stroke', G.selection.length ? selHex() : 'none');
+    p.setAttribute('stroke-width', id === 'glow' ? '0.42' : '0.17');
+  }
+  updatePreview();
+}
+
+/** Chip xem trước điểm, bám đầu chuỗi (kiểu ScorePreview của source). */
+function updatePreview(){
+  const p = $('prev'), n = G.selection.length;
+  if (n < 2){ p.classList.remove('on'); return; }
+  const {cols} = G.level.geo, head = G.selection[n-1];
+  const x = head % cols, y = (head - x) / cols;
+  p.style.left = ((x + .5) * G.cs) + 'px';
+  p.style.top  = ((y + .5) * G.cs) + 'px';
+  p.innerHTML = n + ' ô <b>+' + chainScore(n) + '</b>';
+  p.classList.add('on');
+}
+
+function updateHud(){
+  const L = G.level, left = L.maxMoves - G.moves;
+
+  if (L.endless){
+    // Vô tận không có lượt để đếm ngược, nên ô đó chuyển thành số nước ĐÃ đi.
+    $('kMoves').textContent = 'Nước đã đi';
+    $('vMoves').textContent = G.moves;
+    $('vMax').textContent = '';
+    $('stMoves').classList.remove('warn');
+    $('kLeft').textContent = 'Combo';
+    $('vLeft').textContent = G.combo > 0 ? ('x' + endlessMult().toFixed(2).replace(/0$/,'')) : '—';
+    $('vStars').style.display = 'none';
+    $('vPar').textContent = endlessColors(G.score) + ' màu · kỷ lục ' + save.endlessBest();
+    $('vQueue').innerHTML = '';
+    $('cUndo').textContent = 0;
+    $('gUndo').disabled = true;
+    $('cShuf').textContent = G.shufflesLeft;
+    $('gShuf').disabled = G.shufflesLeft <= 0;
+    return;
+  }
+  $('kMoves').textContent = 'Lượt còn';
+  $('vStars').style.display = '';
+  $('vMoves').textContent = left;
+  $('vMax').textContent = '/' + L.maxMoves;
+  // Màn mục tiêu đếm ô ĐÍCH chứ không đếm ô còn lại — người chơi cần biết
+  // mình còn cách thắng bao xa, mà ở đây phần bàn thừa không liên quan.
+  $('vLeft').textContent = L.goalMode ? G.goalsLeft : totalLeft();
+  $('kLeft').textContent = L.goalMode ? 'Ô đích còn' : 'Ô còn lại';
+  $('stMoves').classList.toggle('warn', left <= 2);
+
+  const s = $('vStars').children;
+  s[0].classList.toggle('on', G.moves <= L.par);
+  s[1].classList.toggle('on', G.moves <= L.star2);
+  s[2].classList.toggle('on', G.moves <= L.maxMoves);
+
+  const q = queueLeft();
+  $('vQueue').innerHTML = L.gravity ? ('▼ hàng chờ <b>' + q + '</b>') : '';
+
+  $('cUndo').textContent = G.undosLeft;
+  $('gUndo').disabled = G.history.length === 0 || G.undosLeft <= 0;
+  $('cShuf').textContent = G.shufflesLeft;
+  $('gShuf').disabled = G.shufflesLeft <= 0 || G.shuffleImpossible ||
+                        totalLeft() < 2 || G.moves >= L.maxMoves;
+}
+
+/* ==================================================================
+   8. NHẬP LIỆU — kéo chuỗi (chung chuột & cảm ứng)
+   ------------------------------------------------------------------
+   Cùng luật với source: cùng màu, kề 8 hướng, dài >= 2, lùi về ô kế
+   cuối thì bỏ chọn ô cuối.
+   ================================================================== */
+function cellFromPoint(x, y){
+  const el = document.elementFromPoint(x, y);
+  if (!el) return -1;
+  const c = el.closest ? el.closest('.cell') : null;
+  if (!c || c.classList.contains('wall')) return -1;
+  return +c.dataset.i;
+}
+
+/** Hệ số nhân điểm hiện tại của chế độ vô tận. */
+const endlessMult = () => 1 + Math.min(G.combo, ENDLESS.comboCap) * .25;
+
+/** Chuỗi đang chọn có bao nhiêu ô đa sắc. Luật: tối đa 1. */
+const wildsInSelection = () => G.selection.reduce((a,i)=> a + (isWild(i) ? 1 : 0), 0);
+
+function tryAdd(i){
+  if (i < 0) return;
+  if (isStone(G.board[i])) return;           // đá không nối được, chỉ vỡ do va
+  if (!isColor(G.board[i])) return;
+
+  if (!G.selection.length){
+    // Bắt đầu bằng ô đa sắc thì màu chuỗi CHƯA quyết định: ô có màu đầu
+    // tiên ghép vào sẽ quyết. Nếu lấy luôn màu ẩn dưới ô đa sắc thì người
+    // chơi bị khoá vào một màu mà họ không hề nhìn thấy.
+    G.selColor = isWild(i) ? -1 : G.board[i];
+    pushSel(i);
+    return;
+  }
+
+  const pos = G.selection.indexOf(i);
+  if (pos >= 0){
+    if (G.selection.length >= 2 && pos === G.selection.length - 2){
+      popSel();
+      // lùi khỏi ô có màu duy nhất thì màu chuỗi mở lại
+      if (G.selection.every(isWild)) G.selColor = -1;
+    }
+    return;
+  }
+
+  if (isWild(i)){
+    if (wildsInSelection() >= 1) return;      // một chuỗi chỉ được một ô đa sắc
+  } else if (!matches(i, G.selColor)) return;
+
+  if (!G.level.geo.neighbors[G.selection[G.selection.length-1]].includes(i)) return;
+  if (!isWild(i) && G.selColor < 0) G.selColor = G.board[i];
+  pushSel(i);
+}
+
+/** Màu để vẽ hiệu ứng; chuỗi chưa quyết định màu thì dùng trắng. */
+const selHex = () => G.selColor >= 0 ? HEX[G.selColor] : '#ffffff';
+
+function pushSel(i){
+  G.selection.push(i);
+  G.cellEls[i].classList.add('sel');
+  fxRing(G.cellEls[i].getBoundingClientRect(), selHex());
+  Sfx.select(G.selection.length);
+  buzz(8);
+  drawLine();
+}
+function popSel(){
+  const i = G.selection.pop();
+  G.cellEls[i].classList.remove('sel');
+  drawLine();
+}
+function clearSelection(){
+  G.selection.forEach(i => G.cellEls[i].classList.remove('sel'));
+  G.selection = [];
+  drawLine();
+}
+
+/**
+ * Ảnh chụp trạng thái để hoàn tác.
+ * Phải lưu cả lời giải: xáo lại thay paths/solution, nên nếu hoàn tác về
+ * bàn cũ mà giữ lời giải mới thì nút gợi ý sẽ chỉ vào các ô sai màu.
+ */
+function snapshot(){
+  // Dấu phải chép SÂU: máu đá và số ngòi bị sửa tại chỗ, chép nông thì
+  // hoàn tác xong đá vẫn giữ máu đã mất.
+  const copyMark = m => m ? Object.assign({}, m) : null;
+  return {
+    board: G.board.slice(),
+    mark: G.mark ? G.mark.map(copyMark) : null,
+    stacks: G.stacks ? G.stacks.map(s => s.map(c => ({c:c.c, k:c.k, m:copyMark(c.m)}))) : null,
+    paths: G.level.paths, solution: G.level.solution,
+    moves: G.moves, score: G.score, goalsLeft: G.goalsLeft
+  };
+}
+
+/**
+ * Đá kề chuỗi vừa ăn mất 1 máu. MỖI NƯỚC TỐI ĐA 1, dù chuỗi có kề nó bằng
+ * mấy ô — đây chính là điều kiện mà lúc sinh màn đã bảo đảm được ("mỗi hòn
+ * kề ít nhất `hp` đường phân biệt"), đổi luật ở đây là mất bảo đảm đó.
+ */
+function damageStones(clearedIdx){
+  const nb = G.level.geo.neighbors, hit = new Set();
+  clearedIdx.forEach(i => nb[i].forEach(j => { if (isStone(G.board[j])) hit.add(j); }));
+
+  let broken = 0;
+  hit.forEach(j=>{
+    const m = G.mark[j];
+    if (!m) return;
+    m.hp--;
+    const el = G.cellEls[j];
+    if (m.hp > 0){
+      if (el){ el.classList.remove('crack'); void el.offsetWidth; el.classList.add('crack'); }
+    } else {
+      G.board[j] = EMPTY;
+      G.mark[j] = null;
+      broken++;
+      if (el) fxBurst(el.getBoundingClientRect(), '#8b93ad', 8);
+    }
+  });
+  if (hit.size) Sfx.bad();
+  return broken;
+}
+
+function commit(){
+  const sel = G.selection.slice();
+  if (sel.length < 2){ if (sel.length) Sfx.bad(); clearSelection(); return; }
+
+  const L = G.level, n = sel.length;
+  let gained = chainScore(n);
+
+  // Vô tận: chuỗi dài liên tiếp nhân điểm. Đây là thứ duy nhất biến "ăn cho
+  // hết" thành "ăn cho khéo" khi đã bỏ hết giới hạn lượt.
+  if (L.endless){
+    if (n >= ENDLESS.comboMin) G.combo++; else G.combo = 0;
+    gained = Math.round(gained * endlessMult());
+  }
+
+  G.history.push(snapshot());
+  G.busy = true;
+  G.shuffleImpossible = false;      // bàn đã đổi, đánh giá lại từ đầu
+
+  /* ----- hiệu ứng phá ô ----- */
+  let sx = 0, sy = 0;
+  sel.forEach((i,k)=>{
+    const el = G.cellEls[i], r = el.getBoundingClientRect();
+    sx += r.left + r.width/2; sy += r.top + r.height/2;
+    el.classList.remove('sel');
+    el.style.setProperty('--d', (k*26) + 'ms');
+    el.classList.add('pop');
+    setTimeout(()=> fxBurst(r, selHex(), n >= 6 ? 9 : 6), k*26 + 90);
+  });
+  sx /= n; sy /= n;
+
+  /* ----- hiệu ứng ăn điểm ----- */
+  fxText(sx, sy, '+' + gained, '#fff', n >= 8 ? 34 : (n >= 5 ? 28 : 23), 54, 60);
+  const pr = L.endless && G.combo > 1 ? ('COMBO x' + endlessMult().toFixed(2).replace(/0$/,'')) : praise(n);
+  if (pr) fxText(sx, sy - 26, pr, L.endless && G.combo > 1 ? '#fbbf24' : selHex(),
+                 n >= 10 ? 22 : 18, 44, 220);
+  fxFlash(n >= 8 ? .3 : (n >= 5 ? .18 : .09));
+  if (n >= 6) fxShake();
+  Sfx.clear(n);
+  buzz(n >= 6 ? [18,40,26] : 26);
+
+  /* ----- cập nhật logic ngay, animation chạy sau ----- */
+  const oldScore = G.score;
+  G.score += gained;
+  G.moves++;
+  animateScore(oldScore, G.score);
+  bump('stLeft');
+
+  const clearedIdx = sel.slice();
+  G.selection = []; G.selColor = -1; drawLine();
+
+  /* ----- ô đích vừa dọn được ----- */
+  if (L.goalMode){
+    let got = 0;
+    clearedIdx.forEach(i => { const m = markAt(i); if (m && m.goal) got++; });
+    if (got){
+      G.goalsLeft -= got;
+      fxText(sx, sy - 52, got > 1 ? got + ' đích!' : 'đích!', '#fbbf24', 22, 46, 140);
+    }
+  }
+
+  if (!L.gravity){
+    clearedIdx.forEach(i => { G.board[i] = EMPTY; G.mark[i] = null; });
+    // va đá sau khi chuỗi đã biến mất, đúng thứ tự mà validateLevel kiểm
+    damageStones(clearedIdx);
+  }
+  updateHud();
+
+  const popDur = 300 + n*26;
+  setTimeout(()=>{
+    if (L.gravity) applyGravity(clearedIdx);
+    else { renderBoard(); G.busy = false; evaluate(); }
+  }, popDur);
+}
+
+/* ==================================================================
+   9. GRAVITY — rơi xuống + hàng chờ tụt vào
+   ================================================================== */
+function applyGravity(clearedIdx){
+  const {cols, rows} = G.level.geo;
+
+  // grid index -> (cột, chỉ số trong chồng tính từ đáy)
+  const byCol = {};
+  clearedIdx.forEach(i=>{
+    const x = i % cols, y = (i - x) / cols, idx = rows - 1 - y;
+    (byCol[x] = byCol[x] || []).push(idx);
+  });
+
+  // xoá + ghi lại ô nào tụt xuống bao nhiêu
+  const falls = [];                                  // {x, fromIdx, toIdx}
+  for (const xs in byCol){
+    const x = +xs, gone = new Set(byCol[xs]);
+    const kept = []; let shift = 0;
+    G.stacks[x].forEach((cell, idx)=>{
+      if (gone.has(idx)){ shift++; return; }
+      if (shift > 0) falls.push({x, from:idx, to:idx - shift});
+      kept.push(cell);
+    });
+    G.stacks[x] = kept;
+  }
+
+  // Vô tận: đổ đầy lại NGAY, trước khi vẽ, để ô mới dùng chung một lượt
+  // hoạt ảnh rơi với ô cũ — nhìn thành một dòng chảy liên tục chứ không
+  // phải "rơi xong rồi mới thấy ô mới hiện ra".
+  if (G.level.endless) refillEndless(falls);
+
+  syncBoard();
+  renderBoard();
+
+  // hoạt ảnh rơi: dịch từ vị trí cũ về 0
+  const cs = G.cs;
+  let maxDelay = 0, moved = 0;
+  falls.forEach(f=>{
+    const yTo = rows - 1 - f.to;
+    if (yTo < 0 || yTo >= rows) return;
+    const yFrom = rows - 1 - f.from;                 // < 0 nếu tụt từ hàng chờ
+    const dy = (yFrom - yTo) * cs;
+    if (!dy) return;
+    const el = G.cellEls[yTo*cols + f.x];
+    if (!el || !el.firstChild) return;
+    const delay = f.to * 12;
+    maxDelay = Math.max(maxDelay, delay);
+    moved++;
+    el.firstChild.animate(
+      [{transform:'translateY(' + dy + 'px)'}, {transform:'translateY(0)'}],
+      {duration:260 + Math.min(260, Math.abs(dy)*.9), delay, easing:'cubic-bezier(.3,1.25,.5,1)'}
+    );
+  });
+
+  if (moved){
+    $('board').classList.add('clip');
+    Sfx.fall();
+  }
+  setTimeout(()=>{
+    $('board').classList.remove('clip');
+    G.busy = false;
+    updateHud();
+    evaluate();
+  }, moved ? 420 + maxDelay : 0);
+}
+
+/* ==================================================================
+   10. THẮNG / THUA
+   ================================================================== */
+/** Các ô mang ngòi nổ đã cháy hết (đếm ngược về 0 mà chưa được ăn). */
+function blownBombs(){
+  const out = [];
+  for (let i=0;i<G.board.length;i++){
+    const m = markAt(i);
+    if (isAlive(G.board[i]) && m && m.k === K_BOMB && m.fz - G.moves <= 0) out.push(i);
+  }
+  return out;
+}
+
+function evaluate(){
+  const L = G.level, left = totalLeft();
+
+  /* Vô tận không có "thắng". Ván chỉ dừng khi bàn hết nước đi thật sự —
+     mà bàn luôn đầy, nên chuyện đó chỉ xảy ra khi số màu đã lên cao. */
+  if (L.endless){
+    if (hasMove()) return;
+    const record = G.score > save.endlessBest();
+    save.recordEndless(G.score);
+    Sfx.lose();
+    G.busy = true;
+    diagnose({t:'Hết nước đi', s:'', hint:'Không ô nào còn ô ghép được bên cạnh',
+              groups:[aliveVisible()]}, ()=>{
+      G.busy = false;
+      endlessCard(record);
+    });
+    return;
+  }
+
+  const won = L.goalMode ? G.goalsLeft <= 0 : left === 0;
+
+  if (won){
+    const stars = G.moves <= L.par ? 3 : (G.moves <= L.star2 ? 2 : 1);
+    const prevBest = save.best(G.idx);
+    save.record(G.idx, stars, G.score);
+    Sfx.win(); fxConfetti(); buzz([30,60,30,60,80]);
+    winCard(stars, prevBest);
+    return;
+  }
+
+  // Ngòi nổ được xét TRƯỚC hết lượt: nó là lý do cụ thể hơn, và người chơi
+  // nhìn thấy con số đếm ngược nên đây là cái họ đang theo dõi.
+  const blown = blownBombs();
+  const remain = L.goalMode ? G.goalsLeft + ' ô đích' : left + ' ô';
+  const reason = blown.length
+    ? {t:'Ngòi nổ cháy hết',
+       s:'<b>' + blown.length + '</b> ô mang ngòi hết giờ trước khi bạn dọn tới.',
+       hint:'Ngòi nổ hết giờ', groups:[blown]}
+    : G.moves >= L.maxMoves
+      ? {t:'Hết lượt', s:'Còn <b>' + remain + '</b> chưa dọn.',
+         hint:'Còn ' + remain + ' chưa dọn', groups:[goalOrAlive()]}
+      : deadReason();
+  if (!reason) return;
+
+  Sfx.lose();
+  G.busy = true;                                   // chặn input trong lúc xem bàn
+  diagnose(reason, ()=>{
+    G.busy = false;
+    loseCard(reason.t, reason.s);
+  });
+}
+
+/**
+ * Chỉ cho người chơi thấy SAI Ở ĐÂU trước khi bật panel thua.
+ * Làm mờ cả bàn, rồi lần lượt thắp sáng từng nhóm ô là bằng chứng, có đánh số
+ * khi có nhiều nhóm ("4 nhóm rời nhau" thì đếm 1-2-3-4 ngay trên bàn).
+ * Chạm màn hình để bỏ qua, không bắt ai phải ngồi chờ.
+ */
+let diagAbort = null;
+
+/** Huỷ chẩn đoán đang chạy mà KHÔNG bật panel — dùng khi chơi lại / về menu. */
+function cancelDiagnose(){
+  if (diagAbort){ const f = diagAbort; diagAbort = null; f(); }
+}
+
+function diagnose(reason, onDone){
+  cancelDiagnose();
+  const board = $('board'), bn = $('diag');
+  const groups = (reason.groups || []).filter(g => g && g.length);
+
+  board.classList.add('diag');
+  bn.innerHTML = '<b>' + reason.t + '</b><i>' + (reason.hint || '') + '</i>' +
+                 '<em>chạm để tiếp tục</em>';
+  bn.classList.add('on');
+  fxShake();
+
+  const timers = [];
+  const at = (ms, fn) => timers.push(setTimeout(fn, ms));
+
+  // nhịp: nhiều nhóm thì thắp nhanh hơn, tổng thời gian vẫn nằm trong tầm chú ý
+  const step = groups.length > 1 ? clamp(1500/groups.length, 170, 420) : 0;
+  let t = 420;
+  groups.forEach((g, gi)=>{
+    at(t, ()=>{
+      g.forEach(i => { const el = G.cellEls[i]; if (el) el.classList.add('cul'); });
+      if (groups.length > 1){
+        const el = G.cellEls[g[0]];
+        if (el){
+          const r = el.getBoundingClientRect();
+          fxText(r.left + r.width/2, r.top + r.height/2, String(gi+1), '#fff', 21, 24, 0);
+        }
+      }
+      Sfx.tone(280 + gi*55, .09, 'square', .06);
+    });
+    t += step;
+  });
+
+  let done = false;
+  const teardown = ()=>{
+    done = true;
+    timers.forEach(clearTimeout);
+    document.removeEventListener('pointerdown', finish, true);
+    board.classList.remove('diag');
+    bn.classList.remove('on');
+    Array.prototype.forEach.call(document.querySelectorAll('.cell.cul'),
+      el => el.classList.remove('cul'));
+  };
+  function finish(){
+    if (done) return;
+    teardown();
+    diagAbort = null;
+    onDone();
+  }
+
+  diagAbort = ()=>{ if (!done) teardown(); };
+  at(Math.max(1900, t + 900), finish);
+  at(400, ()=> document.addEventListener('pointerdown', finish, true));
+}
+
+function hideOverlay(){ $('ov').classList.remove('on'); }
+
+function winCard(stars, prevBest){
+  const last = G.idx >= LEVELS.length - 1;
+  const isRecord = G.score > prevBest;
+  $('ovCard').innerHTML =
+    '<h2>Qua màn!</h2>' +
+    '<div class="bigstars">' +
+      [0,1,2].map(k=> '<i class="' + (k<stars?'on':'') + '" style="--d:' + (k*.12+.1) + 's">★</i>').join('') +
+    '</div>' +
+    '<div class="sub">Dùng <b>' + G.moves + '</b>/' + G.level.maxMoves + ' lượt · tối ưu ' + G.level.par + '<br>' +
+      'Điểm <b>' + G.score + '</b>' + (isRecord ? ' 🎉 kỷ lục mới' : (prevBest ? ' (tốt nhất ' + prevBest + ')' : '')) + '</div>' +
+    '<div class="acts">' +
+      (last ? '' : '<button class="btn primary" id="oNext">Màn tiếp theo →</button>') +
+      (stars < 3 ? '<button class="btn" id="oRetry">Thử lại để lấy 3★</button>' : '') +
+      '<button class="btn ghost" id="oMenu">Danh sách màn</button>' +
+    '</div>';
+  $('ov').classList.add('on');
+  if (!last) $('oNext').onclick = ()=> startLevel(G.idx + 1);
+  if (stars < 3) $('oRetry').onclick = resetLevel;
+  $('oMenu').onclick = toMenu;
+}
+
+function loseCard(title, sub){
+  const canUndo = G.history.length > 0 && G.undosLeft > 0;
+  // Xáo lại chỉ có nghĩa khi còn lượt đi — hết lượt thì xáo cũng không cứu được.
+  const canShuffle = G.shufflesLeft > 0 && G.moves < G.level.maxMoves &&
+                     totalLeft() >= 2 && !G.shuffleImpossible;
+  let first = true;
+  const mark = ()=> first ? (first = false, ' primary') : '';
+  $('ovCard').innerHTML =
+    '<h2>' + title + '</h2><div class="sub">' + sub + '</div>' +
+    '<div class="acts">' +
+      (canShuffle ? '<button class="btn' + mark() + '" id="oShuf">🔀 Xáo lại màn (còn ' + G.shufflesLeft + ')</button>' : '') +
+      (canUndo    ? '<button class="btn' + mark() + '" id="oUndo">↶ Hoàn tác (còn ' + G.undosLeft + ')</button>' : '') +
+      '<button class="btn' + mark() + '" id="oRetry">↻ Chơi lại màn</button>' +
+      '<button class="btn ghost" id="oMenu">Danh sách màn</button>' +
+    '</div>';
+  $('ov').classList.add('on');
+  if (canShuffle) $('oShuf').onclick = ()=>{ hideOverlay(); shuffleBoard(); };
+  if (canUndo)    $('oUndo').onclick = ()=>{ hideOverlay(); undo(); };
+  $('oRetry').onclick = resetLevel;
+  $('oMenu').onclick = toMenu;
+}
+
+/** Thẻ kết ván vô tận: chỉ có điểm, kỷ lục và chơi lại. */
+function endlessCard(record){
+  const best = save.endlessBest();
+  $('ovCard').innerHTML =
+    '<h2>Hết nước đi</h2>' +
+    '<div class="sub">Không còn hai ô nào ghép được với nhau.</div>' +
+    '<div class="bigstars" style="font-size:34px;font-weight:900;color:#fff">' + G.score + '</div>' +
+    '<div class="sub">' + G.moves + ' nước · ' +
+      (record ? '<b style="color:#fbbf24">★ kỷ lục mới</b>' : ('kỷ lục ' + best)) + '</div>' +
+    '<div class="acts">' +
+      '<button class="btn primary" id="oRetry">↻ Chơi ván mới</button>' +
+      '<button class="btn ghost" id="oMenu">Danh sách màn</button>' +
+    '</div>';
+  $('ov').classList.add('on');
+  $('oRetry').onclick = resetLevel;
+  $('oMenu').onclick = toMenu;
+  if (record){ Sfx.win(); fxConfetti(); }
+}
+
+/* ==================================================================
+   11. HOÀN TÁC (giới hạn theo màn) / GỢI Ý
+   ================================================================== */
+function undo(){
+  if (G.busy) return;
+  if (!G.history.length){ toast('Chưa có nước nào để hoàn tác.'); return; }
+  if (G.undosLeft <= 0){ toast('Hết lượt hoàn tác của màn này — hãy chơi lại.'); Sfx.bad(); return; }
+
+  const h = G.history.pop();
+  G.board = h.board; G.moves = h.moves; G.score = h.score;
+  if (h.mark) G.mark = h.mark;
+  if (h.stacks) G.stacks = h.stacks;
+  G.goalsLeft = h.goalsLeft;
+  G.level.paths = h.paths; G.level.solution = h.solution;
+  G.undosLeft--;
+  G.shuffleImpossible = false;      // bàn đã đổi, đánh giá lại từ đầu
+
+  clearSelection(); renderBoard();
+  $('vScore').textContent = G.score;
+  updateHud();
+  Sfx.undo();
+}
+
+/* ==================================================================
+   11B. XÁO LẠI MÀN
+   ------------------------------------------------------------------
+   Giữ nguyên VỊ TRÍ và SỐ LƯỢNG ô còn lại, chỉ tô lại màu sao cho tồn
+   tại một lời giải mới — dùng đúng hai bộ sinh của mục 2, chỉ khác là
+   chạy trên phần bàn còn lại thay vì bàn đầy.
+
+   Lời giải mới phải lọt vào số lượt CÒN LẠI, nên độ dài nhóm được đẩy
+   lên theo tỉ lệ ô/lượt. Nếu chật quá thì không xáo và nói thẳng, chứ
+   không xáo ra một bàn vẫn không thắng được.
+   ================================================================== */
+function shuffleTargetLen(cellsLeft, movesLeft){
+  const need = Math.max(3, Math.ceil(cellsLeft / Math.max(1, movesLeft)));
+  const lo = Math.min(need, 8);
+  return [lo, Math.min(lo + 2, 12)];
+}
+
+/**
+ * Số nước mà một bộ đường mới thật sự đòi hỏi. Ở màn mục tiêu chỉ cần ăn
+ * những đường CÓ CHỨA ô đích, phần còn lại không phải đi.
+ */
+function movesNeededFor(paths){
+  if (!G.level.goalMode) return paths.length;
+  return paths.filter(p => p.some(i => { const m = markAt(i); return m && m.goal; })).length;
+}
+
+/** Thử xáo bàn tĩnh. Trả {apply, moves} hoặc null. */
+function planShuffleStatic(movesLeft){
+  const {cols, rows} = G.level.geo;
+  const alive = new Array(cols*rows).fill(false);
+  let R = 0;
+  // Đá không tô lại được nên không vào bộ đường; chúng đứng nguyên chỗ cũ.
+  for (let i=0;i<G.board.length;i++) if (isColor(G.board[i])){ alive[i] = true; R++; }
+  if (R < 2) return null;
+
+  const geo2 = geometryFromMask(cols, rows, alive);
+  const pathLen = shuffleTargetLen(R, movesLeft);
+  let best = null, bestRand = null, bestMoves = Infinity;
+
+  for (let a=0;a<300;a++){
+    const seed = (G.level.cfg.seed||1) + 100003*G.shuffleN + a*7919;
+    const paths = tryPartition(geo2, {pathLen}, mulberry32(seed));
+    if (!paths) continue;
+    // Một chuỗi chỉ được chứa 1 ô đa sắc, nên bộ đường nào gom 2 ô đa sắc
+    // vào cùng một đường là bộ KHÔNG chơi được — loại thẳng.
+    if (paths.some(p => p.filter(isWild).length > 1)) continue;
+
+    const need = movesNeededFor(paths);
+    if (need < bestMoves){ best = paths; bestRand = seed; bestMoves = need; }
+    if (bestMoves <= movesLeft) break;
+  }
+  if (!best) return null;
+
+  return {
+    moves: bestMoves,
+    apply(){
+      const colorOfPath = assignColors(geo2, best, G.level.cfg, mulberry32(bestRand + 13));
+      best.forEach((p,idx)=> p.forEach(i => G.board[i] = colorOfPath[idx]));
+      G.level.paths = best;                      // lời giải mới cho nút gợi ý
+
+      // Ngòi nổ phải đặt lại theo THỨ TỰ MỚI: bàn vừa đổi hết màu, con số cũ
+      // được tính cho một lời giải không còn tồn tại nên có thể không còn kịp.
+      const slack = G.level.cfg.bombSlack == null ? 3 : G.level.cfg.bombSlack;
+      best.forEach((p,idx)=> p.forEach(i=>{
+        const m = markAt(i);
+        if (m && m.k === K_BOMB) m.fz = G.moves + idx + 1 + slack;
+      }));
+    }
+  };
+}
+
+/** Thử xáo bàn gravity (xáo cả hàng chờ). Trả {apply, moves} hoặc null. */
+function planShuffleGravity(movesLeft){
+  const cfg = G.level.cfg;
+  const heights = G.stacks.map(s => s.length);
+  const R = heights.reduce((a,b)=> a+b, 0);
+  if (R < 2) return null;
+
+  const pathLen = shuffleTargetLen(R, movesLeft);
+  const old = G.stacks;                       // dấu ô đi theo VỊ TRÍ trong cột
+  const markOf = (x,k) => (old[x] && old[x][k]) ? old[x][k].m : null;
+  const isWildSlot = s => { const m = markOf(s.x, s.k); return !!m && m.k === K_WILD; };
+  const isGoalSlot = s => { const m = markOf(s.x, s.k); return !!m && m.goal; };
+
+  let best = null, bestMoves = Infinity;
+  for (let a=0;a<250;a++){
+    const rand = mulberry32((cfg.seed||1) + 100003*G.shuffleN + a*7919);
+    const r = simulateGravity(Object.assign({}, cfg, {pathLen}), rand, heights);
+    if (!r) continue;
+    if (r.solution.some(mv => mv.filter(isWildSlot).length > 1)) continue;
+
+    // màn mục tiêu: chỉ cần chạy tới nước cuối cùng còn chạm ô đích
+    let need = r.solution.length;
+    if (G.level.goalMode){
+      let last = -1;
+      r.solution.forEach((mv,t)=> { if (mv.some(isGoalSlot)) last = t; });
+      if (last < 0) continue;                 // bộ này bỏ sót ô đích => vô dụng
+      need = last + 1;
+    }
+    if (need < bestMoves){ best = r; bestMoves = need; }
+    if (bestMoves <= movesLeft) break;
+  }
+  if (!best) return null;
+
+  return {
+    moves: bestMoves,
+    apply(){
+      // Màu đổi hết nhưng DẤU ở nguyên vị trí: ô đích và ngòi nổ phải nằm y
+      // chỗ cũ, nếu không người chơi đang nhắm một ô thì nó biến đi đâu mất.
+      // k đánh lại từ 0 để khớp solution mới; dấu giữ theo vị trí cũ
+      G.stacks = best.columns.map((col,x)=> col.map((c,k)=> ({c, k, m: markOf(x,k)})));
+      G.level.solution = best.solution;
+
+      const slack = cfg.bombSlack == null ? 3 : cfg.bombSlack;
+      best.solution.forEach((mv,t)=> mv.forEach(s=>{
+        const m = markOf(s.x, s.k);
+        if (m && m.k === K_BOMB) m.fz = G.moves + t + 1 + slack;
+      }));
+      syncBoard();
+    }
+  };
+}
+
+function shuffleBoard(){
+  if (G.busy) return;
+  const L = G.level, movesLeft = L.maxMoves - G.moves;
+  if (G.shufflesLeft <= 0){ toast('Hết lượt xáo của màn này.'); Sfx.bad(); return; }
+
+  // Vô tận không có lời giải để dựng lại — chỉ cần gieo ra một bàn còn đi được.
+  if (L.endless){
+    G.shufflesLeft--;
+    clearSelection();
+    reshuffleEndless();
+    G.combo = 0;                       // xáo là mất mạch combo, đó là cái giá
+    renderBoard(); updateHud(); hideOverlay();
+    Sfx.shuffle(); buzz(24);
+    toast('Đã xáo lại bàn — mạch combo về 0.');
+    return;
+  }
+  if (totalLeft() < 2){ toast('Không còn gì để xáo.'); return; }
+
+  G.shuffleN++;
+  const plan = L.gravity ? planShuffleGravity(movesLeft) : planShuffleStatic(movesLeft);
+
+  // Không xáo ra một bàn vẫn thua — nói thẳng, giữ lại lượt xáo, và nhớ là
+  // trạng thái này vô vọng để thẻ thua không mời xáo lần nữa.
+  if (!plan || plan.moves > movesLeft){
+    G.shuffleImpossible = true;
+    updateHud();                      // vô hiệu hoá luôn nút Xáo trên bàn
+    Sfx.bad();
+    const what = L.goalMode ? G.goalsLeft + '</b> ô đích' : totalLeft() + '</b> ô';
+    const msg = 'Còn <b>' + what + ' mà chỉ còn <b>' + movesLeft + '</b> lượt — ' +
+                'không có cách xáo nào đủ để ' + (L.goalMode ? 'chạm hết đích.' : 'dọn sạch.');
+    if (deadReason() || G.moves >= L.maxMoves) loseCard('Xáo cũng không cứu được', msg);
+    else toast('Xáo không đủ: còn ' + totalLeft() + ' ô mà chỉ còn ' + movesLeft + ' lượt.');
+    return;
+  }
+
+  G.history.push(snapshot());
+  G.shufflesLeft--;
+  clearSelection();
+  plan.apply();
+  renderBoard();
+  updateHud();
+  hideOverlay();
+
+  // hiệu ứng: mọi ô nảy lên so le
+  const {cols} = L.geo;
+  for (let i=0;i<G.board.length;i++){
+    if (G.board[i] < 0) continue;
+    const el = G.cellEls[i], x = i % cols, y = (i - x) / cols;
+    el.firstChild.animate(
+      [{transform:'scale(.25) rotate(-90deg)', opacity:.2}, {transform:'none', opacity:1}],
+      {duration:340, delay:(x + y)*22, easing:'cubic-bezier(.3,1.4,.5,1)'}
+    );
+  }
+  Sfx.shuffle();
+  buzz(24);
+  toast('Đã xáo lại — lời giải mới cần ' + plan.moves + ' lượt, bạn còn ' + movesLeft + '.');
+}
+
+/** Gợi ý: nháy một nhóm trong lời giải gốc còn nguyên vẹn và đang thấy. */
+function hint(){
+  if (G.busy) return;
+  const L = G.level;
+  let cells = null;
+
+  if (L.endless){
+    // Không có lời giải ghi sẵn: tìm sống một cặp ghép được, ưu tiên cặp nào
+    // kéo dài ra được nhiều ô nhất để gợi ý cũng là gợi ý ĂN NGON.
+    const nb = L.geo.neighbors;
+    let best = null;
+    for (let i=0;i<G.board.length;i++){
+      if (!isColor(G.board[i])) continue;
+      for (const j of nb[i]){
+        if (!(G.board[j] === G.board[i] || isWild(j) || isWild(i))) continue;
+        // đo nhanh cụm cùng màu quanh i
+        const c = G.board[i], seen = new Set([i]), stack = [i];
+        while (stack.length){
+          const k = stack.pop();
+          for (const m of nb[k])
+            if (!seen.has(m) && (G.board[m] === c || isWild(m))){ seen.add(m); stack.push(m); }
+        }
+        if (!best || seen.size > best.size) best = seen;
+        break;
+      }
+    }
+    if (best) cells = [...best].slice(0, 8);
+  } else if (L.gravity){
+    // slot còn lại -> vị trí hiện tại; chỉ gợi ý nhóm còn đủ và đang nhìn thấy
+    const {cols, rows} = L.geo;
+    const posOf = new Map();
+    for (let x=0;x<cols;x++)
+      G.stacks[x].forEach((cell, idx)=>{ if (idx < rows) posOf.set(x + ',' + cell.k, (rows-1-idx)*cols + x); });
+    for (const mv of L.solution){
+      const got = mv.map(s => posOf.get(s.x + ',' + s.k));
+      if (got.every(v => v !== undefined)){ cells = got; break; }
+    }
+  } else {
+    // Màn mục tiêu: ưu tiên chỉ đường nào CÓ ô đích — gợi ý một đường không
+    // dính đích thì đúng luật nhưng chẳng đưa người chơi tới gần chiến thắng.
+    const intact = L.paths.filter(p => p.every(i => isColor(G.board[i])));
+    const p = (L.goalMode && intact.find(p => p.some(i => { const m = markAt(i); return m && m.goal; })))
+              || intact[0];
+    if (p) cells = p;
+  }
+
+  if (!cells){ toast('Lời giải gốc đã bị chẻ — thử Hoàn tác hoặc Chơi lại.'); return; }
+  cells.forEach(i=>{
+    const el = G.cellEls[i];
+    el.classList.add('hint');
+    setTimeout(()=> el.classList.remove('hint'), 2200);
+  });
+}
+
+let toastT;
+function toast(msg){
+  const t = $('toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(toastT);
+  toastT = setTimeout(()=> t.classList.remove('on'), 2100);
+}
+
+/* ==================================================================
+   12. ĐIỀU HƯỚNG + MENU
+   ================================================================== */
+function show(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
+  if (id === 'scGame') requestAnimationFrame(layout);
+}
+function toMenu(){ cancelDiagnose(); hideOverlay(); renderMenu(); show('scMenu'); }
+
+function renderMenu(){
+  const host = $('worlds');
+  host.innerHTML = '';
+  let cur = null, grid = null;
+  LEVELS.forEach((cfg,i)=>{
+    if (cfg.w !== cur){
+      cur = cfg.w;
+      const h = document.createElement('div');
+      h.className = 'world';
+      h.textContent = WORLD_NAMES[cur] || ('Thế giới ' + cur);
+      host.appendChild(h);
+      grid = document.createElement('div');
+      grid.className = 'levels';
+      host.appendChild(grid);
+    }
+    const st = save.stars(i), open = save.unlocked(i);
+    const b = document.createElement('button');
+    b.className = 'lv' + (open ? '' : ' locked') + (st ? ' done' : '');
+    b.innerHTML = (cfg.gravity ? '<span class="gv">▼</span>' : '') +
+      (open ? (i+1) : '🔒') +
+      '<span class="st">' + (open ? [0,1,2].map(k=> k<st?'<b>★</b>':'★').join('') : '') + '</span>';
+    // Nút màn chưa mở PHẢI phản hồi. Trước đây nó không được gắn onclick nên
+    // bấm vào là im lặng hoàn toàn — không phân biệt được với "game hỏng".
+    b.onclick = open
+      ? (()=> startLevel(i))
+      : (()=>{
+          Sfx.bad();
+          toast('Màn ' + (i+1) + ' chưa mở. Qua màn trước để mở, hoặc bật 🔓 Chơi tự do ở cuối menu.');
+        });
+    grid.appendChild(b);
+  });
+  syncToggles();
+}
+
+function syncToggles(){
+  document.body.classList.toggle('symbols', !!save.data.symbols);
+  const on = save.data.sound;
+  $('mSound').textContent = (on ? '🔊' : '🔇') + ' Âm thanh';
+  $('gSound').textContent = on ? '🔊' : '🔇';
+  $('mSym').textContent = (save.data.symbols ? '◆' : '○') + ' Ký hiệu';
+  $('mEndlessBest').textContent = 'kỷ lục ' + save.endlessBest();
+  $('mFree').textContent = (save.freePlay() ? '🔓' : '🔒') + ' Chơi tự do';
+  $('mFree').classList.toggle('on', save.freePlay());
+}
+
+/* ==================================================================
+   13. SỰ KIỆN
+   ================================================================== */
+const bbox = $('boardBox');
+bbox.addEventListener('pointerdown', e=>{
+  if (G.busy) return;
+  const i = cellFromPoint(e.clientX, e.clientY);
+  if (i < 0 || G.board[i] < 0) return;
+  e.preventDefault();
+  try{ bbox.setPointerCapture(e.pointerId); }catch(err){}
+  G.dragging = true;
+  clearSelection();
+  tryAdd(i);
+});
+bbox.addEventListener('pointermove', e=>{
+  if (!G.dragging || G.busy) return;
+  e.preventDefault();
+  tryAdd(cellFromPoint(e.clientX, e.clientY));
+});
+function endDrag(e){
+  if (!G.dragging) return;
+  G.dragging = false;
+  try{ bbox.releasePointerCapture(e.pointerId); }catch(err){}
+  commit();
+}
+bbox.addEventListener('pointerup', endDrag);
+bbox.addEventListener('pointercancel', endDrag);
+bbox.addEventListener('contextmenu', e=> e.preventDefault());
+
+$('gBack').onclick    = toMenu;
+$('gUndo').onclick    = undo;
+$('gShuf').onclick    = shuffleBoard;
+$('gHint').onclick    = hint;
+$('gRestart').onclick = resetLevel;
+$('gSound').onclick   = ()=>{ save.data.sound = !save.data.sound; save.flush(); syncToggles(); };
+$('mSound').onclick   = ()=>{ save.data.sound = !save.data.sound; save.flush(); syncToggles(); };
+$('mSym').onclick     = ()=>{ save.data.symbols = !save.data.symbols; save.flush(); syncToggles(); };
+$('mEndless').onclick = startEndless;
+$('mFree').onclick    = ()=>{
+  save.setFreePlay(!save.freePlay());
+  syncToggles();
+  renderMenu();                       // lưới màn phải vẽ lại: khoá vừa đổi
+  toast(save.freePlay()
+    ? 'Chơi tự do: vào thẳng màn nào cũng được. Sao và điểm vẫn được ghi.'
+    : 'Đã tắt chơi tự do — mở màn theo tiến trình như cũ.');
+};
+$('mReset').onclick   = ()=>{
+  if (confirm('Xoá toàn bộ tiến độ?')){ save.data.stars = {}; save.data.best = {}; save.flush(); renderMenu(); }
+};
+
+addEventListener('resize', layout);
+addEventListener('keydown', e=>{
+  if (!$('scGame').classList.contains('on')) return;
+  if (e.key === 'z' || e.key === 'Z') undo();
+  if (e.key === 'r' || e.key === 'R') resetLevel();
+  if (e.key === 'h' || e.key === 'H') hint();
+  if (e.key === 'Escape') toMenu();
+});
+
+/* ==================================================================
+   14. KHỞI ĐỘNG + tự kiểm tra bảng màn
+   ================================================================== */
+save.load();
+renderMenu();
+
+(function selfTest(){
+  const rows = [];
+  for (let i=0;i<LEVELS.length;i++){
+    try{
+      const L = buildLevel(LEVELS[i]);
+      rows.push({'#':i+1, 'tên':LEVELS[i].name, 'gravity':!!L.gravity,
+                 'tổng ô':L.totalCells, 'ô hiện':L.visibleCells,
+                 'par':L.par, '2★':L.star2, 'tối đa':L.maxMoves, 'undo':L.undos});
+    }catch(err){
+      rows.push({'#':i+1, 'tên':LEVELS[i].name, 'par':'LỖI: ' + err.message});
+    }
+  }
+  console.table(rows);
+})();
+</script>
+</body>
+</html>
