@@ -41,14 +41,14 @@ namespace ConnectPuzzle.View
         private Camera uiCamera;
         [SerializeField] private RectTransform menuScreen;
         [SerializeField] private RectTransform gameScreen;
-        [SerializeField] private RectTransform boardArea;
+        /// <summary>Khung vùng bàn. Component nằm trên chính node BoardArea.</summary>
+        [SerializeField] private BoardArea boardArea;
         /// <summary>Thẻ kết ván. Component nằm trên chính node Overlay và tự giữ ref của nó.</summary>
         [SerializeField] private OverlayCard card;
 
         private BoardView board;
         private EffectLayer effects;
         private PuzzleAudio audioPlayer;
-        [SerializeField] private BoardPointerInput pointerInput;
 
         /// <summary>Bảng số liệu đầu màn chơi. Component nằm trên GameScreen.</summary>
         [SerializeField] private GameHud hud;
@@ -56,8 +56,6 @@ namespace ConnectPuzzle.View
         /// <summary>Hàng nút dưới màn chơi + nút quay lại và nút âm thanh.</summary>
         [SerializeField] private ControlBar controls;
 
-        [SerializeField] private Text chainPreviewText;
-        [SerializeField] private RectTransform chainPreview;
         [SerializeField] private DiagnosisBanner diagBanner;
 
         private PuzzleSession session;
@@ -160,16 +158,13 @@ namespace ConnectPuzzle.View
 
             // BoardView/EffectLayer là lớp C# thuần, prefab không giữ được. Hai hàm dựng
             // của chúng NHẬN LẠI node có sẵn nên gọi ở đây không sinh bản sao.
-            this.board = new BoardView(this.boardArea);
+            this.board = new BoardView(this.boardArea.Rect);
             this.effects = new EffectLayer(this, this.gameScreen);
-            this.effects.AttachFlash(this.boardArea);
+            this.effects.AttachFlash(this.boardArea.Rect);
             if (this.diagBanner != null) this.diagBanner.Wire();
 
 
-            this.pointerInput.Configure(null);                   // ScreenSpaceOverlay -> camera null
-            this.pointerInput.PointerDown = OnPointerDown;
-            this.pointerInput.PointerDrag = OnPointerDrag;
-            this.pointerInput.PointerUp = OnPointerUp;
+            this.boardArea.Wire(OnPointerDown, OnPointerDrag, OnPointerUp);
 
             // ---- menu
             Bind(this.menuEndlessButton, OpenEndless);
@@ -891,33 +886,36 @@ namespace ConnectPuzzle.View
                                       cellsValue, cellsLabel, scoreValue, parText, queueText, starTexts);
 
             // ---- vùng bàn
-            this.boardArea = Ui.Node("BoardArea", this.gameScreen);
-            this.boardArea.anchorMin = new Vector2(0, 0);
-            this.boardArea.anchorMax = new Vector2(1, 1);
-            this.boardArea.offsetMin = new Vector2(24, 230);   // ApplyLayout chỉnh lại theo hàng vật phẩm
-            this.boardArea.offsetMax = new Vector2(-24, -336);
-
-            this.board = new BoardView(this.boardArea);
-            this.effects = new EffectLayer(this, this.gameScreen);
-            this.effects.AttachFlash(this.boardArea);
+            RectTransform area = Ui.Node("BoardArea", this.gameScreen);
+            area.anchorMin = new Vector2(0, 0);
+            area.anchorMax = new Vector2(1, 1);
+            area.offsetMin = new Vector2(24, 230);   // ApplyLayout chỉnh lại theo hàng vật phẩm
+            area.offsetMax = new Vector2(-24, -336);
 
             // vùng nhận kéo, phủ hết khu bàn
-            Image inputArea = Ui.Image("InputArea", this.boardArea, new Color(0, 0, 0, 0), PuzzleSprites.Square);
+            Image inputArea = Ui.Image("InputArea", area, new Color(0, 0, 0, 0), PuzzleSprites.Square);
             Ui.Stretch(inputArea.rectTransform, 0, 0, 0, 0);
             inputArea.raycastTarget = true;
-            this.pointerInput = inputArea.gameObject.AddComponent<BoardPointerInput>();
+            BoardPointerInput input = inputArea.gameObject.AddComponent<BoardPointerInput>();
 
             // ---- chip xem trước điểm
             // chip xem trước điểm: bo mạnh cho gần dạng viên thuốc của HTML.
             // Cao 64 nên phải dùng RadiusChip (28) — bán kính 38 sẽ làm border 9-slice
             // hai cạnh chồng lên nhau và góc bị khuyết.
-            this.chainPreview = Ui.Panel("ChainPreview", this.boardArea,
+            RectTransform preview = Ui.Panel("ChainPreview", area,
                 new Color(0.04f, 0.05f, 0.11f, 0.94f), PuzzlePalette.Line, PuzzlePalette.RadiusChip);
-            this.chainPreview.sizeDelta = new Vector2(250, 64);
-            this.chainPreviewText = Ui.Text("Label", this.chainPreview, "", 30, PuzzlePalette.Foreground,
+            preview.sizeDelta = new Vector2(250, 64);
+            Text previewLabel = Ui.Text("Label", preview, "", 30, PuzzlePalette.Foreground,
                 TextAnchor.MiddleCenter, FontStyle.Bold);
-            Ui.Stretch(this.chainPreviewText.rectTransform, 0, 0, 0, 0);
-            this.chainPreview.gameObject.SetActive(false);
+            Ui.Stretch(previewLabel.rectTransform, 0, 0, 0, 0);
+            preview.gameObject.SetActive(false);
+
+            this.boardArea = area.gameObject.AddComponent<BoardArea>();
+            this.boardArea.BindForAuthoring(input, preview, previewLabel);
+
+            this.board = new BoardView(area);
+            this.effects = new EffectLayer(this, this.gameScreen);
+            this.effects.AttachFlash(area);
 
             // ---- banner chẩn đoán
             RectTransform diag = Ui.Node("DiagBanner", this.gameScreen);
@@ -1322,7 +1320,7 @@ namespace ConnectPuzzle.View
             this.board.SetDimmed(this.session, false, PuzzleProgress.Symbols);
             this.board.ClearChain();
             this.board.ResetScales();
-            this.chainPreview.gameObject.SetActive(false);
+            this.boardArea.HidePreview();
             this.diagBanner.Hide();
             this.card.Hide();
             UpdateHud();
@@ -1368,14 +1366,15 @@ namespace ConnectPuzzle.View
             // Đáy vùng bàn phụ thuộc CHẾ ĐỘ (có hàng vật phẩm hay không) nên phải đặt
             // trước khi đọc kích thước — đọc trước thì bàn dùng số đo của chế độ trước đó.
             float inset = this.BoardBottomInset;
-            if (!Mathf.Approximately(this.boardArea.offsetMin.y, inset))
+            RectTransform areaRect = this.boardArea.Rect;
+            if (!Mathf.Approximately(areaRect.offsetMin.y, inset))
             {
-                this.boardArea.offsetMin = new Vector2(24, inset);
-                LayoutRebuilder.ForceRebuildLayoutImmediate(this.boardArea);
+                areaRect.offsetMin = new Vector2(24, inset);
+                LayoutRebuilder.ForceRebuildLayoutImmediate(areaRect);
                 force = true;
             }
 
-            Vector2 size = this.boardArea.rect.size;
+            Vector2 size = areaRect.rect.size;
             if (!force && (size - this.lastBoardArea).sqrMagnitude < 1f) return;
             this.lastBoardArea = size;
             this.board.Layout(size);
@@ -1518,33 +1517,13 @@ namespace ConnectPuzzle.View
             if (selection.Count >= 1)
             {
                 Vector2 head = this.board.CellCenter(selection[selection.Count - 1]);
-                this.chainPreview.gameObject.SetActive(true);
-                this.chainPreview.anchoredPosition = BoardToArea(head) + new Vector2(0, this.board.CellSize * 0.95f);
-
-                int min = this.level.MinChain;
-                int max = this.level.MaxChain;
-
-                if (selection.Count < min)
-                {
-                    // Nói rõ còn thiếu bao nhiêu, không thì người chơi thả tay rồi
-                    // chẳng thấy gì xảy ra mà không hiểu vì sao.
-                    this.chainPreviewText.text = "cần " + min + " ô";
-                    this.chainPreviewText.color = PuzzlePalette.Dim;
-                }
-                else if (max != int.MaxValue && selection.Count >= max)
-                {
-                    this.chainPreviewText.text = "tối đa " + max + " ô  +" + PuzzleSession.ChainScore(selection.Count);
-                    this.chainPreviewText.color = PuzzlePalette.Star;
-                }
-                else
-                {
-                    this.chainPreviewText.text = selection.Count + " ô  +" + PuzzleSession.ChainScore(selection.Count);
-                    this.chainPreviewText.color = PuzzlePalette.Foreground;
-                }
+                this.boardArea.ShowPreview(
+                    BoardToArea(head) + new Vector2(0, this.board.CellSize * 0.95f),
+                    selection.Count, this.level.MinChain, this.level.MaxChain);
             }
             else
             {
-                this.chainPreview.gameObject.SetActive(false);
+                this.boardArea.HidePreview();
             }
         }
 
@@ -1552,7 +1531,7 @@ namespace ConnectPuzzle.View
         {
             foreach (int cell in this.session.Selection) this.board.SetSelected(cell, false);
             this.board.ClearChain();
-            this.chainPreview.gameObject.SetActive(false);
+            this.boardArea.HidePreview();
         }
 
         /// <summary>Toạ độ local của bàn -> local của vùng bàn (nơi đặt chip/hiệu ứng).</summary>
@@ -1591,7 +1570,7 @@ namespace ConnectPuzzle.View
 
             foreach (int cell in this.session.Selection) this.board.SetSelected(cell, false);
             this.board.ClearChain();
-            this.chainPreview.gameObject.SetActive(false);
+            this.boardArea.HidePreview();
 
             MoveResult result = this.session.Commit();
             Color color = PuzzlePalette.Colors[result.Color];
@@ -1933,7 +1912,7 @@ namespace ConnectPuzzle.View
 
             this.board.SetDimmed(this.session, false, PuzzleProgress.Symbols);
             this.board.ClearChain();
-            this.chainPreview.gameObject.SetActive(false);
+            this.boardArea.HidePreview();
             this.hud.SetScore(this.session.Score);
             // Hoàn tác một bước ĐÃ DÙNG vật phẩm thì phải trả sao lại. Không trả thì
             // hoàn tác biến thành hình phạt, và người chơi học cách không bao giờ bấm nó.
@@ -2010,7 +1989,7 @@ namespace ConnectPuzzle.View
             List<ShuffleMove> moves = this.session.ApplyShuffle(plan);
             this.board.SetDimmed(this.session, false, PuzzleProgress.Symbols);
             this.board.ClearChain();
-            this.chainPreview.gameObject.SetActive(false);
+            this.boardArea.HidePreview();
             this.card.Hide();
             UpdateHud();
 
