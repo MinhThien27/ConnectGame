@@ -25,7 +25,7 @@ namespace ConnectPuzzle.EditorTools
         [MenuItem("Connect Puzzle/Prefab/Cắt bảng vật phẩm", priority = 71)]
         public static void ExtractItemPanel()
         {
-            UiPanelExtractor.Extract<ItemPanelView>(
+            UiPanelExtractor.Extract<ItemPanel>(
                 "ItemPanel",
                 "Assets/ConnectPuzzle/Resources/UI/ItemPanel.prefab",
                 v => v.BindByNameForAuthoring());

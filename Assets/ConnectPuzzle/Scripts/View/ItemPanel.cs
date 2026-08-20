@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using ConnectPuzzle.Core;
 using UnityEngine;
 using UnityEngine.UI;
@@ -5,7 +6,7 @@ using UnityEngine.UI;
 namespace ConnectPuzzle.View
 {
     /// <summary>
-    /// Vật phẩm dùng một lần: mua bằng sao rồi dùng NGAY, không có kho đồ.
+    /// Bảng vật phẩm dùng một lần: mua bằng sao rồi dùng NGAY, không có kho đồ.
     ///
     /// Bỏ kho đồ đi vì kho đòi thêm màn hình quản lý, thêm chỗ lưu, mà không thêm quyết
     /// định nào cho người chơi — quyết định thật chỉ có một: "dùng bây giờ, hay để dành
@@ -15,16 +16,16 @@ namespace ConnectPuzzle.View
     /// Sao chỉ bị trừ khi món THẬT SỰ dùng được lên ô đó. Tiêu ngay lúc chọn trong bảng
     /// thì chạm nhầm vào ô trống là mất sao mà chẳng được gì.
     ///
-    /// Là lớp C# thuần như OverlayCard và DuelController: các tham chiếu UI vẫn là
-    /// [SerializeField] trên PuzzleGame và đã nằm trong PuzzleRoot.prefab, dời sang một
-    /// MonoBehaviour mới là gãy hết rồi phải nối tay lại.
+    /// Đặt trên CHÍNH node bảng (gốc của ItemPanel.prefab). Gộp từ hai lớp cũ:
+    /// ItemPanelView (chỉ giữ tham chiếu) và ItemShop (chỉ giữ hàm) — hai nửa của cùng
+    /// một thứ, mà tách ra thì PuzzleGame phải làm trung gian truyền 8 tham chiếu.
     /// </summary>
-    public sealed class ItemShop
+    public sealed class ItemPanel : MonoBehaviour
     {
         /// <summary>
-        /// Phần màn chơi mà cửa hàng cần tới.
+        /// Phần màn chơi mà bảng vật phẩm cần tới.
         ///
-        /// PlayEffect nằm ở host chứ không ở đây vì nó là một coroutine chạy hoạt ảnh rồi
+        /// PlayItemEffect nằm ở host chứ không ở đây vì nó là coroutine chạy hoạt ảnh rồi
         /// gọi lại Evaluate — đó là luồng ván chơi, không phải việc của cửa hàng.
         /// </summary>
         public interface IHost
@@ -44,11 +45,9 @@ namespace ConnectPuzzle.View
             void Toast(string message);
             void BadSound();
             void Tone(float hertz, float seconds);
-
-            /// <summary>Chạy hoạt ảnh của một lần dùng vật phẩm, rồi đánh giá lại ván.</summary>
             void PlayItemEffect(MoveResult effect);
 
-            /// <summary>Vẽ lại ví ở CẢ menu lẫn bảng vật phẩm.</summary>
+            /// <summary>Vẽ lại ví ở CẢ menu lẫn bảng này.</summary>
             void RefreshWallet();
         }
 
@@ -64,32 +63,25 @@ namespace ConnectPuzzle.View
             PuzzleSession.ItemKind.ExtraMove
         };
 
-        private readonly IHost host;
+        // ---- nằm TRONG prefab bảng, nối ngay trong prefab đó
+        [SerializeField] private Text head;
+        [SerializeField] private Text wallet;
+        [SerializeField] private Button[] rows;
+        [SerializeField] private Text[] costs;
 
-        private readonly Button button;
-        private readonly Text balanceText;
-        private readonly RectTransform panel;
-        private readonly Button catcher;
-        private readonly Button[] rows;
-        private readonly Text[] rowCosts;
-        private readonly Text walletText;
+        // ---- nằm NGOÀI prefab bảng: nút mở nằm trong hàng điều khiển, lớp chặn là em
+        //      ruột của bảng. Tham chiếu không đòi quan hệ cha con nên bảng vẫn tự giữ
+        //      được, và PuzzleGame không phải biết tới chúng nữa.
+        [SerializeField] private Button openButton;
+        [SerializeField] private Text balanceText;
+        [SerializeField] private Button catcher;
+
+        private IHost host;
 
         /// <summary>Vật phẩm đang chờ chọn ô. None = không ở chế độ ngắm.</summary>
         private PuzzleSession.ItemKind pending = PuzzleSession.ItemKind.None;
 
-        public ItemShop(IHost host, Button button, Text balanceText,
-                        RectTransform panel, Button catcher,
-                        Button[] rows, Text[] rowCosts, Text walletText)
-        {
-            this.host = host;
-            this.button = button;
-            this.balanceText = balanceText;
-            this.panel = panel;
-            this.catcher = catcher;
-            this.rows = rows;
-            this.rowCosts = rowCosts;
-            this.walletText = walletText;
-        }
+        public Text Head => this.head;
 
         /// <summary>Món đang cầm; cú chạm kế tiếp lên bàn sẽ dùng nó.</summary>
         public PuzzleSession.ItemKind Pending => this.pending;
@@ -99,13 +91,56 @@ namespace ConnectPuzzle.View
         /// <summary>Bỏ ngắm. Gọi khi vào ván mới hoặc khi mở bảng.</summary>
         public void ClearPending() { this.pending = PuzzleSession.ItemKind.None; }
 
-        /// <summary>
-        /// Nối listener. Gọi lại được: mọi nút đều gỡ listener trước. Tách khỏi hàm dựng
-        /// vì prefab chỉ lưu được hình dạng, không lưu được AddListener.
-        /// </summary>
-        public void Wire()
+        public List<string> MissingFields()
         {
-            Bind(this.button, TogglePanel);
+            var missing = new List<string>();
+            if (this.head == null) missing.Add(nameof(this.head));
+            if (this.wallet == null) missing.Add(nameof(this.wallet));
+            if (this.rows == null || this.rows.Length != 3) missing.Add("rows(3)");
+            else for (int i = 0; i < 3; i++) if (this.rows[i] == null) missing.Add("rows[" + i + "]");
+            if (this.costs == null || this.costs.Length != 3) missing.Add("costs(3)");
+            else for (int i = 0; i < 3; i++) if (this.costs[i] == null) missing.Add("costs[" + i + "]");
+            return missing;
+        }
+
+        /// <summary>Thứ tự PHẢI khớp Order — bài kiểm chốt điều này.</summary>
+        public void BindByNameForAuthoring()
+        {
+            this.head = Find<Text>("ItemHead");
+            this.wallet = Find<Text>("ItemWallet");
+
+            string[] kinds = { "Hammer", "Paint", "ExtraMove" };
+            this.rows = new Button[kinds.Length];
+            this.costs = new Text[kinds.Length];
+            for (int i = 0; i < kinds.Length; i++)
+            {
+                this.rows[i] = Find<Button>("ItemRow" + kinds[i]);
+                Transform row = this.rows[i] == null ? null : this.rows[i].transform;
+                this.costs[i] = row == null ? null : FindIn<Text>(row, "Cost");
+            }
+        }
+
+        /// <summary>
+        /// Nối ba thứ nằm NGOÀI prefab bảng. Gọi lúc dựng, vì chúng không tìm được bằng
+        /// transform.Find từ bảng.
+        /// </summary>
+        public void BindOutsideForAuthoring(Button open, Text balance, Button outsideCatcher)
+        {
+            this.openButton = open;
+            this.balanceText = balance;
+            this.catcher = outsideCatcher;
+        }
+
+        /// <summary>
+        /// Nối host và listener. Gọi lại được: mọi nút đều gỡ listener trước.
+        ///
+        /// Tách khỏi Awake vì bài kiểm dựng UI ở edit mode, nơi Awake không chạy.
+        /// </summary>
+        public void Wire(IHost owner)
+        {
+            this.host = owner;
+
+            Bind(this.openButton, TogglePanel);
             Bind(this.catcher, ClosePanel);
             if (this.rows == null) return;
 
@@ -124,45 +159,44 @@ namespace ConnectPuzzle.View
         }
 
         // ==================================================================
-        // Bảng chọn
+        // Mở / đóng
         // ==================================================================
 
         public void TogglePanel()
         {
-            if (this.panel.gameObject.activeSelf) { ClosePanel(); return; }
+            if (gameObject.activeSelf) { ClosePanel(); return; }
             if (this.host.Busy || !this.host.ItemsUsable) return;
 
             // Mở bảng cũng là bỏ ngắm: đang cầm búa mà mở bảng ra thì cú chạm kế tiếp là
             // chạm vào bảng, không phải chạm vào bàn.
             ClearPending();
             RefreshBar();
-            this.catcher.gameObject.SetActive(true);
-            this.panel.gameObject.SetActive(true);
-            this.panel.SetAsLastSibling();
+            if (this.catcher != null) this.catcher.gameObject.SetActive(true);
+            gameObject.SetActive(true);
+            transform.SetAsLastSibling();
         }
 
         public void ClosePanel()
         {
-            if (this.panel == null) return;
-            this.panel.gameObject.SetActive(false);
+            gameObject.SetActive(false);
             if (this.catcher != null) this.catcher.gameObject.SetActive(false);
         }
 
         /// <summary>Cập nhật nút mở bảng và ba dòng trong bảng theo số sao hiện có.</summary>
         public void RefreshBar()
         {
-            if (this.button == null) return;
+            if (this.openButton == null) return;
 
             bool show = this.host.ItemsUsable;
-            this.button.gameObject.SetActive(show);
+            this.openButton.gameObject.SetActive(show);
             if (!show) { ClosePanel(); return; }
 
             int balance = PuzzleProgress.StarsBalance(LevelCatalog.Levels.Length);
             this.balanceText.text = balance.ToString();
-            this.button.interactable = !this.host.Busy;
+            this.openButton.interactable = !this.host.Busy;
 
             // Nút sáng lên khi đang cầm một món, để biết cú chạm tới sẽ làm gì.
-            this.button.GetComponent<Image>().color =
+            this.openButton.GetComponent<Image>().color =
                 Aiming ? PuzzlePalette.PanelLight : PuzzlePalette.Panel;
 
             for (int i = 0; i < Order.Length && i < this.rows.Length; i++)
@@ -170,16 +204,16 @@ namespace ConnectPuzzle.View
                 int cost = PuzzleSession.ItemCost(Order[i]);
                 bool ok = balance >= cost;
                 this.rows[i].interactable = ok;
-                this.rowCosts[i].color = ok ? PuzzlePalette.Star : PuzzlePalette.Dim;
+                this.costs[i].color = ok ? PuzzlePalette.Star : PuzzlePalette.Dim;
             }
             this.host.RefreshWallet();
         }
 
-        /// <summary>Vẽ dòng số dư trong bảng. Chuỗi do host dựng để menu và bảng nói giống nhau.</summary>
+        /// <summary>Vẽ dòng số dư. Chuỗi do host dựng để menu và bảng nói giống nhau.</summary>
         public void ShowWallet(string richText, int balance)
         {
-            if (this.walletText == null) return;
-            this.walletText.text = balance > 0 ? richText : "<color=#7C819E>Hết sao</color>";
+            if (this.wallet == null) return;
+            this.wallet.text = balance > 0 ? richText : "<color=#7C819E>Hết sao</color>";
         }
 
         // ==================================================================
@@ -248,5 +282,20 @@ namespace ConnectPuzzle.View
 
             this.host.PlayItemEffect(effect);
         }
+
+        // ==================================================================
+
+        private T FindIn<T>(Transform root, string name) where T : Component
+        {
+            foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
+                if (t.name == name)
+                {
+                    T found = t.GetComponent<T>();
+                    if (found != null) return found;
+                }
+            return null;
+        }
+
+        private T Find<T>(string name) where T : Component => FindIn<T>(transform, name);
     }
 }

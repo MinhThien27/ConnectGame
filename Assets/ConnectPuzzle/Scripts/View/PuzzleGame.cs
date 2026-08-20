@@ -15,7 +15,7 @@ namespace ConnectPuzzle.View
     /// chỉ lo hiển thị, hoạt ảnh và điều hướng.
     /// </summary>
     [AddComponentMenu("Connect Puzzle/Puzzle Game")]
-    public sealed class PuzzleGame : MonoBehaviour, DuelController.IHost, ItemShop.IHost
+    public sealed class PuzzleGame : MonoBehaviour, DuelController.IHost, ItemPanel.IHost
     {
         private const float DiagnosisMinSeconds = 1.9f;
 
@@ -203,11 +203,8 @@ namespace ConnectPuzzle.View
             Bind(this.hintButton, OnHint);
             Bind(this.restartButton, RestartLevel);
 
-            // ---- vật phẩm
-            this.items = new ItemShop(this, this.itemButton, this.itemBalanceText,
-                                      this.itemPanel, this.itemPanelCatcher,
-                                      this.itemRows, this.itemRowCosts, this.itemWalletText);
-            this.items.Wire();
+            // ---- vật phẩm: bảng tự giữ ref của mình, chỉ cần đưa nó host
+            if (this.items != null) this.items.Wire(this);
 
             // ---- đấu seed + Wi-Fi: một lớp riêng lo cả ba đường (mã, kết quả, mạng)
             this.duel = new DuelController(this, this.duelPanel, this.duelCatcher, this.duelView,
@@ -2258,17 +2255,11 @@ namespace ConnectPuzzle.View
         // Vật phẩm — bảng và nút; luật mua/dùng nằm trong ItemShop
         // ==================================================================
 
-        [SerializeField] private Button itemButton;                 // nút mở bảng, nằm trong hàng điều khiển
-        [SerializeField] private Text itemBalanceText;              // huy hiệu ★ ở góc nút
-        [SerializeField] private RectTransform itemPanel;           // bảng chọn, ẩn mặc định
-        [SerializeField] private Button itemPanelCatcher;           // chạm ra ngoài để đóng
-        [SerializeField] private Button[] itemRows;
-        [SerializeField] private Text[] itemRowCosts;
-        [SerializeField] private Text itemWalletText;               // dòng số dư trong bảng
-        [SerializeField] private ItemPanelView itemView;
-
-        /// <summary>Cửa hàng vật phẩm. Lớp C# thuần nên dựng lại trong WireAll.</summary>
-        private ItemShop items;
+        /// <summary>
+        /// Bảng vật phẩm. Component nằm trên gốc ItemPanel.prefab và tự giữ cả tham
+        /// chiếu bên trong bảng lẫn nút mở + lớp chặn nằm ngoài.
+        /// </summary>
+        [SerializeField] private ItemPanel items;
 
         /// <summary>
         /// Thử thách hằng ngày và ván đấu KHÔNG cho dùng vật phẩm, dù Core vẫn cho:
@@ -2280,11 +2271,11 @@ namespace ConnectPuzzle.View
 
         private void BuildItemControls()
         {
-            this.itemButton = BuildControl("Items", 3, "", "Vật phẩm", out this.itemBalanceText);
+            Button open = BuildControl("Items", 3, "", "Vật phẩm", out Text balance);
 
             // Nút này dùng ICON VẼ thay vì ký tự: chỗ chữ của BuildControl để rỗng rồi
             // đặt ảnh đè lên, nên không phải sửa BuildControl cho riêng một nút.
-            Transform iconSlot = this.itemButton.transform.Find("Icon");
+            Transform iconSlot = open.transform.Find("Icon");
             Image icon = Ui.Image("IconArt", (RectTransform)iconSlot.parent,
                                   Color.white, PuzzleSprites.HammerIcon);
             RectTransform ir = icon.rectTransform;
@@ -2293,7 +2284,7 @@ namespace ConnectPuzzle.View
             ir.sizeDelta = new Vector2(46, 46);
             ir.anchoredPosition = new Vector2(0, -18);
 
-            BuildItemPanel();
+            BuildItemPanel(open, balance);
         }
 
         /// <summary>
@@ -2303,15 +2294,15 @@ namespace ConnectPuzzle.View
         /// các con cũ, mà Destroy bị hoãn tới cuối frame — mở nhanh hai lần là có hai bộ
         /// nút chồng lên nhau.
         /// </summary>
-        private void BuildItemPanel()
+        private void BuildItemPanel(Button open, Text balance)
         {
-            this.itemPanelCatcher = Ui.Button("ItemCatcher", this.gameScreen, "", 1,
+            Button catcherButton = Ui.Button("ItemCatcher", this.gameScreen, "", 1,
                 new Color(0.03f, 0.04f, 0.08f, 0.72f), Color.clear, PuzzlePalette.RadiusPanel, false, false);
-            Ui.Stretch(this.itemPanelCatcher.GetComponent<RectTransform>(), 0, 0, 0, 0);
-            Image catcher = this.itemPanelCatcher.GetComponent<Image>();
+            Ui.Stretch(catcherButton.GetComponent<RectTransform>(), 0, 0, 0, 0);
+            Image catcher = catcherButton.GetComponent<Image>();
             catcher.sprite = PuzzleSprites.Square;
             catcher.type = Image.Type.Simple;
-            this.itemPanelCatcher.gameObject.SetActive(false);
+            catcherButton.gameObject.SetActive(false);
 
             var prefab = Resources.Load<GameObject>(ItemPanelResourcePath);
             if (prefab == null)
@@ -2323,22 +2314,21 @@ namespace ConnectPuzzle.View
 
             GameObject instance = Instantiate(prefab, this.gameScreen, false);
             instance.name = "ItemPanel";
-            this.itemView = instance.GetComponent<ItemPanelView>();
-            if (this.itemView == null)
+            this.items = instance.GetComponent<ItemPanel>();
+            if (this.items == null)
             {
-                Debug.LogError("[UI] Prefab bảng vật phẩm thiếu ItemPanelView.");
+                Debug.LogError("[UI] Prefab bảng vật phẩm thiếu ItemPanel.");
                 return;
             }
 
-            System.Collections.Generic.List<string> missing = this.itemView.MissingFields();
+            System.Collections.Generic.List<string> missing = this.items.MissingFields();
             if (missing.Count > 0)
                 Debug.LogError("[UI] Prefab bảng vật phẩm chưa gán: " + string.Join(", ", missing));
 
-            this.itemPanel = (RectTransform)instance.transform;
-            this.itemWalletText = this.itemView.Wallet;
-            this.itemRows = this.itemView.Rows;
-            this.itemRowCosts = this.itemView.Costs;
-            this.itemPanel.gameObject.SetActive(false);
+            // Ba thứ nằm NGOÀI prefab bảng, nối vào component của bảng chứ không giữ lại
+            // trên PuzzleGame.
+            this.items.BindOutsideForAuthoring(open, balance, catcherButton);
+            instance.SetActive(false);
         }
 
         /// <summary>
@@ -2387,14 +2377,14 @@ namespace ConnectPuzzle.View
 
         // ---- những gì cửa hàng cần từ màn chơi. Cài TƯỜNG MINH: đây là hợp đồng với
         //      ItemShop, không phải API của PuzzleGame.
-        PuzzleSession ItemShop.IHost.Session => this.session;
-        bool ItemShop.IHost.Busy => this.busy;
-        bool ItemShop.IHost.ItemsUsable => ItemsUsable;
-        void ItemShop.IHost.Toast(string message) => Toast(message);
-        void ItemShop.IHost.BadSound() => this.audioPlayer.Bad();
-        void ItemShop.IHost.Tone(float hertz, float seconds) => this.audioPlayer.Tone(hertz, seconds);
-        void ItemShop.IHost.PlayItemEffect(MoveResult effect) => StartCoroutine(PlayItemEffect(effect));
-        void ItemShop.IHost.RefreshWallet() => RefreshWallet();
+        PuzzleSession ItemPanel.IHost.Session => this.session;
+        bool ItemPanel.IHost.Busy => this.busy;
+        bool ItemPanel.IHost.ItemsUsable => ItemsUsable;
+        void ItemPanel.IHost.Toast(string message) => Toast(message);
+        void ItemPanel.IHost.BadSound() => this.audioPlayer.Bad();
+        void ItemPanel.IHost.Tone(float hertz, float seconds) => this.audioPlayer.Tone(hertz, seconds);
+        void ItemPanel.IHost.PlayItemEffect(MoveResult effect) => StartCoroutine(PlayItemEffect(effect));
+        void ItemPanel.IHost.RefreshWallet() => RefreshWallet();
 
         // ==================================================================
         // Đấu — bảng, nút, và số đo; luật nằm trong DuelController
@@ -2628,7 +2618,7 @@ namespace ConnectPuzzle.View
             if (this.movesText == null) missing.Add(nameof(this.movesText));
             if (this.undoButton == null) missing.Add(nameof(this.undoButton));
             if (this.duelPanel == null) missing.Add(nameof(this.duelPanel));
-            if (this.itemPanel == null) missing.Add(nameof(this.itemPanel));
+            if (this.items == null) missing.Add(nameof(this.items));
             if (this.lanPanel == null) missing.Add(nameof(this.lanPanel));
             return missing;
         }
