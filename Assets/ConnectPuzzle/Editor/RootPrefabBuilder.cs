@@ -85,6 +85,31 @@ namespace ConnectPuzzle.EditorTools
         ///
         /// Thoát với mã 1 khi có bất kỳ lỗi nào, để script gọi biết mà dừng.
         /// </summary>
+        /// <summary>Ghi ảnh chụp bố cục prefab, cho batch gọi sau khi dựng lại.</summary>
+        public static void SnapshotBatch()
+        {
+            PrefabSnapshot.Write();
+            EditorApplication.Exit(0);
+        }
+
+        /// <summary>Chỉ KIỂM, không dựng lại — dùng khi prefab đã là nguồn duy nhất.</summary>
+        public static void CheckBatch()
+        {
+            bool failed = false;
+            if (UiPrefabExporter.CountDeadSprites() > 0)
+            {
+                Debug.LogError("[Batch] còn Image trống trong prefab");
+                failed = true;
+            }
+            if (PrefabSnapshot.CountDifferences() != 0)
+            {
+                Debug.LogError("[Batch] prefab lệch so với ảnh chụp");
+                failed = true;
+            }
+            Debug.Log(failed ? "CHECK_FAILED" : "CHECK_OK");
+            EditorApplication.Exit(failed ? 1 : 0);
+        }
+
         public static void RebuildBatch()
         {
             bool failed = false;

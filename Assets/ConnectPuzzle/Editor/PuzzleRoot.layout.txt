@@ -1,0 +1,684 @@
+PuzzleCanvas/Background|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_128x128_486f264c type=Simple color=FFFFFFFF
+PuzzleCanvas/Overlay/Card/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_124x124_c3536d9d type=Sliced color=2E3560FF
+PuzzleCanvas/Overlay/Card/Fill|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_124x124_a93a1e92 type=Sliced color=1C2140FF
+PuzzleCanvas/Overlay/Card|size=760.0,620.0 pos=0.0,0.0 anchor=0.5,0.5-0.5,0.5 pivot=0.5,0.5 on=1
+PuzzleCanvas/Overlay/Shade|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_4x4_7ea6462e type=Simple color=080A14DB
+PuzzleCanvas/Overlay|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=0
+PuzzleCanvas/SafeArea/GameScreen/Back/BackLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=42 align=MiddleCenter text=←
+PuzzleCanvas/SafeArea/GameScreen/Back/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_cd7ec334 type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/GameScreen/Back|size=92.0,84.0 pos=30.0,-26.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_84x84_71cc4897 type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/GameScreen/BoardArea/Board/Cells|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1
+PuzzleCanvas/SafeArea/GameScreen/BoardArea/Board/SelGlowCore|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1
+PuzzleCanvas/SafeArea/GameScreen/BoardArea/Board/SelGlowWide|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1
+PuzzleCanvas/SafeArea/GameScreen/BoardArea/Board/SelInner|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1
+PuzzleCanvas/SafeArea/GameScreen/BoardArea/Board/SelOutline|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1
+PuzzleCanvas/SafeArea/GameScreen/BoardArea/Board|size=0.0,0.0 pos=0.0,0.0 anchor=0.5,0.5-0.5,0.5 pivot=0.5,0.5 on=1
+PuzzleCanvas/SafeArea/GameScreen/BoardArea/ChainPreview/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_64x64_c50e30f6 type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/GameScreen/BoardArea/ChainPreview/Fill|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_64x64_dd7b9baf type=Sliced color=0A0D1CF0
+PuzzleCanvas/SafeArea/GameScreen/BoardArea/ChainPreview/Label|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=30 align=MiddleCenter text=
+PuzzleCanvas/SafeArea/GameScreen/BoardArea/ChainPreview|size=250.0,64.0 pos=0.0,0.0 anchor=0.5,0.5-0.5,0.5 pivot=0.5,0.5 on=0
+PuzzleCanvas/SafeArea/GameScreen/BoardArea/Flash|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_4x4_7ea6462e type=Simple color=FFFFFF00
+PuzzleCanvas/SafeArea/GameScreen/BoardArea/InputArea|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_4x4_7ea6462e type=Simple color=00000000
+PuzzleCanvas/SafeArea/GameScreen/BoardArea|size=-48.0,-566.0 pos=0.0,-53.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1
+PuzzleCanvas/SafeArea/GameScreen/CtlHint/BadgeBg|size=42.0,42.0 pos=-8.0,-8.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 img=sprite_256x256_212dfc6f type=Simple color=7C8CFFFF
+PuzzleCanvas/SafeArea/GameScreen/CtlHint/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_cd7ec334 type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/GameScreen/CtlHint/Count|size=42.0,42.0 pos=-8.0,-8.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 font=22 align=MiddleCenter text=
+PuzzleCanvas/SafeArea/GameScreen/CtlHint/CtlHintLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=1 align=MiddleCenter text=
+PuzzleCanvas/SafeArea/GameScreen/CtlHint/Icon|size=-8.0,-70.0 pos=0.0,19.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=42 align=MiddleCenter text=?
+PuzzleCanvas/SafeArea/GameScreen/CtlHint/Label|size=-8.0,-96.0 pos=0.0,-36.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=24 align=MiddleCenter text=Gợi ý
+PuzzleCanvas/SafeArea/GameScreen/CtlHint|size=192.8,136.0 pos=443.6,46.0 anchor=0.0,0.0-0.0,0.0 pivot=0.0,0.0 on=1 img=sprite_84x84_71cc4897 type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/GameScreen/CtlItems/BadgeBg|size=42.0,42.0 pos=-8.0,-8.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 img=sprite_256x256_212dfc6f type=Simple color=7C8CFFFF
+PuzzleCanvas/SafeArea/GameScreen/CtlItems/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_cd7ec334 type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/GameScreen/CtlItems/Count|size=42.0,42.0 pos=-8.0,-8.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 font=22 align=MiddleCenter text=
+PuzzleCanvas/SafeArea/GameScreen/CtlItems/CtlItemsLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=1 align=MiddleCenter text=
+PuzzleCanvas/SafeArea/GameScreen/CtlItems/IconArt|size=46.0,46.0 pos=0.0,-18.0 anchor=0.5,1.0-0.5,1.0 pivot=0.5,1.0 on=1 img=sprite_160x160_b4ce11db type=Simple color=FFFFFFFF
+PuzzleCanvas/SafeArea/GameScreen/CtlItems/Icon|size=-8.0,-70.0 pos=0.0,19.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=42 align=MiddleCenter text=
+PuzzleCanvas/SafeArea/GameScreen/CtlItems/Label|size=-8.0,-96.0 pos=0.0,-36.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=24 align=MiddleCenter text=Vật phẩm
+PuzzleCanvas/SafeArea/GameScreen/CtlItems|size=192.8,136.0 pos=650.4,46.0 anchor=0.0,0.0-0.0,0.0 pivot=0.0,0.0 on=1 img=sprite_84x84_71cc4897 type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/GameScreen/CtlRestart/BadgeBg|size=42.0,42.0 pos=-8.0,-8.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 img=sprite_256x256_212dfc6f type=Simple color=7C8CFFFF
+PuzzleCanvas/SafeArea/GameScreen/CtlRestart/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_cd7ec334 type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/GameScreen/CtlRestart/Count|size=42.0,42.0 pos=-8.0,-8.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 font=22 align=MiddleCenter text=
+PuzzleCanvas/SafeArea/GameScreen/CtlRestart/CtlRestartLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=1 align=MiddleCenter text=
+PuzzleCanvas/SafeArea/GameScreen/CtlRestart/Icon|size=-8.0,-70.0 pos=0.0,19.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=42 align=MiddleCenter text=↻
+PuzzleCanvas/SafeArea/GameScreen/CtlRestart/Label|size=-8.0,-96.0 pos=0.0,-36.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=24 align=MiddleCenter text=Chơi lại
+PuzzleCanvas/SafeArea/GameScreen/CtlRestart|size=192.8,136.0 pos=857.2,46.0 anchor=0.0,0.0-0.0,0.0 pivot=0.0,0.0 on=1 img=sprite_84x84_71cc4897 type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/GameScreen/CtlShuffle/BadgeBg|size=42.0,42.0 pos=-8.0,-8.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 img=sprite_256x256_212dfc6f type=Simple color=7C8CFFFF
+PuzzleCanvas/SafeArea/GameScreen/CtlShuffle/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_cd7ec334 type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/GameScreen/CtlShuffle/Count|size=42.0,42.0 pos=-8.0,-8.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 font=22 align=MiddleCenter text=
+PuzzleCanvas/SafeArea/GameScreen/CtlShuffle/CtlShuffleLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=1 align=MiddleCenter text=
+PuzzleCanvas/SafeArea/GameScreen/CtlShuffle/Icon|size=-8.0,-70.0 pos=0.0,19.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=42 align=MiddleCenter text=⇄
+PuzzleCanvas/SafeArea/GameScreen/CtlShuffle/Label|size=-8.0,-96.0 pos=0.0,-36.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=24 align=MiddleCenter text=Xáo lại
+PuzzleCanvas/SafeArea/GameScreen/CtlShuffle|size=192.8,136.0 pos=236.8,46.0 anchor=0.0,0.0-0.0,0.0 pivot=0.0,0.0 on=1 img=sprite_84x84_71cc4897 type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/GameScreen/CtlUndo/BadgeBg|size=42.0,42.0 pos=-8.0,-8.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 img=sprite_256x256_212dfc6f type=Simple color=7C8CFFFF
+PuzzleCanvas/SafeArea/GameScreen/CtlUndo/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_cd7ec334 type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/GameScreen/CtlUndo/Count|size=42.0,42.0 pos=-8.0,-8.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 font=22 align=MiddleCenter text=
+PuzzleCanvas/SafeArea/GameScreen/CtlUndo/CtlUndoLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=1 align=MiddleCenter text=
+PuzzleCanvas/SafeArea/GameScreen/CtlUndo/Icon|size=-8.0,-70.0 pos=0.0,19.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=42 align=MiddleCenter text=↶
+PuzzleCanvas/SafeArea/GameScreen/CtlUndo/Label|size=-8.0,-96.0 pos=0.0,-36.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=24 align=MiddleCenter text=Hoàn tác
+PuzzleCanvas/SafeArea/GameScreen/CtlUndo|size=192.8,136.0 pos=30.0,46.0 anchor=0.0,0.0-0.0,0.0 pivot=0.0,0.0 on=1 img=sprite_84x84_71cc4897 type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/GameScreen/DiagBanner/Bg|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_71cc4897 type=Sliced color=1A0C14FA
+PuzzleCanvas/SafeArea/GameScreen/DiagBanner/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_cd7ec334 type=Sliced color=7F1D33FF
+PuzzleCanvas/SafeArea/GameScreen/DiagBanner/Hint|size=-40.0,-90.0 pos=0.0,-15.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=27 align=UpperCenter text=
+PuzzleCanvas/SafeArea/GameScreen/DiagBanner/Tap|size=-40.0,-120.0 pos=0.0,-50.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=20 align=LowerCenter text=CHẠM ĐỂ TIẾP TỤC
+PuzzleCanvas/SafeArea/GameScreen/DiagBanner/Title|size=-40.0,-104.0 pos=0.0,38.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=38 align=UpperCenter text=
+PuzzleCanvas/SafeArea/GameScreen/DiagBanner|size=900.0,150.0 pos=0.0,-348.0 anchor=0.5,1.0-0.5,1.0 pivot=0.5,1.0 on=0
+PuzzleCanvas/SafeArea/GameScreen/Effects|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1
+PuzzleCanvas/SafeArea/GameScreen/ItemCatcher/ItemCatcherLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=1 align=MiddleCenter text=
+PuzzleCanvas/SafeArea/GameScreen/ItemCatcher|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=0 img=sprite_4x4_7ea6462e type=Simple color=080A14B8
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_cd7ec334 type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/Fill|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_71cc4897 type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemHead|size=-226.0,-472.0 pos=-87.0,216.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=32 align=UpperLeft text=Vật phẩm
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemRowExtraMove/Art|size=72.0,72.0 pos=22.0,0.0 anchor=0.0,0.5-0.0,0.5 pivot=0.0,0.5 on=1 img=sprite_160x160_23d3850d type=Simple color=FFFFFFFF
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemRowExtraMove/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=8B9BFFFF
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemRowExtraMove/Cost|size=-176.0,-40.0 pos=62.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=32 align=MiddleRight text=★2
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemRowExtraMove/ItemRowExtraMoveLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=1 align=MiddleCenter text=
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemRowExtraMove/Name|size=-262.0,-90.0 pos=-19.0,21.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=30 align=LowerLeft text=Thêm lượt
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemRowExtraMove/Note|size=-262.0,-88.0 pos=-19.0,-24.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=22 align=UpperLeft text=Nới ngân sách thêm 1 lượt.
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemRowExtraMove/Sheen|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_57c0a18f type=Sliced color=FFFFFF8C
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemRowExtraMove|size=984.0,128.0 pos=18.0,18.0 anchor=0.0,0.0-0.0,0.0 pivot=0.0,0.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=242A4FFF
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemRowHammer/Art|size=72.0,72.0 pos=22.0,0.0 anchor=0.0,0.5-0.0,0.5 pivot=0.0,0.5 on=1 img=sprite_160x160_b4ce11db type=Simple color=FFFFFFFF
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemRowHammer/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=8B9BFFFF
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemRowHammer/Cost|size=-176.0,-40.0 pos=62.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=32 align=MiddleRight text=★3
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemRowHammer/ItemRowHammerLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=1 align=MiddleCenter text=
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemRowHammer/Name|size=-262.0,-90.0 pos=-19.0,21.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=30 align=LowerLeft text=Búa
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemRowHammer/Note|size=-262.0,-88.0 pos=-19.0,-24.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=22 align=UpperLeft text=Đập 1 ô. Đá và băng chỉ mất 1 lớp.
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemRowHammer/Sheen|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_57c0a18f type=Sliced color=FFFFFF8C
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemRowHammer|size=984.0,128.0 pos=18.0,298.0 anchor=0.0,0.0-0.0,0.0 pivot=0.0,0.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=242A4FFF
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemRowPaint/Art|size=72.0,72.0 pos=22.0,0.0 anchor=0.0,0.5-0.0,0.5 pivot=0.0,0.5 on=1 img=sprite_160x160_d2a0b2e1 type=Simple color=FFFFFFFF
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemRowPaint/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=8B9BFFFF
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemRowPaint/Cost|size=-176.0,-40.0 pos=62.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=32 align=MiddleRight text=★5
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemRowPaint/ItemRowPaintLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=1 align=MiddleCenter text=
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemRowPaint/Name|size=-262.0,-90.0 pos=-19.0,21.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=30 align=LowerLeft text=Sơn
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemRowPaint/Note|size=-262.0,-88.0 pos=-19.0,-24.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=22 align=UpperLeft text=Biến 1 ô thành ô đa sắc, nối được mọi màu.
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemRowPaint/Sheen|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_57c0a18f type=Sliced color=FFFFFF8C
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemRowPaint|size=984.0,128.0 pos=18.0,158.0 anchor=0.0,0.0-0.0,0.0 pivot=0.0,0.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=242A4FFF
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel/ItemWallet|size=-226.0,-472.0 pos=87.0,216.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=28 align=UpperRight text=<color=#FBBF24>★ 1</color>
+PuzzleCanvas/SafeArea/GameScreen/ItemPanel|size=1020.0,514.0 pos=30.0,198.0 anchor=0.0,0.0-0.0,0.0 pivot=0.0,0.0 on=0
+PuzzleCanvas/SafeArea/GameScreen/LevelName|size=-280.0,44.0 pos=0.0,-26.0 anchor=0.0,1.0-1.0,1.0 pivot=0.5,1.0 on=1 font=38 align=UpperLeft text=
+PuzzleCanvas/SafeArea/GameScreen/LevelSub|size=-280.0,38.0 pos=0.0,-68.0 anchor=0.0,1.0-1.0,1.0 pivot=0.5,1.0 on=1 font=26 align=UpperLeft text=
+PuzzleCanvas/SafeArea/GameScreen/Par|size=-300.0,44.0 pos=0.0,-274.0 anchor=0.0,1.0-1.0,1.0 pivot=0.5,1.0 on=1 font=26 align=MiddleLeft text=
+PuzzleCanvas/SafeArea/GameScreen/Queue|size=-68.0,44.0 pos=0.0,-274.0 anchor=0.0,1.0-1.0,1.0 pivot=0.5,1.0 on=1 font=26 align=MiddleRight text=
+PuzzleCanvas/SafeArea/GameScreen/Sound/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_cd7ec334 type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/GameScreen/Sound/SoundLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=34 align=MiddleCenter text=♪
+PuzzleCanvas/SafeArea/GameScreen/Sound|size=92.0,84.0 pos=-30.0,-26.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 img=sprite_84x84_71cc4897 type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/GameScreen/Star0|size=40.0,42.0 pos=34.0,-276.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 font=30 align=MiddleLeft text=★
+PuzzleCanvas/SafeArea/GameScreen/Star1|size=40.0,42.0 pos=68.0,-276.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 font=30 align=MiddleLeft text=★
+PuzzleCanvas/SafeArea/GameScreen/Star2|size=40.0,42.0 pos=102.0,-276.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 font=30 align=MiddleLeft text=★
+PuzzleCanvas/SafeArea/GameScreen/StatCells/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_cd7ec334 type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/GameScreen/StatCells/Caption|size=-32.0,-90.0 pos=4.0,33.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=22 align=UpperLeft text=Ô CÒN LẠI
+PuzzleCanvas/SafeArea/GameScreen/StatCells/Fill|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_71cc4897 type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/GameScreen/StatCells/Suffix|size=-28.0,-62.0 pos=-2.0,-17.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=28 align=LowerRight text=
+PuzzleCanvas/SafeArea/GameScreen/StatCells/Value|size=-32.0,-50.0 pos=4.0,-17.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=50 align=UpperLeft text=0
+PuzzleCanvas/SafeArea/GameScreen/StatCells|size=330.7,126.0 pos=374.7,-132.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1
+PuzzleCanvas/SafeArea/GameScreen/StatMoves/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_cd7ec334 type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/GameScreen/StatMoves/Caption|size=-32.0,-90.0 pos=4.0,33.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=22 align=UpperLeft text=LƯỢT CÒN
+PuzzleCanvas/SafeArea/GameScreen/StatMoves/Fill|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_71cc4897 type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/GameScreen/StatMoves/Suffix|size=-28.0,-62.0 pos=-2.0,-17.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=28 align=LowerRight text=
+PuzzleCanvas/SafeArea/GameScreen/StatMoves/Value|size=-32.0,-50.0 pos=4.0,-17.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=50 align=UpperLeft text=0
+PuzzleCanvas/SafeArea/GameScreen/StatMoves|size=330.7,126.0 pos=30.0,-132.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1
+PuzzleCanvas/SafeArea/GameScreen/StatScore/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_cd7ec334 type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/GameScreen/StatScore/Caption|size=-32.0,-90.0 pos=4.0,33.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=22 align=UpperLeft text=ĐIỂM
+PuzzleCanvas/SafeArea/GameScreen/StatScore/Fill|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_71cc4897 type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/GameScreen/StatScore/Suffix|size=-28.0,-62.0 pos=-2.0,-17.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=28 align=LowerRight text=
+PuzzleCanvas/SafeArea/GameScreen/StatScore/Value|size=-32.0,-50.0 pos=4.0,-17.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=50 align=UpperLeft text=0
+PuzzleCanvas/SafeArea/GameScreen/StatScore|size=330.7,126.0 pos=719.3,-132.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1
+PuzzleCanvas/SafeArea/GameScreen|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=0
+PuzzleCanvas/SafeArea/MenuScreen/DuelCatcher/DuelCatcherLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=1 align=MiddleCenter text=
+PuzzleCanvas/SafeArea/MenuScreen/DuelCatcher|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=0 img=sprite_4x4_7ea6462e type=Simple color=080A14C7
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_cd7ec334 type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelFieldBg/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelFieldBg/Fill|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_a51c76df type=Sliced color=242A4FFF
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelFieldBg/Placeholder|size=-48.0,-20.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=38 align=MiddleCenter text=K7M2-QX9F
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelFieldBg/Typed|size=-48.0,-20.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=38 align=MiddleCenter text=
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelFieldBg|size=880.0,96.0 pos=0.0,-464.0 anchor=0.5,1.0-0.5,1.0 pivot=0.5,1.0 on=1 img=sprite_4x4_7ea6462e type=Simple color=00000000
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelHead|size=-60.0,-934.0 pos=0.0,441.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=40 align=UpperCenter text=Đấu seed bạn bè
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelInLabel|size=-80.0,-948.0 pos=0.0,50.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=26 align=UpperLeft text=Hoặc dán mã bạn gửi:
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelLanOpen/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=8B9BFFFF
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelLanOpen/DuelLanOpenLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=26 align=MiddleCenter text=Đấu cùng Wi-Fi (cùng mạng)
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelLanOpen/Sheen|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_57c0a18f type=Sliced color=FFFFFF8C
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelLanOpen|size=880.0,76.0 pos=0.0,-808.0 anchor=0.5,1.0-0.5,1.0 pivot=0.5,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=EEF1FFFF
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelMine/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelMine/DuelCode|size=-40.0,-66.0 pos=0.0,19.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=52 align=MiddleCenter
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelMine/DuelCopy/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_50x50_2c87b8f6 type=Sliced color=8B9BFFFF
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelMine/DuelCopy/DuelCopyLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=24 align=MiddleCenter text=Sao chép
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelMine/DuelCopy/Sheen|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_50x50_cd3952d7 type=Sliced color=FFFFFF8C
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelMine/DuelCopy|size=220.0,46.0 pos=-24.0,14.0 anchor=1.0,0.0-1.0,0.0 pivot=1.0,0.0 on=1 img=sprite_50x50_71efb403 type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelMine/DuelReroll/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_50x50_2c87b8f6 type=Sliced color=8B9BFFFF
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelMine/DuelReroll/DuelRerollLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=24 align=MiddleCenter text=Mã khác
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelMine/DuelReroll/Sheen|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_50x50_cd3952d7 type=Sliced color=FFFFFF8C
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelMine/DuelReroll|size=200.0,46.0 pos=24.0,14.0 anchor=0.0,0.0-0.0,0.0 pivot=0.0,0.0 on=1 img=sprite_50x50_71efb403 type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelMine/Fill|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_a51c76df type=Sliced color=242A4FFF
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelMine|size=880.0,150.0 pos=0.0,-154.0 anchor=0.5,1.0-0.5,1.0 pivot=0.5,1.0 on=1
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelNote|size=-80.0,-924.0 pos=0.0,378.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=24 align=UpperCenter text=Cùng một mã = cùng một bàn trên mọi máy. Gửi mã cho bạn, ai …
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelPaste/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=8B9BFFFF
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelPaste/DuelPasteLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=28 align=MiddleCenter text=Dán mã từ tin nhắn
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelPaste/Sheen|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_57c0a18f type=Sliced color=FFFFFF8C
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelPaste|size=880.0,76.0 pos=0.0,-632.0 anchor=0.5,1.0-0.5,1.0 pivot=0.5,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=7C8CFFFF
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelPlayMine/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=8B9BFFFF
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelPlayMine/DuelPlayMineLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=30 align=MiddleCenter text=Chơi bàn này
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelPlayMine/Sheen|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_57c0a18f type=Sliced color=FFFFFF8C
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelPlayMine|size=880.0,88.0 pos=0.0,-318.0 anchor=0.5,1.0-0.5,1.0 pivot=0.5,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=7C8CFFFF
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelPlayTheirs/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=8B9BFFFF
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelPlayTheirs/DuelPlayTheirsLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=30 align=MiddleCenter text=Chơi mã đã nhập
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelPlayTheirs/Sheen|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_57c0a18f type=Sliced color=FFFFFF8C
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelPlayTheirs|size=880.0,88.0 pos=0.0,-720.0 anchor=0.5,1.0-0.5,1.0 pivot=0.5,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/DuelStatus|size=-80.0,-934.0 pos=0.0,-107.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=24 align=UpperCenter text=
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel/Fill|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_71cc4897 type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/DuelPanel|size=960.0,980.0 pos=0.0,0.0 anchor=0.5,0.5-0.5,0.5 pivot=0.5,0.5 on=0 img=sprite_4x4_7ea6462e type=Simple color=00000000
+PuzzleCanvas/SafeArea/MenuScreen/LanCatcher/LanCatcherLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=1 align=MiddleCenter text=
+PuzzleCanvas/SafeArea/MenuScreen/LanCatcher|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=0 img=sprite_4x4_7ea6462e type=Simple color=080A14C7
+PuzzleCanvas/SafeArea/MenuScreen/LanPanel/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_cd7ec334 type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LanPanel/Fill|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_71cc4897 type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LanPanel/LanClose/LanCloseLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=26 align=MiddleCenter text=Đóng
+PuzzleCanvas/SafeArea/MenuScreen/LanPanel/LanClose|size=880.0,64.0 pos=0.0,-554.0 anchor=0.5,1.0-0.5,1.0 pivot=0.5,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LanPanel/LanHead|size=-80.0,-584.0 pos=0.0,258.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=UpperCenter text=Đấu cùng Wi-Fi
+PuzzleCanvas/SafeArea/MenuScreen/LanPanel/LanHost/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=8B9BFFFF
+PuzzleCanvas/SafeArea/MenuScreen/LanPanel/LanHost/LanHostLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=30 align=MiddleCenter text=Mở phòng
+PuzzleCanvas/SafeArea/MenuScreen/LanPanel/LanHost/Sheen|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_57c0a18f type=Sliced color=FFFFFF8C
+PuzzleCanvas/SafeArea/MenuScreen/LanPanel/LanHostHint|size=-112.0,-612.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=21 align=UpperCenter text=máy này chọn bàn rồi mời
+PuzzleCanvas/SafeArea/MenuScreen/LanPanel/LanHost|size=880.0,96.0 pos=0.0,-198.0 anchor=0.5,1.0-0.5,1.0 pivot=0.5,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=7C8CFFFF
+PuzzleCanvas/SafeArea/MenuScreen/LanPanel/LanNote|size=-112.0,-568.0 pos=0.0,184.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=23 align=UpperCenter text=Hai máy cùng một mạng Wi-Fi. Ai xong trước thì chờ —\nthắng …
+PuzzleCanvas/SafeArea/MenuScreen/LanPanel/LanSeek/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LanPanel/LanSeek/LanSeekLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=28 align=MiddleCenter text=Tìm phòng của bạn
+PuzzleCanvas/SafeArea/MenuScreen/LanPanel/LanSeek|size=880.0,88.0 pos=0.0,-356.0 anchor=0.5,1.0-0.5,1.0 pivot=0.5,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=EEF1FFFF
+PuzzleCanvas/SafeArea/MenuScreen/LanPanel/LanStatusStrip/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LanPanel/LanStatusStrip/Fill|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_a51c76df type=Sliced color=0F1220FF
+PuzzleCanvas/SafeArea/MenuScreen/LanPanel/LanStatusStrip/LanStatus|size=-36.0,-16.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=23 align=MiddleCenter text=
+PuzzleCanvas/SafeArea/MenuScreen/LanPanel/LanStatusStrip|size=880.0,64.0 pos=0.0,-468.0 anchor=0.5,1.0-0.5,1.0 pivot=0.5,1.0 on=1
+PuzzleCanvas/SafeArea/MenuScreen/LanPanel|size=960.0,640.0 pos=0.0,0.0 anchor=0.5,0.5-0.5,0.5 pivot=0.5,0.5 on=0 img=sprite_4x4_7ea6462e type=Simple color=00000000
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level1/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level1/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level1/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=1
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level1/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24>★★★</color><color=#3B4270></color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level10/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level10/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level10/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=10
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level10/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level10|size=183.6,183.6 pos=851.4,-243.6 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level11/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level11/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level11/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=11
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level11/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level11|size=183.6,183.6 pos=45.0,-513.2 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level12/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level12/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level12/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=12
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level12/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level12|size=183.6,183.6 pos=246.6,-513.2 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level13/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level13/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level13/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=13
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level13/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level13|size=183.6,183.6 pos=448.2,-513.2 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level14/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level14/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level14/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=14
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level14/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level14|size=183.6,183.6 pos=649.8,-513.2 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level15/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level15/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level15/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=15
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level15/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level15|size=183.6,183.6 pos=851.4,-513.2 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level16/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level16/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level16/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=16
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level16/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level16|size=183.6,183.6 pos=45.0,-714.8 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level17/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level17/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level17/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=17
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level17/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level17|size=183.6,183.6 pos=246.6,-714.8 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level18/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level18/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level18/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=18
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level18/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level18|size=183.6,183.6 pos=448.2,-714.8 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level19/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level19/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level19/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=19
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level19/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level19|size=183.6,183.6 pos=649.8,-714.8 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level1|size=183.6,183.6 pos=45.0,-42.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=242A4FFF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level2/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level2/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level2/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=2
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level2/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level20/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level20/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level20/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=20
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level20/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level20|size=183.6,183.6 pos=851.4,-714.8 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level21/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level21/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 font=24 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level21/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=21
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level21/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level21|size=183.6,183.6 pos=45.0,-984.4 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level22/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level22/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 font=24 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level22/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=22
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level22/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level22|size=183.6,183.6 pos=246.6,-984.4 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level23/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level23/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 font=24 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level23/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=23
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level23/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level23|size=183.6,183.6 pos=448.2,-984.4 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level24/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level24/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 font=24 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level24/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=24
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level24/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level24|size=183.6,183.6 pos=649.8,-984.4 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level25/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level25/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 font=24 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level25/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=25
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level25/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level25|size=183.6,183.6 pos=851.4,-984.4 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level26/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level26/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 font=24 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level26/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=26
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level26/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level26|size=183.6,183.6 pos=45.0,-1186.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level27/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level27/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 font=24 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level27/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=27
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level27/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level27|size=183.6,183.6 pos=246.6,-1186.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level28/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level28/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 font=24 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level28/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=28
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level28/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level28|size=183.6,183.6 pos=448.2,-1186.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level29/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level29/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 font=24 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level29/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=29
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level29/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level29|size=183.6,183.6 pos=649.8,-1186.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level2|size=183.6,183.6 pos=246.6,-42.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level3/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level3/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level3/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=3
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level3/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level30/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level30/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 font=24 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level30/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=30
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level30/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level30|size=183.6,183.6 pos=851.4,-1186.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level31/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level31/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level31/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=31
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level31/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level31|size=183.6,183.6 pos=45.0,-1455.6 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level32/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level32/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level32/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=32
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level32/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level32|size=183.6,183.6 pos=246.6,-1455.6 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level33/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level33/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level33/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=33
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level33/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level33|size=183.6,183.6 pos=448.2,-1455.6 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level34/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level34/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level34/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=34
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level34/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level34|size=183.6,183.6 pos=649.8,-1455.6 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level35/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level35/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level35/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=35
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level35/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level35|size=183.6,183.6 pos=851.4,-1455.6 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level36/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level36/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level36/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=36
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level36/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level36|size=183.6,183.6 pos=45.0,-1657.2 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level37/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level37/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level37/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=37
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level37/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level37|size=183.6,183.6 pos=246.6,-1657.2 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level38/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level38/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level38/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=38
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level38/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level38|size=183.6,183.6 pos=448.2,-1657.2 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level39/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level39/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level39/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=39
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level39/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level39|size=183.6,183.6 pos=649.8,-1657.2 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level3|size=183.6,183.6 pos=448.2,-42.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level4/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level4/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level4/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=4
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level4/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level40/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level40/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level40/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=40
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level40/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level40|size=183.6,183.6 pos=851.4,-1657.2 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level41/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level41/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level41/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=41
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level41/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level41|size=183.6,183.6 pos=45.0,-1926.8 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level42/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level42/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level42/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=42
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level42/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level42|size=183.6,183.6 pos=246.6,-1926.8 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level43/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level43/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level43/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=43
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level43/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level43|size=183.6,183.6 pos=448.2,-1926.8 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level44/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level44/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level44/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=44
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level44/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level44|size=183.6,183.6 pos=649.8,-1926.8 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level45/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level45/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level45/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=45
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level45/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level45|size=183.6,183.6 pos=851.4,-1926.8 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level46/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level46/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level46/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=46
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level46/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level46|size=183.6,183.6 pos=45.0,-2128.4 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level47/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level47/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level47/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=47
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level47/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level47|size=183.6,183.6 pos=246.6,-2128.4 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level48/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level48/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level48/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=48
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level48/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level48|size=183.6,183.6 pos=448.2,-2128.4 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level49/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level49/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level49/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=49
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level49/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level49|size=183.6,183.6 pos=649.8,-2128.4 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level4|size=183.6,183.6 pos=649.8,-42.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level5/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level5/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level5/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=5
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level5/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level50/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level50/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level50/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=50
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level50/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level50|size=183.6,183.6 pos=851.4,-2128.4 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level51/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level51/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level51/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=51
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level51/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level51|size=183.6,183.6 pos=45.0,-2398.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level52/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level52/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level52/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=52
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level52/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level52|size=183.6,183.6 pos=246.6,-2398.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level53/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level53/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level53/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=53
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level53/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level53|size=183.6,183.6 pos=448.2,-2398.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level54/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level54/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level54/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=54
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level54/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level54|size=183.6,183.6 pos=649.8,-2398.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level55/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level55/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 font=24 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level55/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=55
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level55/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level55|size=183.6,183.6 pos=851.4,-2398.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level56/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level56/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 font=24 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level56/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=56
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level56/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level56|size=183.6,183.6 pos=45.0,-2599.6 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level57/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level57/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level57/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=57
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level57/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level57|size=183.6,183.6 pos=246.6,-2599.6 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level58/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level58/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level58/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=58
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level58/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level58|size=183.6,183.6 pos=448.2,-2599.6 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level59/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level59/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 font=24 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level59/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=59
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level59/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level59|size=183.6,183.6 pos=649.8,-2599.6 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level5|size=183.6,183.6 pos=851.4,-42.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level6/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level6/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level6/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=6
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level6/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level60/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level60/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 font=24 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level60/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=60
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level60/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level60|size=183.6,183.6 pos=851.4,-2599.6 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level61/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level61/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level61/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=61
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level61/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level61|size=183.6,183.6 pos=45.0,-2869.2 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level62/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level62/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level62/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=62
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level62/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level62|size=183.6,183.6 pos=246.6,-2869.2 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level63/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level63/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level63/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=63
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level63/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level63|size=183.6,183.6 pos=448.2,-2869.2 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level64/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level64/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level64/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=64
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level64/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level64|size=183.6,183.6 pos=649.8,-2869.2 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level65/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level65/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 font=24 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level65/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=65
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level65/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level65|size=183.6,183.6 pos=851.4,-2869.2 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level66/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level66/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level66/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=66
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level66/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level66|size=183.6,183.6 pos=45.0,-3070.8 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level67/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level67/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level67/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=67
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level67/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level67|size=183.6,183.6 pos=246.6,-3070.8 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level68/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level68/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 font=24 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level68/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=68
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level68/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level68|size=183.6,183.6 pos=448.2,-3070.8 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level69/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level69/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level69/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=69
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level69/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level69|size=183.6,183.6 pos=649.8,-3070.8 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level6|size=183.6,183.6 pos=45.0,-243.6 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level7/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level7/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level7/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=7
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level7/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level70/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level70/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=1 font=24 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level70/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=70
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level70/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level70|size=183.6,183.6 pos=851.4,-3070.8 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level71/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level71/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level71/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=71
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level71/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level71|size=183.6,183.6 pos=45.0,-3340.4 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level72/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level72/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level72/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=72
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level72/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level72|size=183.6,183.6 pos=246.6,-3340.4 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level73/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level73/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level73/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=73
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level73/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level73|size=183.6,183.6 pos=448.2,-3340.4 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level74/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level74/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level74/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=74
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level74/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level74|size=183.6,183.6 pos=649.8,-3340.4 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level75/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level75/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level75/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=75
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level75/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level75|size=183.6,183.6 pos=851.4,-3340.4 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level76/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level76/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level76/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=76
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level76/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level76|size=183.6,183.6 pos=45.0,-3542.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level77/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level77/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level77/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=77
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level77/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level77|size=183.6,183.6 pos=246.6,-3542.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level78/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level78/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level78/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=78
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level78/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level78|size=183.6,183.6 pos=448.2,-3542.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level79/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level79/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level79/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=79
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level79/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level79|size=183.6,183.6 pos=649.8,-3542.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level7|size=183.6,183.6 pos=246.6,-243.6 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level8/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level8/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level8/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=8
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level8/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level80/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level80/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level80/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=80
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level80/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level80|size=183.6,183.6 pos=851.4,-3542.0 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level81/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level81/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level81/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=81
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level81/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level81|size=183.6,183.6 pos=45.0,-3811.6 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level82/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level82/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level82/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=82
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level82/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level82|size=183.6,183.6 pos=246.6,-3811.6 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level83/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level83/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level83/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=83
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level83/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level83|size=183.6,183.6 pos=448.2,-3811.6 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level84/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level84/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level84/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=84
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level84/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level84|size=183.6,183.6 pos=649.8,-3811.6 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level85/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level85/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level85/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=85
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level85/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level85|size=183.6,183.6 pos=851.4,-3811.6 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level86/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level86/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level86/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=86
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level86/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level86|size=183.6,183.6 pos=45.0,-4013.2 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level87/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level87/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level87/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=87
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level87/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level87|size=183.6,183.6 pos=246.6,-4013.2 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level88/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level88/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level88/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=88
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level88/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level88|size=183.6,183.6 pos=448.2,-4013.2 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level89/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level89/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level89/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=89
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level89/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level89|size=183.6,183.6 pos=649.8,-4013.2 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level8|size=183.6,183.6 pos=448.2,-243.6 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level9/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level9/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level9/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=9
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level9/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level90/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_72x72_13a21b9c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level90/Gravity|size=40.0,30.0 pos=-8.0,-6.0 anchor=1.0,1.0-1.0,1.0 pivot=1.0,1.0 on=0 font=22 align=UpperRight text=▼
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level90/Label|size=0.0,-67.9 pos=0.0,21.1 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=44 align=MiddleCenter text=90
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level90/Stars|size=0.0,29.4 pos=0.0,14.7 anchor=0.0,0.0-1.0,0.0 pivot=0.5,0.0 on=1 font=22 align=MiddleCenter text=<color=#FBBF24></color><color=#3B4270>★★★</color>
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level90|size=183.6,183.6 pos=851.4,-4013.2 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/Level9|size=183.6,183.6 pos=649.8,-243.6 anchor=0.0,1.0-0.0,1.0 pivot=0.0,1.0 on=1 img=sprite_72x72_a51c76df type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/World1|size=-90.0,42.0 pos=0.0,0.0 anchor=0.0,1.0-1.0,1.0 pivot=0.5,1.0 on=1 font=20 align=MiddleLeft text=THẾ GIỚI 1 · NHẬP MÔN
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/World2|size=-90.0,42.0 pos=0.0,-471.2 anchor=0.0,1.0-1.0,1.0 pivot=0.5,1.0 on=1 font=20 align=MiddleLeft text=THẾ GIỚI 2 · HÌNH DẠNG
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/World3|size=-90.0,42.0 pos=0.0,-942.4 anchor=0.0,1.0-1.0,1.0 pivot=0.5,1.0 on=1 font=20 align=MiddleLeft text=THẾ GIỚI 3 · GRAVITY
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/World4|size=-90.0,42.0 pos=0.0,-1413.6 anchor=0.0,1.0-1.0,1.0 pivot=0.5,1.0 on=1 font=20 align=MiddleLeft text=THẾ GIỚI 4 · ĐÁ TẢNG
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/World5|size=-90.0,42.0 pos=0.0,-1884.8 anchor=0.0,1.0-1.0,1.0 pivot=0.5,1.0 on=1 font=20 align=MiddleLeft text=THẾ GIỚI 5 · ĐA SẮC
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/World6|size=-90.0,42.0 pos=0.0,-2356.0 anchor=0.0,1.0-1.0,1.0 pivot=0.5,1.0 on=1 font=20 align=MiddleLeft text=THẾ GIỚI 6 · NGÒI NỔ
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/World7|size=-90.0,42.0 pos=0.0,-2827.2 anchor=0.0,1.0-1.0,1.0 pivot=0.5,1.0 on=1 font=20 align=MiddleLeft text=THẾ GIỚI 7 · MỤC TIÊU
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/World8|size=-90.0,42.0 pos=0.0,-3298.4 anchor=0.0,1.0-1.0,1.0 pivot=0.5,1.0 on=1 font=20 align=MiddleLeft text=THẾ GIỚI 8 · BĂNG GIÁ
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent/World9|size=-90.0,42.0 pos=0.0,-3769.6 anchor=0.0,1.0-1.0,1.0 pivot=0.5,1.0 on=1 font=20 align=MiddleLeft text=THẾ GIỚI 9 · DÂY TRÓI
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport/LevelContent|size=0.0,4214.8 pos=0.0,0.0 anchor=0.0,1.0-1.0,1.0 pivot=0.5,1.0 on=1
+PuzzleCanvas/SafeArea/MenuScreen/LevelViewport|size=0.0,160.0 pos=0.0,-459.1 anchor=0.0,1.0-1.0,1.0 pivot=0.5,1.0 on=1
+PuzzleCanvas/SafeArea/MenuScreen/MenuDaily/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_cd7ec334 type=Sliced color=8B9BFFFF
+PuzzleCanvas/SafeArea/MenuScreen/MenuDaily/MenuDailyLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=32 align=MiddleCenter text=✦  Thử thách hôm nay — bàn mới mỗi ngày
+PuzzleCanvas/SafeArea/MenuScreen/MenuDaily/Sheen|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_fe80a599 type=Sliced color=FFFFFF8C
+PuzzleCanvas/SafeArea/MenuScreen/MenuDaily|size=-120.0,92.0 pos=0.0,-243.1 anchor=0.0,1.0-1.0,1.0 pivot=0.5,1.0 on=1 img=sprite_84x84_71cc4897 type=Sliced color=34D399FF
+PuzzleCanvas/SafeArea/MenuScreen/MenuDuel/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_82x82_d5b9e23f type=Sliced color=8B9BFFFF
+PuzzleCanvas/SafeArea/MenuScreen/MenuDuel/MenuDuelLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=28 align=MiddleCenter text=⚔  Đấu seed bạn bè
+PuzzleCanvas/SafeArea/MenuScreen/MenuDuel/Sheen|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_82x82_e1c7d714 type=Sliced color=FFFFFF8C
+PuzzleCanvas/SafeArea/MenuScreen/MenuDuel|size=-120.0,78.0 pos=0.0,-153.1 anchor=0.0,1.0-1.0,1.0 pivot=0.5,1.0 on=1 img=sprite_82x82_516b6ae5 type=Sliced color=EEF1FFFF
+PuzzleCanvas/SafeArea/MenuScreen/MenuEndless/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_cd7ec334 type=Sliced color=8B9BFFFF
+PuzzleCanvas/SafeArea/MenuScreen/MenuEndless/MenuEndlessLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=32 align=MiddleCenter text=∞  Vô tận — kỷ lục 70
+PuzzleCanvas/SafeArea/MenuScreen/MenuEndless/Sheen|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_fe80a599 type=Sliced color=FFFFFF8C
+PuzzleCanvas/SafeArea/MenuScreen/MenuEndless|size=-120.0,92.0 pos=0.0,-349.1 anchor=0.0,1.0-1.0,1.0 pivot=0.5,1.0 on=1 img=sprite_84x84_71cc4897 type=Sliced color=7C8CFFFF
+PuzzleCanvas/SafeArea/MenuScreen/MenuFree/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_62x62_e45d621c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/MenuFree/MenuFreeLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=20 align=MiddleCenter text=Chơi tự do: Bật
+PuzzleCanvas/SafeArea/MenuScreen/MenuFree|size=654.0,58.0 pos=0.0,70.0 anchor=0.5,0.0-0.5,0.0 pivot=0.5,0.0 on=1 img=sprite_62x62_e82c0eee type=Sliced color=242A4FFF
+PuzzleCanvas/SafeArea/MenuScreen/MenuReset/MenuResetLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=18 align=MiddleCenter text=Xoá tiến độ
+PuzzleCanvas/SafeArea/MenuScreen/MenuReset|size=320.0,46.0 pos=0.0,18.0 anchor=0.5,0.0-0.5,0.0 pivot=0.5,0.0 on=1 img=sprite_50x50_71efb403 type=Sliced color=00000000
+PuzzleCanvas/SafeArea/MenuScreen/MenuSound/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_62x62_e45d621c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/MenuSound/MenuSoundLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=20 align=MiddleCenter text=Âm thanh: Bật
+PuzzleCanvas/SafeArea/MenuScreen/MenuSound|size=320.0,58.0 pos=-168.0,124.0 anchor=0.5,0.0-0.5,0.0 pivot=0.5,0.0 on=1 img=sprite_62x62_e82c0eee type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/MenuSymbols/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_62x62_e45d621c type=Sliced color=2E3560FF
+PuzzleCanvas/SafeArea/MenuScreen/MenuSymbols/MenuSymbolsLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=20 align=MiddleCenter text=○ Ký hiệu
+PuzzleCanvas/SafeArea/MenuScreen/MenuSymbols|size=320.0,58.0 pos=168.0,124.0 anchor=0.5,0.0-0.5,0.0 pivot=0.5,0.0 on=1 img=sprite_62x62_e82c0eee type=Sliced color=1C2140FF
+PuzzleCanvas/SafeArea/MenuScreen/Subtitle|size=-120.0,20.3 pos=0.0,-110.9 anchor=0.0,1.0-1.0,1.0 pivot=0.5,1.0 on=1 font=20 align=UpperCenter text=Nối các ô cùng màu. Dọn sạch bàn trong số lượt cho phép
+PuzzleCanvas/SafeArea/MenuScreen/Title|size=-80.0,43.9 pos=0.0,-44.0 anchor=0.0,1.0-1.0,1.0 pivot=0.5,1.0 on=1 font=40 align=UpperCenter text=Connect Puzzle
+PuzzleCanvas/SafeArea/MenuScreen/Wallet|size=-68.0,34.0 pos=0.0,-52.0 anchor=0.0,1.0-1.0,1.0 pivot=0.5,1.0 on=1 font=30 align=UpperRight text=<color=#FBBF24>★ 1</color>
+PuzzleCanvas/SafeArea/MenuScreen|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1
+PuzzleCanvas/SafeArea|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1
+PuzzleCanvas/SkipCatcher/SkipCatcherLabel|size=-16.0,-12.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=1 align=MiddleCenter text=
+PuzzleCanvas/SkipCatcher|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=0 img=sprite_4x4_7ea6462e type=Simple color=00000000
+PuzzleCanvas/Toast/Border|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_cd7ec334 type=Sliced color=2E3560FF
+PuzzleCanvas/Toast/Fill|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 img=sprite_84x84_71cc4897 type=Sliced color=1A0C14FA
+PuzzleCanvas/Toast/Text|size=-52.0,-24.0 pos=0.0,0.0 anchor=0.0,0.0-1.0,1.0 pivot=0.5,0.5 on=1 font=28 align=MiddleCenter text=
+PuzzleCanvas/Toast|size=940.0,120.0 pos=0.0,220.0 anchor=0.5,0.0-0.5,0.0 pivot=0.5,0.0 on=0
+PuzzleCanvas|size=0.0,0.0 pos=0.0,0.0 anchor=0.0,0.0-0.0,0.0 pivot=0.0,0.0 on=1
