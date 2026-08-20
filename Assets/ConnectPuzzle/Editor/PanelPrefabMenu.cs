@@ -16,7 +16,7 @@ namespace ConnectPuzzle.EditorTools
         [MenuItem("Connect Puzzle/Prefab/Cắt bảng đấu seed", priority = 70)]
         public static void ExtractDuelPanel()
         {
-            UiPanelExtractor.Extract<DuelPanelView>(
+            UiPanelExtractor.Extract<DuelPanel>(
                 "DuelPanel",
                 "Assets/ConnectPuzzle/Resources/UI/DuelPanel.prefab",
                 v => v.BindByNameForAuthoring());

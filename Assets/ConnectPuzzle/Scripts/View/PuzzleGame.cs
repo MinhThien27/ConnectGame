@@ -15,7 +15,7 @@ namespace ConnectPuzzle.View
     /// chỉ lo hiển thị, hoạt ảnh và điều hướng.
     /// </summary>
     [AddComponentMenu("Connect Puzzle/Puzzle Game")]
-    public sealed class PuzzleGame : MonoBehaviour, DuelController.IHost, ItemPanel.IHost
+    public sealed class PuzzleGame : MonoBehaviour, DuelPanel.IHost, ItemPanel.IHost
     {
         private const float DiagnosisMinSeconds = 1.9f;
 
@@ -166,9 +166,6 @@ namespace ConnectPuzzle.View
             this.effects.AttachFlash(this.boardArea);
             if (this.diagBanner != null) this.diagBanner.Wire();
 
-            // DuelLanLink là MonoBehaviour: prefab giữ được component nhưng event C# thì
-            // không, nên phải dựng lại controller và đăng ký lại mỗi lần chạy.
-            if (this.lan == null) this.lan = gameObject.AddComponent<DuelLanLink>();
 
             this.pointerInput.Configure(null);                   // ScreenSpaceOverlay -> camera null
             this.pointerInput.PointerDown = OnPointerDown;
@@ -178,7 +175,6 @@ namespace ConnectPuzzle.View
             // ---- menu
             Bind(this.menuEndlessButton, OpenEndless);
             Bind(this.menuDailyButton, OpenDaily);
-            Bind(this.menuDuelButton, () => this.duel.OpenPanel());
             Bind(this.menuSoundButton, ToggleSound);
             Bind(this.menuSymbolButton, ToggleSymbols);
             Bind(this.menuFreeButton, () =>
@@ -206,10 +202,8 @@ namespace ConnectPuzzle.View
             // ---- vật phẩm: bảng tự giữ ref của mình, chỉ cần đưa nó host
             if (this.items != null) this.items.Wire(this);
 
-            // ---- đấu seed + Wi-Fi: một lớp riêng lo cả ba đường (mã, kết quả, mạng)
-            this.duel = new DuelController(this, this.duelPanel, this.duelCatcher, this.duelView,
-                                           this.lan, this.lanCatcher, this.lanView);
-            this.duel.Wire();
+            // ---- đấu seed + Wi-Fi: bảng đấu tự lo, và nó tự nối bảng Wi-Fi của nó
+            if (this.duel != null) this.duel.Wire(this);
         }
 
         private static void Bind(Button button, UnityEngine.Events.UnityAction action)
@@ -319,8 +313,7 @@ namespace ConnectPuzzle.View
             this.menuDuelButton = Ui.Button("MenuDuel", this.menuScreen, "⚔  Đấu seed bạn bè", 32,
                 PuzzlePalette.Foreground, PuzzlePalette.Panel, PuzzlePalette.RadiusPanel, true);
 
-            BuildDuelPanel();
-            BuildLanPanel();
+            BuildDuelPanel();      // dựng luôn bảng Wi-Fi bên trong
 
             BuildLevelScroll();
             BuildLevelGrid();
@@ -779,6 +772,12 @@ namespace ConnectPuzzle.View
         private readonly List<LevelButton> levelButtons = new List<LevelButton>();
         [SerializeField] private Button menuSoundButton, menuSymbolButton, menuResetButton, menuFreeButton, menuEndlessButton;
         [SerializeField] private Button menuDailyButton;
+
+        /// <summary>
+        /// Nút mở bảng đấu. Ở lại đây vì LayoutMenu xếp nó cùng hai nút chế độ kia;
+        /// hành vi của nó thì DuelPanel giữ. Sẽ theo MenuScreen ở bước sau.
+        /// </summary>
+        [SerializeField] private Button menuDuelButton;
         [SerializeField] private Text menuWalletText;
 
         /// <summary>Khoá ngày của ván thử thách đang chơi; 0 nếu không phải thử thách.</summary>
@@ -1346,7 +1345,7 @@ namespace ConnectPuzzle.View
             if (!this.gameScreen.gameObject.activeSelf) return;
             ApplyLayout(force: false);
             this.board.TickChain(Time.deltaTime);   // nét đứt chạy, như stroke-dashoffset
-            this.duel.Tick();
+            if (Lan != null) Lan.Tick();
         }
 
         private Vector2 lastMenuArea;
@@ -1695,7 +1694,7 @@ namespace ConnectPuzzle.View
             if (this.session.IsWon())
             {
                 this.duel.CaptureResult();
-                if (this.duel.TryShowLanVerdict()) return;
+                if ((Lan != null && Lan.TryShowVerdict())) return;
 
                 int stars = this.session.StarsEarned();
 
@@ -1728,7 +1727,7 @@ namespace ConnectPuzzle.View
             if (reason == null) return;
 
             this.duel.CaptureResult();
-            if (this.duel.TryShowLanVerdict()) return;
+            if ((Lan != null && Lan.TryShowVerdict())) return;
 
             // Thua vẫn ghi điểm của ngày (không cộng chuỗi): người chơi thử vài lần trong
             // ngày thì con số trên menu phải là lần tốt nhất, không phải chỉ lần thắng.
@@ -2387,32 +2386,17 @@ namespace ConnectPuzzle.View
         void ItemPanel.IHost.RefreshWallet() => RefreshWallet();
 
         // ==================================================================
-        // Đấu — bảng, nút, và số đo; luật nằm trong DuelController
+        // Đấu — hai bảng tự lo phần của mình; đây chỉ giữ tham chiếu và bắc cầu
         // ==================================================================
 
-        [SerializeField] private Button menuDuelButton;
-        [SerializeField] private RectTransform duelPanel;
-        [SerializeField] private Button duelCatcher;
-        [SerializeField] private Text duelCodeText;
-        [SerializeField] private InputField duelInput;
-        [SerializeField] private Text duelStatusText;
-        [SerializeField] private DuelPanelView duelView;
-
-        [SerializeField] private DuelLanLink lan;
-        [SerializeField] private RectTransform lanPanel;
-        [SerializeField] private Button lanCatcher;
-        [SerializeField] private Text lanStatusText;
-        [SerializeField] private Button lanHostButton, lanSeekButton;
-        [SerializeField] private LanPanelView lanView;
-
         /// <summary>
-        /// Toàn bộ luật của chế độ đấu. Là lớp C# thuần nên dựng lại trong WireAll.
+        /// Bảng đấu seed. Component nằm trên gốc DuelPanel.prefab và tự giữ cả tham
+        /// chiếu bên trong bảng lẫn nút mở + lớp chặn + bảng Wi-Fi nằm ngoài.
         ///
-        /// Các tham chiếu UI ở TRÊN vẫn nằm lại PuzzleGame chứ không chuyển sang
-        /// DuelController: chúng là [SerializeField] và đã được lưu vào PuzzleRoot.prefab.
-        /// Dời sang một component khác là làm gãy hết rồi phải nối tay lại.
+        /// Bảng Wi-Fi KHÔNG có tham chiếu riêng ở đây: nó phụ thuộc một chiều vào bảng
+        /// đấu, nên chủ của nó là bảng đấu chứ không phải PuzzleGame.
         /// </summary>
-        private DuelController duel;
+        [SerializeField] private DuelPanel duel;
 
         private const int DuelIndex = -3;
         private bool IsDuel => this.levelIndex == DuelIndex;
@@ -2429,23 +2413,33 @@ namespace ConnectPuzzle.View
         // ---- số đo, cho bài kiểm đọc thay vì chép lại hằng số
         public float DuelContentHeight => this.duel == null ? 0f : this.duel.ContentHeight;
         public float DuelPanelSize => DuelPanelHeight;
-        public float LanPanelSize => this.duel == null ? 0f : this.duel.LanPanelHeight;
-        public float LanContentHeight => this.duel == null ? 0f : this.duel.LanContentHeight;
+        public float LanPanelSize => Lan == null ? 0f : Lan.PanelHeight;
+        public float LanContentHeight => Lan == null ? 0f : Lan.ContentHeight;
+
+        private LanPanel Lan => this.duel == null ? null : this.duel.Lan;
 
         /// <summary>
         /// Nạp bảng đấu TỪ PREFAB. Lớp chặn vẫn dựng bằng code và vẫn là EM RUỘT của bảng,
         /// không phải con — đưa nó vào prefab thành con chính là thứ đã gây lỗi "chạm đâu
         /// cũng tắt bảng" ở bảng Wi-Fi.
         /// </summary>
+        /// <summary>
+        /// Nạp bảng đấu TỪ PREFAB, và dựng luôn bảng Wi-Fi mà nó sở hữu.
+        ///
+        /// Bảng Wi-Fi dựng TRƯỚC vì bảng đấu phải cầm tham chiếu tới nó — quan hệ phụ
+        /// thuộc là LanPanel -> DuelPanel, nên chủ là bảng đấu.
+        /// </summary>
         private void BuildDuelPanel()
         {
-            this.duelCatcher = Ui.Button("DuelCatcher", this.menuScreen, "", 1,
+            LanPanel lanPanel = BuildLanPanel();
+
+            Button duelCatcher = Ui.Button("DuelCatcher", this.menuScreen, "", 1,
                 new Color(0.03f, 0.04f, 0.08f, 0.78f), Color.clear, PuzzlePalette.RadiusPanel, false, false);
-            Ui.Stretch(this.duelCatcher.GetComponent<RectTransform>(), 0, 0, 0, 0);
-            Image catcherImage = this.duelCatcher.GetComponent<Image>();
+            Ui.Stretch(duelCatcher.GetComponent<RectTransform>(), 0, 0, 0, 0);
+            Image catcherImage = duelCatcher.GetComponent<Image>();
             catcherImage.sprite = PuzzleSprites.Square;
             catcherImage.type = Image.Type.Simple;
-            this.duelCatcher.gameObject.SetActive(false);
+            duelCatcher.gameObject.SetActive(false);
 
             var prefab = Resources.Load<GameObject>(DuelPanelResourcePath);
             if (prefab == null)
@@ -2457,22 +2451,19 @@ namespace ConnectPuzzle.View
 
             GameObject instance = Instantiate(prefab, this.menuScreen, false);
             instance.name = "DuelPanel";
-            this.duelView = instance.GetComponent<DuelPanelView>();
-            if (this.duelView == null)
+            this.duel = instance.GetComponent<DuelPanel>();
+            if (this.duel == null)
             {
-                Debug.LogError("[UI] Prefab bảng đấu thiếu DuelPanelView.");
+                Debug.LogError("[UI] Prefab bảng đấu thiếu DuelPanel.");
                 return;
             }
 
-            System.Collections.Generic.List<string> missing = this.duelView.MissingFields();
+            System.Collections.Generic.List<string> missing = this.duel.MissingFields();
             if (missing.Count > 0)
                 Debug.LogError("[UI] Prefab bảng đấu chưa gán: " + string.Join(", ", missing));
 
-            this.duelPanel = (RectTransform)instance.transform;
-            this.duelCodeText = this.duelView.Code;
-            this.duelInput = this.duelView.Input;
-            this.duelStatusText = this.duelView.Status;
-            this.duelPanel.gameObject.SetActive(false);
+            this.duel.BindOutsideForAuthoring(this.menuDuelButton, duelCatcher, lanPanel);
+            instance.SetActive(false);
         }
 
         /// <summary>
@@ -2482,83 +2473,92 @@ namespace ConnectPuzzle.View
         /// kiểm sẽ chạy nhánh dự phòng còn game chạy nhánh prefab, và ta có test xanh trên
         /// một sản phẩm hỏng — kiểu thất bại tệ nhất. Thiếu prefab thì phải NỔ ngay.
         /// </summary>
-        private void BuildLanPanel()
+        private LanPanel BuildLanPanel()
         {
             var prefab = Resources.Load<GameObject>(LanPanelResourcePath);
             if (prefab == null)
             {
                 Debug.LogError("[UI] Thiếu prefab " + LanPanelResourcePath +
                                ". Chạy menu Connect Puzzle > Dựng lại prefab bảng Wi-Fi.");
-                return;
+                return null;
             }
 
             GameObject instance = Instantiate(prefab, this.menuScreen, false);
             instance.name = "LanPanel";
-            this.lanView = instance.GetComponent<LanPanelView>();
-            if (this.lanView == null)
+            var lanPanel = instance.GetComponent<LanPanel>();
+            if (lanPanel == null)
             {
-                Debug.LogError("[UI] Prefab bảng Wi-Fi thiếu component LanPanelView.");
-                return;
+                Debug.LogError("[UI] Prefab bảng Wi-Fi thiếu component LanPanel.");
+                return null;
             }
 
-            System.Collections.Generic.List<string> missing = this.lanView.MissingFields();
+            System.Collections.Generic.List<string> missing = lanPanel.MissingFields();
             if (missing.Count > 0)
                 Debug.LogError("[UI] Prefab bảng Wi-Fi chưa gán: " + string.Join(", ", missing));
 
             // Lớp chặn dựng bằng CODE, là em ruột của bảng — giống bảng đấu và bảng vật
-            // phẩm. Không đưa vào prefab: xem chú thích ở DuelPanelView.
-            this.lanCatcher = Ui.Button("LanCatcher", this.menuScreen, "", 1,
+            // phẩm. Không đưa vào prefab: xem chú thích ở DuelPanel.
+            Button lanCatcher = Ui.Button("LanCatcher", this.menuScreen, "", 1,
                 new Color(0.03f, 0.04f, 0.08f, 0.78f), Color.clear, PuzzlePalette.RadiusPanel, false, false);
-            Ui.Stretch(this.lanCatcher.GetComponent<RectTransform>(), 0, 0, 0, 0);
-            Image lanCatcherImage = this.lanCatcher.GetComponent<Image>();
+            Ui.Stretch(lanCatcher.GetComponent<RectTransform>(), 0, 0, 0, 0);
+            Image lanCatcherImage = lanCatcher.GetComponent<Image>();
             lanCatcherImage.sprite = PuzzleSprites.Square;
             lanCatcherImage.type = Image.Type.Simple;
-            this.lanCatcher.gameObject.SetActive(false);
+            lanCatcher.gameObject.SetActive(false);
 
-            this.lanPanel = this.lanView.Panel;
-            this.lanStatusText = this.lanView.Status;
-            this.lanHostButton = this.lanView.HostButton;
-            this.lanSeekButton = this.lanView.SeekButton;
-            this.lanPanel.gameObject.SetActive(false);
+            // DuelLanLink phải sống trên node LUÔN BẬT: nó có Update() gọi Poll(), mà
+            // bảng Wi-Fi thì tắt gần như suốt ván. Đặt nó lên bảng là mất luôn phần nhận
+            // gói tin.
+            var link = gameObject.GetComponent<DuelLanLink>();
+            if (link == null) link = gameObject.AddComponent<DuelLanLink>();
+
+            lanPanel.BindOutsideForAuthoring(lanCatcher, link);
+            instance.SetActive(false);
+            return lanPanel;
         }
 
         // ---- lối vào cho kiểm thử: đi qua ĐÚNG các hàm mà nút thật gọi
-        public void DebugStartDuel(int seed, int preset) { this.duel.Start(seed, preset); }
+        public void DebugStartDuel(int seed, int preset) { this.duel.StartDuel(seed, preset); }
         public void DebugCopyDuelResult() { this.duel.CopyResult(); }
         public void DebugPasteOpponentResult() { this.duel.PasteOpponentResult(); }
         public void DebugForceDuelEnd() { this.duel.CaptureResult(); }
-        public DuelLanLink DebugLan => this.duel.Link;
-        public void DebugOpenLanPanel() { this.duel.OpenLanPanel(); }
-        public void DebugStartLanHost() { this.duel.TestStartLanHost(); }
-        public bool DebugLanActive => this.duel.LanActive;
-        public string DebugLanStatus => this.duel.LanStatus;
+        public DuelLanLink DebugLan => Lan == null ? null : Lan.Link;
+        public void DebugOpenLanPanel() { if (Lan != null) Lan.OpenPanel(); }
+        public void DebugStartLanHost() { if (Lan != null) Lan.TestStartHost(); }
+        public bool DebugLanActive => Lan != null && Lan.Active;
+        public string DebugLanStatus => Lan == null ? "" : Lan.StatusText;
         public void DebugFeedLanInvite(int seed, int preset, string who)
-            => this.duel.TestFeedLanInvite(seed, preset, who);
+        {
+            if (Lan != null) Lan.TestFeedInvite(seed, preset, who);
+        }
+
         public void DebugFeedLanResult(DuelResult r, string who)
-            => this.duel.TestFeedLanResult(r, who);
+        {
+            if (Lan != null) Lan.TestFeedResult(r, who);
+        }
 
         // ---- những gì chế độ đấu cần từ màn chơi.
         //
         // Cài TƯỜNG MINH (explicit) chứ không để public: đây là hợp đồng với DuelController,
         // không phải API của PuzzleGame. Để public thì mọi chỗ khác cũng gọi được, và cái
         // ranh giới vừa dựng lên sẽ mòn đi trong vài tuần.
-        PuzzleSession DuelController.IHost.Session => this.session;
-        bool DuelController.IHost.OnDuelBoard => IsDuel;
-        OverlayCard DuelController.IHost.Card => this.card;
+        PuzzleSession DuelPanel.IHost.Session => this.session;
+        bool DuelPanel.IHost.OnDuelBoard => IsDuel;
+        OverlayCard DuelPanel.IHost.Card => this.card;
 
-        string DuelController.IHost.Clipboard
+        string DuelPanel.IHost.Clipboard
         {
             get { return Clipboard; }
             set { Clipboard = value; }
         }
 
-        void DuelController.IHost.Toast(string message) => Toast(message);
-        void DuelController.IHost.BadSound() => this.audioPlayer.Bad();
-        void DuelController.IHost.Tone(float hertz, float seconds) => this.audioPlayer.Tone(hertz, seconds);
-        void DuelController.IHost.Celebrate() => Celebrate();
-        void DuelController.IHost.OpenDuelBoard(LevelData board) => OpenLevelData(DuelIndex, board);
-        void DuelController.IHost.RestartLevel() => RestartLevel();
-        void DuelController.IHost.ShowMenu() => ShowMenu();
+        void DuelPanel.IHost.Toast(string message) => Toast(message);
+        void DuelPanel.IHost.BadSound() => this.audioPlayer.Bad();
+        void DuelPanel.IHost.Tone(float hertz, float seconds) => this.audioPlayer.Tone(hertz, seconds);
+        void DuelPanel.IHost.Celebrate() => Celebrate();
+        void DuelPanel.IHost.OpenDuelBoard(LevelData board) => OpenLevelData(DuelIndex, board);
+        void DuelPanel.IHost.RestartLevel() => RestartLevel();
+        void DuelPanel.IHost.ShowMenu() => ShowMenu();
 
         /// <summary>
         /// Pháo giấy + chuỗi bốn nốt. Dùng cho cả thắng màn, hết ván vô tận, và thắng một
@@ -2617,9 +2617,9 @@ namespace ConnectPuzzle.View
             if (this.scoreText == null) missing.Add(nameof(this.scoreText));
             if (this.movesText == null) missing.Add(nameof(this.movesText));
             if (this.undoButton == null) missing.Add(nameof(this.undoButton));
-            if (this.duelPanel == null) missing.Add(nameof(this.duelPanel));
+            if (this.duel == null) missing.Add(nameof(this.duel));
             if (this.items == null) missing.Add(nameof(this.items));
-            if (this.lanPanel == null) missing.Add(nameof(this.lanPanel));
+            if (Lan == null) missing.Add("duel.Lan");
             return missing;
         }
     }

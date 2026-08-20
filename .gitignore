@@ -66,8 +66,14 @@ Packages/com.unity.ai.assistant@*/
 # Sinh lại mỗi lần build, không có gì để lưu.
 .utmp/
 
-# Bản clone cũ bị đặt nhầm vào trong Assets/. Xoá được khi đóng Unity
-# (Unity đang giữ file nên rm không xoá nổi). Bỏ qua tạm để nó không
-# lẫn vào commit.
+# Bản clone repo bị đặt nhầm VÀO TRONG Assets/.
+#
+# Sau khi push, nó chứa bản sao TOÀN BỘ project — 81 file .cs — nên Unity
+# biên dịch mọi thứ hai lần và ném ra 1923 lỗi trùng định nghĩa. .gitignore
+# không cứu được: Unity không đọc .gitignore.
+#
+# Đã đổi tên thành ConnectGame~ vì Unity BỎ QUA mọi thư mục kết thúc bằng ~.
+# Xoá hẳn được khi đóng GitHub Desktop (nó đang giữ file).
 Assets/ConnectPuzzle/ConnectGame/
+Assets/ConnectPuzzle/ConnectGame~/
 Assets/ConnectPuzzle/ConnectGame.meta
