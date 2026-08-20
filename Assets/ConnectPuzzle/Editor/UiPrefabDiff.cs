@@ -29,13 +29,17 @@ namespace ConnectPuzzle.EditorTools
         private const float Tolerance = 0.5f;      // dưới nửa đơn vị thì coi như không đổi
 
         [MenuItem("Connect Puzzle/So sánh prefab với code", priority = 63)]
-        public static void Compare()
+        public static void Compare() { CountDifferences(); }
+
+        /// <summary>Như trên nhưng TRẢ VỀ số chỗ lệch, để batch mode chặn được thay vì chỉ in.</summary>
+        public static int CountDifferences()
         {
+            int total = 0;
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
             if (prefab == null)
             {
-                Debug.LogError("Chưa có " + PrefabPath + " — chạy 'Xuất UI ra prefab' trước.");
-                return;
+                Debug.LogError("Chưa có " + PrefabPath + " — chạy Dựng prefab gốc trước.");
+                return -1;
             }
 
             var host = new GameObject("PuzzleUI_Reference");
@@ -72,11 +76,13 @@ namespace ConnectPuzzle.EditorTools
                 Debug.Log("PREFAB_DIFF lệch " + changed + " chỗ · thêm mới " + onlyInPrefab +
                           " · chỉ có trong code " + onlyInCode + "\n" +
                           (report.Length > 0 ? report.ToString() : "  (không có gì lệch)"));
+                total = changed + onlyInPrefab + onlyInCode;
             }
             finally
             {
                 Object.DestroyImmediate(host);
             }
+            return total;
         }
 
         public static void CompareBatch()

@@ -26,6 +26,7 @@ namespace ConnectPuzzle.EditorTools
     {
         private const string PrefabPath = "Assets/ConnectPuzzle/Prefabs/PuzzleUI.prefab";
         private const string SpriteFolder = "Assets/ConnectPuzzle/Art/Generated";
+        private const string OwnFolder = "Assets/ConnectPuzzle";
 
         [MenuItem("Connect Puzzle/Xuất UI ra prefab", priority = 62)]
         public static void Export()
@@ -290,12 +291,18 @@ namespace ConnectPuzzle.EditorTools
         /// tìm mới thấy.
         /// </summary>
         [MenuItem("Connect Puzzle/Prefab/Kiểm sprite chết", priority = 67)]
-        public static void CheckDeadSprites()
+        public static void CheckDeadSprites() { CountDeadSprites(); }
+
+        /// <summary>Như trên nhưng TRẢ VỀ số đếm, để batch mode chặn được thay vì chỉ in.</summary>
+        public static int CountDeadSprites()
         {
             int deadTotal = 0, prefabsHit = 0;
             var report = new System.Text.StringBuilder();
 
-            foreach (string id in AssetDatabase.FindAssets("t:Prefab"))
+            // CHỈ quét prefab của mình. Bất biến "mọi Image phải có sprite" là luật của
+            // code này, không phải của asset bên thứ ba — Ilumisoft có 3 ô ảnh cố ý để
+            // trống làm lớp phủ màu, và báo chúng là báo nhầm.
+            foreach (string id in AssetDatabase.FindAssets("t:Prefab", new[] { OwnFolder }))
             {
                 string path = AssetDatabase.GUIDToAssetPath(id);
                 var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
@@ -327,6 +334,7 @@ namespace ConnectPuzzle.EditorTools
             if (deadTotal == 0) Debug.Log("DEAD_SPRITES 0 — mọi Image trong prefab đều có ảnh.");
             else Debug.LogError("DEAD_SPRITES " + deadTotal + " trên " + prefabsHit +
                                 " prefab\n" + report);
+            return deadTotal;
         }
 
     }

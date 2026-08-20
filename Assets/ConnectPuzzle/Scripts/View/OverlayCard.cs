@@ -11,17 +11,11 @@ namespace ConnectPuzzle.View
     /// rộng cao bao nhiêu và nút nằm ở đâu". Nhờ vậy bốn loại thẻ (thắng, thua, vô tận,
     /// phán quyết đấu) dùng chung đúng một bộ số đo thay vì mỗi chỗ tự tính.
     ///
-    /// Tách ra khỏi PuzzleGame vì hai lý do đo được:
-    ///  · PuzzleGame đang là 3.400 dòng ôm 15 mảng việc; đây là mảng dễ cắt nhất vì nó
-    ///    không chạm vào trạng thái ván nào cả.
-    ///  · Khối "đấu seed" cần tới 7 thứ của phần thẻ (ClearCard, SizeCardWidth,
-    ///    LayoutCardHeader, SizeCardHeight, AddCardButton, overlay, overlayCard). Gói
-    ///    chúng lại thành MỘT tham chiếu thì bước tách đấu sau này rẻ đi hẳn.
-    ///
-    /// Là lớp C# thuần chứ không phải MonoBehaviour — giống BoardView và EffectLayer,
-    /// và vì cùng lý do: nó không cần vòng đời của Unity, chỉ cần hai RectTransform.
+    /// Đặt trên CHÍNH node Overlay (lớp phủ tối), và tự giữ tham chiếu tới khung thẻ.
+    /// Trước đây cả hai tham chiếu nằm trên PuzzleGame và được truyền vào qua hàm dựng —
+    /// nghĩa là PuzzleGame phải biết thẻ gồm những node nào.
     /// </summary>
-    public sealed class OverlayCard
+    public sealed class OverlayCard : MonoBehaviour
     {
         /// <summary>
         /// Số con ĐẦU của thẻ phải giữ lại khi dọn: Ui.Panel dựng nền VÀ viền, xoá cả
@@ -38,27 +32,36 @@ namespace ConnectPuzzle.View
         private const float HeaderBottomPad = 22f;
         private const float HeaderSideMargin = 40f;
 
-        private readonly RectTransform overlay;
-        private readonly RectTransform card;
+        /// <summary>Khung thẻ. Lớp phủ tối chính là node mang component này.</summary>
+        [SerializeField] private RectTransform card;
+
+        private RectTransform overlayRect;
+        private RectTransform Overlay =>
+            this.overlayRect != null ? this.overlayRect : (this.overlayRect = (RectTransform)this.transform);
 
         private float scale = 1f;
         private int buttonCount = 1;
 
-        public OverlayCard(RectTransform overlay, RectTransform card)
+        public System.Collections.Generic.List<string> MissingFields()
         {
-            this.overlay = overlay;
-            this.card = card;
+            var missing = new System.Collections.Generic.List<string>();
+            if (this.card == null) missing.Add(nameof(this.card));
+            return missing;
+        }
+
+        /// <summary>Nối tham chiếu theo TÊN con, chỉ dùng lúc dựng prefab.</summary>
+        public void BindByNameForAuthoring()
+        {
+            Transform found = this.transform.Find("Card");
+            if (found != null) this.card = (RectTransform)found;
         }
 
         /// <summary>Khung thẻ — nơi bên gọi tạo chữ lên, và là thứ bài kiểm đo bố cục.</summary>
         public RectTransform Root => this.card;
 
-        public bool Visible => this.overlay != null && this.overlay.gameObject.activeSelf;
+        public bool Visible => gameObject.activeSelf;
 
-        public void Hide()
-        {
-            if (this.overlay != null) this.overlay.gameObject.SetActive(false);
-        }
+        public void Hide() { gameObject.SetActive(false); }
 
         /// <summary>
         /// Mở một thẻ mới với đúng buttonCount nút.
@@ -70,11 +73,11 @@ namespace ConnectPuzzle.View
         public void Begin(int buttonCount)
         {
             Ui.ClearChildren(this.card, ChromeChildren);
-            this.overlay.gameObject.SetActive(true);
+            gameObject.SetActive(true);
             this.buttonCount = buttonCount;
             this.scale = 1f;
 
-            float width = Mathf.Max(420f, Mathf.Min(760f, this.overlay.rect.width - 80f));
+            float width = Mathf.Max(420f, Mathf.Min(760f, Overlay.rect.width - 80f));
             this.card.sizeDelta = new Vector2(width, Mathf.Max(320f, this.card.sizeDelta.y));
         }
 
@@ -154,7 +157,7 @@ namespace ConnectPuzzle.View
             return Mathf.Min(needed, Mathf.Max(320f, maxHeight));
         }
 
-        private float Available => Mathf.Max(320f, this.overlay.rect.height - 80f);
+        private float Available => Mathf.Max(320f, Overlay.rect.height - 80f);
 
         /// <summary>Tỉ lệ co khi chiều cao dùng được không đủ cho khối chữ + nút.</summary>
         private float ScaleFor(float headerHeight)

@@ -77,6 +77,46 @@ namespace ConnectPuzzle.EditorTools
         }
 
         /// <summary>
+        /// Lối vào cho batch mode: dựng prefab, đặt vào scene, rồi kiểm luôn.
+        ///
+        /// Gộp làm một lệnh vì ba việc này phải đi cùng nhau — dựng lại prefab mà quên
+        /// đặt lại vào scene thì scene giữ bản cũ, và đó là kiểu lệch không ai nhìn ra
+        /// cho tới lúc bấm Play.
+        ///
+        /// Thoát với mã 1 khi có bất kỳ lỗi nào, để script gọi biết mà dừng.
+        /// </summary>
+        public static void RebuildBatch()
+        {
+            bool failed = false;
+            void Fail(string why) { Debug.LogError("[Batch] " + why); failed = true; }
+
+            Build();
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(AssetPath);
+            if (prefab == null) Fail("không dựng được " + AssetPath);
+            else
+            {
+                var game = prefab.GetComponent<PuzzleGame>();
+                if (game == null) Fail("prefab gốc thiếu PuzzleGame");
+                else
+                {
+                    System.Collections.Generic.List<string> missing = game.MissingSceneRefs();
+                    if (missing.Count > 0) Fail("thiếu tham chiếu: " + string.Join(", ", missing));
+                }
+            }
+
+            if (!failed) PlaceInScene();
+
+            // Hai bài kiểm này phải GATE chứ không chỉ in ra. Bản đầu tôi để chúng chạy
+            // rồi vẫn báo REBUILD_OK — một bài kiểm không chặn được gì thì gần như không
+            // phải bài kiểm.
+            if (UiPrefabExporter.CountDeadSprites() > 0) Fail("còn Image trống trong prefab");
+            if (UiPrefabDiff.CountDifferences() > 0) Fail("prefab lệch so với code");
+
+            Debug.Log(failed ? "REBUILD_FAILED" : "REBUILD_OK");
+            EditorApplication.Exit(failed ? 1 : 0);
+        }
+
+        /// <summary>
         /// Thay GameObject ConnectPuzzle rỗng trong scene bằng MỘT instance của prefab gốc.
         ///
         /// Chạy sau khi đã dựng prefab. Từ lúc này mở scene ra là thấy cả cây UI, chọn và

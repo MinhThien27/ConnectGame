@@ -300,6 +300,11 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7504211553555816680, guid: 6a8d769e21436634795604ef26b5c405,
+        type: 3}
+      propertyPath: m_ScreenMatchMode
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7808156480447210669, guid: 6a8d769e21436634795604ef26b5c405,
         type: 3}
       propertyPath: m_IsActive

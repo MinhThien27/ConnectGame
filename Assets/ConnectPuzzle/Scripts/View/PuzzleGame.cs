@@ -42,11 +42,8 @@ namespace ConnectPuzzle.View
         [SerializeField] private RectTransform menuScreen;
         [SerializeField] private RectTransform gameScreen;
         [SerializeField] private RectTransform boardArea;
-        [SerializeField] private RectTransform overlay;
-        [SerializeField] private RectTransform overlayCard;
-
-        /// <summary>Khung thẻ cuối ván. Lớp C# thuần nên dựng lại trong WireAll.</summary>
-        private OverlayCard card;
+        /// <summary>Thẻ kết ván. Component nằm trên chính node Overlay và tự giữ ref của nó.</summary>
+        [SerializeField] private OverlayCard card;
 
         private BoardView board;
         private EffectLayer effects;
@@ -62,16 +59,13 @@ namespace ConnectPuzzle.View
         [SerializeField] private Button undoButton, shuffleButton, hintButton, restartButton, soundButton;
         [SerializeField] private Button backButton;
         [SerializeField] private Text undoCountText, shuffleCountText;
-        [SerializeField] private RectTransform diagBanner;
-        [SerializeField] private Text diagTitleText, diagHintText;
-        [SerializeField] private Button skipCatcher;
+        [SerializeField] private DiagnosisBanner diagBanner;
 
         private PuzzleSession session;
         private LevelData level;
         private int levelIndex;
         private bool busy;
         private bool dragging;
-        private bool skipRequested;
         private int displayedScore;
         private Coroutine diagnosisRoutine;
         private Coroutine scoreRoutine;
@@ -170,7 +164,7 @@ namespace ConnectPuzzle.View
             this.board = new BoardView(this.boardArea);
             this.effects = new EffectLayer(this, this.gameScreen);
             this.effects.AttachFlash(this.boardArea);
-            this.card = new OverlayCard(this.overlay, this.overlayCard);
+            if (this.diagBanner != null) this.diagBanner.Wire();
 
             // DuelLanLink là MonoBehaviour: prefab giữ được component nhưng event C# thì
             // không, nên phải dựng lại controller và đăng ký lại mỗi lần chạy.
@@ -204,7 +198,6 @@ namespace ConnectPuzzle.View
             // ---- màn chơi
             Bind(this.backButton, OnBackFromGame);
             Bind(this.soundButton, ToggleSound);
-            Bind(this.skipCatcher, () => this.skipRequested = true);
             Bind(this.undoButton, OnUndo);
             Bind(this.shuffleButton, OnShuffle);
             Bind(this.hintButton, OnHint);
@@ -932,40 +925,46 @@ namespace ConnectPuzzle.View
             this.chainPreview.gameObject.SetActive(false);
 
             // ---- banner chẩn đoán
-            this.diagBanner = Ui.Node("DiagBanner", this.gameScreen);
-            this.diagBanner.anchorMin = this.diagBanner.anchorMax = new Vector2(0.5f, 1);
-            this.diagBanner.pivot = new Vector2(0.5f, 1);
-            this.diagBanner.sizeDelta = new Vector2(900, 150);
-            this.diagBanner.anchoredPosition = new Vector2(0, -348);
-            Image diagBg = Ui.Image("Bg", this.diagBanner, PuzzlePalette.DiagPanel,
+            RectTransform diag = Ui.Node("DiagBanner", this.gameScreen);
+            diag.anchorMin = diag.anchorMax = new Vector2(0.5f, 1);
+            diag.pivot = new Vector2(0.5f, 1);
+            diag.sizeDelta = new Vector2(900, 150);
+            diag.anchoredPosition = new Vector2(0, -348);
+            Image diagBg = Ui.Image("Bg", diag, PuzzlePalette.DiagPanel,
                 PuzzleSprites.RoundedFill(PuzzlePalette.RadiusPanel), Image.Type.Sliced);
             Ui.Stretch(diagBg.rectTransform, 0, 0, 0, 0);
-            Image diagBorder = Ui.Image("Border", this.diagBanner, PuzzlePalette.DiagBorder,
+            Image diagBorder = Ui.Image("Border", diag, PuzzlePalette.DiagBorder,
                 PuzzleSprites.RoundedOutline(PuzzlePalette.RadiusPanel), Image.Type.Sliced);
             Ui.Stretch(diagBorder.rectTransform, 0, 0, 0, 0);
-            this.diagTitleText = Ui.Text("Title", this.diagBanner, "", 38, PuzzlePalette.Bad,
+            Text diagTitle = Ui.Text("Title", diag, "", 38, PuzzlePalette.Bad,
                 TextAnchor.UpperCenter, FontStyle.Bold);
-            Ui.Stretch(this.diagTitleText.rectTransform, 20, 20, 14, 90);
-            this.diagHintText = Ui.Text("Hint", this.diagBanner, "", 27, new Color(0.79f, 0.8f, 0.92f),
+            Ui.Stretch(diagTitle.rectTransform, 20, 20, 14, 90);
+            Text diagHint = Ui.Text("Hint", diag, "", 27, new Color(0.79f, 0.8f, 0.92f),
                 TextAnchor.UpperCenter);
-            Ui.Stretch(this.diagHintText.rectTransform, 20, 20, 60, 30);
-            Text tapHint = Ui.Text("Tap", this.diagBanner, "CHẠM ĐỂ TIẾP TỤC", 20,
+            Ui.Stretch(diagHint.rectTransform, 20, 20, 60, 30);
+            Text tapHint = Ui.Text("Tap", diag, "CHẠM ĐỂ TIẾP TỤC", 20,
                 new Color(0.42f, 0.44f, 0.6f), TextAnchor.LowerCenter);
             Ui.Stretch(tapHint.rectTransform, 20, 20, 110, 10);
-            this.diagBanner.gameObject.SetActive(false);
+            diag.gameObject.SetActive(false);
 
             // ---- bắt chạm để bỏ qua chẩn đoán
             // Bắt chạm phủ CẢ màn hình, không chỉ vùng an toàn: chạm vào dải tai thỏ
             // cũng phải bỏ qua được bước chẩn đoán. Đặt sau safe area nên nằm trên nội
             // dung, và trước Overlay nên không che thẻ thắng/thua.
-            this.skipCatcher = Ui.Button("SkipCatcher", this.canvas.transform, "", 1,
+            Button skip = Ui.Button("SkipCatcher", this.canvas.transform, "", 1,
                 new Color(0, 0, 0, 0), Color.clear, PuzzlePalette.RadiusPanel, false, false);
-            Ui.Stretch(this.skipCatcher.GetComponent<RectTransform>(), 0, 0, 0, 0);
+            Ui.Stretch(skip.GetComponent<RectTransform>(), 0, 0, 0, 0);
             // vùng bắt chạm trong suốt: dùng ô đặc, không cần 9-slice
-            Image catcherImage = this.skipCatcher.GetComponent<Image>();
+            Image catcherImage = skip.GetComponent<Image>();
             catcherImage.sprite = PuzzleSprites.Square;
             catcherImage.type = Image.Type.Simple;
-            this.skipCatcher.gameObject.SetActive(false);
+            skip.gameObject.SetActive(false);
+
+            // Component sống TRÊN node DiagBanner. Lớp bắt chạm là ANH EM chứ không
+            // phải con — nó phủ cả màn hình — nhưng tham chiếu thì không đòi quan hệ
+            // cha con, nên banner vẫn tự giữ được.
+            this.diagBanner = diag.gameObject.AddComponent<DiagnosisBanner>();
+            this.diagBanner.BindForAuthoring(diagTitle, diagHint, skip);
 
             // ---- bốn nút điều khiển
             this.undoButton = BuildControl("Undo", 0, "↶", "Hoàn tác", out this.undoCountText);
@@ -1052,19 +1051,20 @@ namespace ConnectPuzzle.View
 
         private void BuildOverlay()
         {
-            this.overlay = Ui.Node("Overlay", this.canvas.transform);
-            Ui.Stretch(this.overlay, 0, 0, 0, 0);
-            Image shade = Ui.Image("Shade", this.overlay, new Color(0.03f, 0.04f, 0.08f, 0.86f));
+            RectTransform root = Ui.Node("Overlay", this.canvas.transform);
+            Ui.Stretch(root, 0, 0, 0, 0);
+            Image shade = Ui.Image("Shade", root, new Color(0.03f, 0.04f, 0.08f, 0.86f));
             Ui.Stretch(shade.rectTransform, 0, 0, 0, 0);
             shade.raycastTarget = true;
 
-            this.overlayCard = Ui.Panel("Card", this.overlay,
+            RectTransform cardRect = Ui.Panel("Card", root,
                 PuzzlePalette.Panel, PuzzlePalette.Line, PuzzlePalette.RadiusCard);
-            this.overlayCard.sizeDelta = new Vector2(760, 620);
+            cardRect.sizeDelta = new Vector2(760, 620);
 
-            // KHÔNG gọi this.card.Hide() ở đây: OverlayCard chỉ dựng trong WireAll, mà
-            // WireAll chạy SAU toàn bộ các hàm Build*. Lúc này this.card còn null.
-            this.overlay.gameObject.SetActive(false);
+            // Component sống TRÊN node Overlay và tự giữ ref tới khung thẻ.
+            this.card = root.gameObject.AddComponent<OverlayCard>();
+            this.card.BindByNameForAuthoring();
+            root.gameObject.SetActive(false);
         }
 
         // ==================================================================
@@ -1322,8 +1322,7 @@ namespace ConnectPuzzle.View
             this.board.ClearChain();
             this.board.ResetScales();
             this.chainPreview.gameObject.SetActive(false);
-            this.diagBanner.gameObject.SetActive(false);
-            this.skipCatcher.gameObject.SetActive(false);
+            this.diagBanner.Hide();
             this.card.Hide();
             UpdateHud();
         }
@@ -1750,12 +1749,8 @@ namespace ConnectPuzzle.View
         private IEnumerator DiagnoseRoutine(LossReason reason, bool endlessRecord = false)
         {
             this.endlessRecord = endlessRecord;
-            this.skipRequested = false;
             this.board.SetDimmed(this.session, true, PuzzleProgress.Symbols);
-            this.diagTitleText.text = reason.Title;
-            this.diagHintText.text = reason.Hint;
-            this.diagBanner.gameObject.SetActive(true);
-            this.skipCatcher.gameObject.SetActive(true);
+            this.diagBanner.Show(reason.Title, reason.Hint);
             this.effects.Shake(this.board.Root, this.board.CellSize * 0.07f);
 
             var lit = new List<int>();
@@ -1767,7 +1762,7 @@ namespace ConnectPuzzle.View
             int nextGroup = 0;
             float nextAt = 0.42f;
 
-            while (!this.skipRequested &&
+            while (!this.diagBanner.SkipRequested &&
                    (elapsed < DiagnosisMinSeconds || nextGroup < reason.EvidenceGroups.Count))
             {
                 elapsed += Time.deltaTime;
@@ -1805,8 +1800,7 @@ namespace ConnectPuzzle.View
         private void FinishDiagnosis()
         {
             this.diagnosisRoutine = null;
-            this.diagBanner.gameObject.SetActive(false);
-            this.skipCatcher.gameObject.SetActive(false);
+            this.diagBanner.Hide();
             this.board.ResetScales();
             if (this.session != null) this.board.SetDimmed(this.session, false, PuzzleProgress.Symbols);
             this.busy = false;
@@ -1920,9 +1914,7 @@ namespace ConnectPuzzle.View
         // Toast — câu nhắn ngắn, tự tắt
         // ==================================================================
 
-        [SerializeField] private RectTransform toastRoot;
-        [SerializeField] private Text toastText;
-        private Coroutine toastRoutine;
+        [SerializeField] private ToastView toast;
 
         /// <summary>
         /// Dựng trên CANVAS chứ không trên màn hình game: toast phải hiện được cả ở menu
@@ -1930,40 +1922,29 @@ namespace ConnectPuzzle.View
         /// </summary>
         private void BuildToast()
         {
-            this.toastRoot = Ui.Panel("Toast", this.canvas.transform,
+            RectTransform root = Ui.Panel("Toast", this.canvas.transform,
                 PuzzlePalette.DiagPanel, PuzzlePalette.Line, PuzzlePalette.RadiusPanel);
-            this.toastRoot.anchorMin = this.toastRoot.anchorMax = new Vector2(0.5f, 0);
-            this.toastRoot.pivot = new Vector2(0.5f, 0);
-            this.toastRoot.sizeDelta = new Vector2(940, 120);
-            this.toastRoot.anchoredPosition = new Vector2(0, 220);
+            root.anchorMin = root.anchorMax = new Vector2(0.5f, 0);
+            root.pivot = new Vector2(0.5f, 0);
+            root.sizeDelta = new Vector2(940, 120);
+            root.anchoredPosition = new Vector2(0, 220);
 
-            this.toastText = Ui.Text("Text", this.toastRoot, "", 28,
+            Text label = Ui.Text("Text", root, "", 28,
                 PuzzlePalette.Foreground, TextAnchor.MiddleCenter);
-            Ui.Stretch(this.toastText.rectTransform, 26, 26, 12, 12);
+            Ui.Stretch(label.rectTransform, 26, 26, 12, 12);
 
-            this.toastRoot.gameObject.SetActive(false);
+            this.toast = root.gameObject.AddComponent<ToastView>();
+            this.toast.BindByNameForAuthoring();
+            root.gameObject.SetActive(false);
         }
 
+        /// <summary>
+        /// Giữ lại làm cửa vào cho hơn 40 chỗ gọi trong lớp này, thay vì sửa hết
+        /// thành this.toast.Show(...). Bản thân toast do ToastView lo.
+        /// </summary>
         private void Toast(string message)
         {
-            if (this.toastRoot == null) return;
-            this.toastText.text = message;
-
-            // Chiều cao theo chữ THẬT: câu giới thiệu cơ chế dài gấp mấy lần câu ngắn,
-            // để cố định là chữ tràn ra ngoài khung.
-            float height = Ui.MeasureTextHeight(this.toastText) + 34f;
-            this.toastRoot.sizeDelta = new Vector2(940, Mathf.Max(96f, height));
-
-            this.toastRoot.gameObject.SetActive(true);
-            if (this.toastRoutine != null) StopCoroutine(this.toastRoutine);
-            this.toastRoutine = StartCoroutine(ToastRoutine());
-        }
-
-        private IEnumerator ToastRoutine()
-        {
-            yield return new WaitForSeconds(3.4f);
-            this.toastRoot.gameObject.SetActive(false);
-            this.toastRoutine = null;
+            if (this.toast != null) this.toast.Show(message);
         }
 
         private void UpdateToggleLabels()
@@ -2638,12 +2619,11 @@ namespace ConnectPuzzle.View
             if (this.menuScreen == null) missing.Add(nameof(this.menuScreen));
             if (this.gameScreen == null) missing.Add(nameof(this.gameScreen));
             if (this.boardArea == null) missing.Add(nameof(this.boardArea));
-            if (this.overlay == null) missing.Add(nameof(this.overlay));
-            if (this.overlayCard == null) missing.Add(nameof(this.overlayCard));
+            if (this.card == null) missing.Add(nameof(this.card));
+            if (this.diagBanner == null) missing.Add(nameof(this.diagBanner));
             if (this.levelViewport == null) missing.Add(nameof(this.levelViewport));
             if (this.levelContent == null) missing.Add(nameof(this.levelContent));
-            if (this.toastRoot == null) missing.Add(nameof(this.toastRoot));
-            if (this.toastText == null) missing.Add(nameof(this.toastText));
+            if (this.toast == null) missing.Add(nameof(this.toast));
             if (this.scoreText == null) missing.Add(nameof(this.scoreText));
             if (this.movesText == null) missing.Add(nameof(this.movesText));
             if (this.undoButton == null) missing.Add(nameof(this.undoButton));
