@@ -50,15 +50,14 @@ namespace ConnectPuzzle.View
         private PuzzleAudio audioPlayer;
         [SerializeField] private BoardPointerInput pointerInput;
 
-        [SerializeField] private Text levelNameText, levelSubText;
-        [SerializeField] private Text movesText, movesMaxText, cellsText, scoreText;
-        [SerializeField] private Text movesLabel, cellsLabel;
-        [SerializeField] private Text parText, queueText, chainPreviewText;
-        [SerializeField] private Text[] starTexts;
+        /// <summary>Bảng số liệu đầu màn chơi. Component nằm trên GameScreen.</summary>
+        [SerializeField] private GameHud hud;
+
+        /// <summary>Hàng nút dưới màn chơi + nút quay lại và nút âm thanh.</summary>
+        [SerializeField] private ControlBar controls;
+
+        [SerializeField] private Text chainPreviewText;
         [SerializeField] private RectTransform chainPreview;
-        [SerializeField] private Button undoButton, shuffleButton, hintButton, restartButton, soundButton;
-        [SerializeField] private Button backButton;
-        [SerializeField] private Text undoCountText, shuffleCountText;
         [SerializeField] private DiagnosisBanner diagBanner;
 
         private PuzzleSession session;
@@ -192,12 +191,7 @@ namespace ConnectPuzzle.View
             });
 
             // ---- màn chơi
-            Bind(this.backButton, OnBackFromGame);
-            Bind(this.soundButton, ToggleSound);
-            Bind(this.undoButton, OnUndo);
-            Bind(this.shuffleButton, OnShuffle);
-            Bind(this.hintButton, OnHint);
-            Bind(this.restartButton, RestartLevel);
+            this.controls.Wire(OnUndo, OnShuffle, OnHint, RestartLevel, ToggleSound, OnBackFromGame);
 
             // ---- vật phẩm: bảng tự giữ ref của mình, chỉ cần đưa nó host
             if (this.items != null) this.items.Wire(this);
@@ -848,48 +842,53 @@ namespace ConnectPuzzle.View
             Ui.Stretch(this.gameScreen, 0, 0, 0, 0);
 
             // ---- thanh trên
-            this.backButton = Ui.Button("Back", this.gameScreen, "←", 42, PuzzlePalette.Panel, PuzzlePalette.Foreground);
-            RectTransform backRect = this.backButton.GetComponent<RectTransform>();
+            Button backButton = Ui.Button("Back", this.gameScreen, "←", 42, PuzzlePalette.Panel, PuzzlePalette.Foreground);
+            RectTransform backRect = backButton.GetComponent<RectTransform>();
             backRect.anchorMin = backRect.anchorMax = new Vector2(0, 1);
             backRect.pivot = new Vector2(0, 1);
             backRect.sizeDelta = new Vector2(92, 84);
             backRect.anchoredPosition = new Vector2(30, -26);
 
-            this.levelNameText = Ui.Text("LevelName", this.gameScreen, "", 38, PuzzlePalette.Foreground,
+            Text levelName = Ui.Text("LevelName", this.gameScreen, "", 38, PuzzlePalette.Foreground,
                 TextAnchor.UpperLeft, FontStyle.Bold);
-            Ui.TopBand(this.levelNameText.rectTransform, 26, 44, 140);
-            this.levelSubText = Ui.Text("LevelSub", this.gameScreen, "", 26, PuzzlePalette.Dim, TextAnchor.UpperLeft);
-            Ui.TopBand(this.levelSubText.rectTransform, 68, 38, 140);
+            Ui.TopBand(levelName.rectTransform, 26, 44, 140);
+            Text levelSub = Ui.Text("LevelSub", this.gameScreen, "", 26, PuzzlePalette.Dim, TextAnchor.UpperLeft);
+            Ui.TopBand(levelSub.rectTransform, 68, 38, 140);
 
-            this.soundButton = Ui.Button("Sound", this.gameScreen, "", 34, PuzzlePalette.Panel, PuzzlePalette.Foreground);
-            RectTransform soundRect = this.soundButton.GetComponent<RectTransform>();
+            Button soundButton = Ui.Button("Sound", this.gameScreen, "", 34, PuzzlePalette.Panel, PuzzlePalette.Foreground);
+            RectTransform soundRect = soundButton.GetComponent<RectTransform>();
             soundRect.anchorMin = soundRect.anchorMax = new Vector2(1, 1);
             soundRect.pivot = new Vector2(1, 1);
             soundRect.sizeDelta = new Vector2(92, 84);
             soundRect.anchoredPosition = new Vector2(-30, -26);
 
             // ---- HUD ba ô
-            BuildStat("Moves", 0, "LƯỢT CÒN", out this.movesText, out this.movesMaxText, out this.movesLabel);
-            BuildStat("Cells", 1, "Ô CÒN LẠI", out this.cellsText, out _, out this.cellsLabel);
-            BuildStat("Score", 2, "ĐIỂM", out this.scoreText, out _);
+            BuildStat("Moves", 0, "LƯỢT CÒN", out Text movesValue, out Text movesMax, out Text movesLabel);
+            BuildStat("Cells", 1, "Ô CÒN LẠI", out Text cellsValue, out _, out Text cellsLabel);
+            BuildStat("Score", 2, "ĐIỂM", out Text scoreValue, out _);
 
             // ---- dải phụ: sao / par / hàng chờ
-            this.starTexts = new Text[3];
+            var starTexts = new Text[3];
             for (int i = 0; i < 3; i++)
             {
-                this.starTexts[i] = Ui.Text("Star" + i, this.gameScreen, "★", 30, PuzzlePalette.Star,
+                starTexts[i] = Ui.Text("Star" + i, this.gameScreen, "★", 30, PuzzlePalette.Star,
                     TextAnchor.MiddleLeft);
-                RectTransform rect = this.starTexts[i].rectTransform;
+                RectTransform rect = starTexts[i].rectTransform;
                 rect.anchorMin = rect.anchorMax = new Vector2(0, 1);
                 rect.pivot = new Vector2(0, 1);
                 rect.sizeDelta = new Vector2(40, 42);
                 rect.anchoredPosition = new Vector2(34 + i * 34, -276);
             }
 
-            this.parText = Ui.Text("Par", this.gameScreen, "", 26, PuzzlePalette.Dim, TextAnchor.MiddleLeft);
-            Ui.TopBand(this.parText.rectTransform, 274, 44, 150);
-            this.queueText = Ui.Text("Queue", this.gameScreen, "", 26, PuzzlePalette.Accent, TextAnchor.MiddleRight);
-            Ui.TopBand(this.queueText.rectTransform, 274, 44, 34);
+            Text parText = Ui.Text("Par", this.gameScreen, "", 26, PuzzlePalette.Dim, TextAnchor.MiddleLeft);
+            Ui.TopBand(parText.rectTransform, 274, 44, 150);
+            Text queueText = Ui.Text("Queue", this.gameScreen, "", 26, PuzzlePalette.Accent, TextAnchor.MiddleRight);
+            Ui.TopBand(queueText.rectTransform, 274, 44, 34);
+
+            // Component số liệu sống TRÊN GameScreen và tự giữ 11 ô chữ của nó.
+            this.hud = this.gameScreen.gameObject.AddComponent<GameHud>();
+            this.hud.BindForAuthoring(levelName, levelSub, movesValue, movesMax, movesLabel,
+                                      cellsValue, cellsLabel, scoreValue, parText, queueText, starTexts);
 
             // ---- vùng bàn
             this.boardArea = Ui.Node("BoardArea", this.gameScreen);
@@ -963,10 +962,16 @@ namespace ConnectPuzzle.View
             this.diagBanner.BindForAuthoring(diagTitle, diagHint, skip);
 
             // ---- bốn nút điều khiển
-            this.undoButton = BuildControl("Undo", 0, "↶", "Hoàn tác", out this.undoCountText);
-            this.shuffleButton = BuildControl("Shuffle", 1, "⇄", "Xáo lại", out this.shuffleCountText);
-            this.hintButton = BuildControl("Hint", 2, "?", "Gợi ý", out _);
-            this.restartButton = BuildControl("Restart", 4, "↻", "Chơi lại", out _);
+            Button undoButton = BuildControl("Undo", 0, "↶", "Hoàn tác", out Text undoBadge);
+            Button shuffleButton = BuildControl("Shuffle", 1, "⇄", "Xáo lại", out Text shuffleBadge);
+            Button hintButton = BuildControl("Hint", 2, "?", "Gợi ý", out _);
+            Button restartButton = BuildControl("Restart", 4, "↻", "Chơi lại", out _);
+
+            // Component hàng nút cũng sống TRÊN GameScreen. Nút quay lại và nút âm thanh
+            // ở thanh trên vẫn thuộc nó: chúng cũng là nút điều khiển ván, chỉ khác chỗ đứng.
+            this.controls = this.gameScreen.gameObject.AddComponent<ControlBar>();
+            this.controls.BindForAuthoring(undoButton, undoBadge, shuffleButton, shuffleBadge,
+                                           hintButton, restartButton, soundButton, backButton);
 
             BuildItemControls();
         }
@@ -1209,8 +1214,7 @@ namespace ConnectPuzzle.View
             // thay bằng bàn cũ, và displayedScore/HUD vẫn còn số 0 của ván mới.
             if (PuzzleProgress.TryLoadEndlessState(this.session))
             {
-                this.displayedScore = this.session.Score;
-                this.scoreText.text = this.session.Score.ToString();
+                this.hud.SetScore(this.session.Score);
                 this.board.Refresh(this.session, PuzzleProgress.Symbols);
                 RedrawSelection();
                 UpdateHud();
@@ -1288,14 +1292,14 @@ namespace ConnectPuzzle.View
             this.busy = false;
             this.items.ClearPending();
             this.dragging = false;
-            this.displayedScore = 0;
+            if (this.hud != null) this.hud.SetScore(0);
 
             LevelConfig cfg = this.level.Config;
-            this.levelNameText.text = this.level.Endless ? "∞ Vô tận"
+            string hudTitle = this.level.Endless ? "∞ Vô tận"
                 : IsDuel ? "⚔ Đấu " + this.duel.Code
                 : IsDaily ? "✦ Thử thách hôm nay"
                 : ((this.levelIndex + 1) + ". " + cfg.Name);
-            this.levelSubText.text =
+            string hudSub =
                 this.level.Endless ? "kỷ lục " + PuzzleProgress.EndlessBest + " · ô rớt xuống mãi"
                 : IsDuel ? this.duel.PresetLabel + " · " + this.level.TotalCells + " ô"
                 : IsDaily ? DailyBadge()
@@ -1310,9 +1314,10 @@ namespace ConnectPuzzle.View
             // ô thứ N+1 không chịu nối vào.
             string rule = "chuỗi " + this.level.MinChain +
                 (this.level.MaxChain == int.MaxValue ? "+ ô" : "-" + this.level.MaxChain + " ô");
-            this.parText.text = this.level.Endless
+            this.hud.SetTitle(hudTitle, hudSub);
+            this.hud.SetRuleLine(this.level.Endless
                 ? rule + " · " + EndlessRules.ColorsFor(this.session.Score) + " màu"
-                : rule + " · tối ưu " + this.level.Par;
+                : rule + " · tối ưu " + this.level.Par);
 
             this.board.SetDimmed(this.session, false, PuzzleProgress.Symbols);
             this.board.ClearChain();
@@ -1610,7 +1615,7 @@ namespace ConnectPuzzle.View
             if (chainLength >= 6) this.effects.Shake(this.board.Root, this.board.CellSize * 0.09f);
             this.audioPlayer.Clear(chainLength);
 
-            AnimateScore(result.ScoreBefore, this.session.Score);
+            this.hud.AnimateScore(result.ScoreBefore, this.session.Score);
             UpdateHud();
 
             // Ô vỡ THEO liên kết nổ CÙNG LÚC với chuỗi, không phải sau: hai chuyện đó
@@ -1821,90 +1826,11 @@ namespace ConnectPuzzle.View
         private void UpdateHud()
         {
             this.items.RefreshBar();
-            if (this.level.Endless)
-            {
-                // Vô tận không có lượt để đếm ngược, nên ô đó chuyển thành số nước ĐÃ đi,
-                // và ô "ô còn lại" thành hệ số combo — hai thứ duy nhất còn nghĩa ở đây.
-                this.movesLabel.text = "Nước đã đi";
-                this.movesText.text = this.session.MovesUsed.ToString();
-                this.movesMaxText.text = "";
-                this.movesText.color = PuzzlePalette.Foreground;
-
-                this.cellsLabel.text = "Combo";
-                this.cellsText.text = this.session.Combo > 0
-                    ? "x" + this.session.EndlessMultiplier.ToString("0.##")
-                    : "—";
-
-                foreach (Text star in this.starTexts)
-                    star.color = new Color(PuzzlePalette.Star.r, PuzzlePalette.Star.g, PuzzlePalette.Star.b, 0f);
-
-                this.parText.text = EndlessRules.ColorsFor(this.session.Score) + " màu · kỷ lục " +
-                                    PuzzleProgress.EndlessBest;
-                this.queueText.text = "";
-                this.undoCountText.text = "0";
-                this.undoButton.interactable = false;
-                this.shuffleCountText.text = this.session.ShufflesLeft.ToString();
-                this.shuffleButton.interactable = this.session.ShufflesLeft > 0;
-                UpdateToggleLabels();
-                return;
-            }
-
-            this.movesLabel.text = "Lượt còn";
-            this.movesText.text = this.session.MovesLeft.ToString();
-            this.movesMaxText.text = "/" + this.level.MaxMoves;
-            this.movesText.color = this.session.MovesLeft <= 2 ? PuzzlePalette.Bad : PuzzlePalette.Foreground;
-
-            // Màn mục tiêu đếm ô ĐÍCH: người chơi cần biết còn cách thắng bao xa, mà ở
-            // đó phần bàn thừa không liên quan.
-            this.cellsLabel.text = this.level.GoalMode ? "Ô đích còn" : "Ô còn lại";
-            this.cellsText.text = (this.level.GoalMode ? this.session.GoalsLeft : this.session.TotalLeft()).ToString();
-
-            for (int i = 0; i < 3; i++)
-            {
-                int threshold = i == 0 ? this.level.Par : (i == 1 ? this.level.TwoStarMoves : this.level.MaxMoves);
-                bool on = this.session.MovesUsed <= threshold;
-                this.starTexts[i].color = on
-                    ? PuzzlePalette.Star
-                    : new Color(PuzzlePalette.Star.r, PuzzlePalette.Star.g, PuzzlePalette.Star.b, 0.2f);
-            }
-
-            // Tiến độ huy hiệu phải hiện TRONG lúc chơi, không phải chỉ ở thẻ kết ván:
-            // biết mình còn thiếu mấy chuỗi đầy là thứ đổi được cách đi nước tiếp theo,
-            // biết sau khi xong ván thì chỉ còn là lời trách.
-            if (this.level.MedalChains > 0 && !IsDaily)
-                this.queueText.text = "◆ " + this.session.FullChains + "/" + this.level.MedalChains;
-            else
-                this.queueText.text = this.level.Gravity ? "▼ hàng chờ " + this.session.QueueLeft() : "";
-
-            this.undoCountText.text = this.session.UndosLeft.ToString();
-            this.undoButton.interactable = this.session.CanUndo;
-            this.shuffleCountText.text = this.session.ShufflesLeft.ToString();
-            this.shuffleButton.interactable = this.session.CanShuffle;
+            this.hud.Refresh(this.session, this.level, IsDaily);
+            this.controls.Refresh(this.session, this.level.Endless);
             UpdateToggleLabels();
         }
 
-        private void AnimateScore(int from, int to)
-        {
-            if (this.scoreRoutine != null) StopCoroutine(this.scoreRoutine);
-            this.scoreRoutine = StartCoroutine(ScoreRoutine(from, to));
-        }
-
-        private IEnumerator ScoreRoutine(int from, int to)
-        {
-            const float duration = 0.42f;
-            float elapsed = 0f;
-            while (elapsed < duration)
-            {
-                elapsed += Time.deltaTime;
-                float t = Mathf.Clamp01(elapsed / duration);
-                this.displayedScore = Mathf.RoundToInt(Mathf.Lerp(from, to, 1f - Mathf.Pow(1f - t, 3f)));
-                this.scoreText.text = this.displayedScore.ToString();
-                yield return null;
-            }
-            this.displayedScore = to;
-            this.scoreText.text = to.ToString();
-            this.scoreRoutine = null;
-        }
 
         // ==================================================================
         // Toast — câu nhắn ngắn, tự tắt
@@ -1949,9 +1875,7 @@ namespace ConnectPuzzle.View
             // trống. Nút nhỏ trong game dùng ♪ và đổi MÀU để phân biệt bật/tắt; nút ở
             // menu dùng chữ, rõ hơn icon.
             bool on = PuzzleProgress.Sound;
-            Text gameLabel = Ui.LabelOf(this.soundButton);
-            gameLabel.text = "♪";
-            gameLabel.color = on ? PuzzlePalette.Foreground : new Color(0.4f, 0.43f, 0.6f, 0.7f);
+            this.controls.SetSoundOn(on);
 
             Ui.LabelOf(this.menuSoundButton).text = "Âm thanh: " + (on ? "Bật" : "Tắt");
             Ui.LabelOf(this.menuSymbolButton).text = (PuzzleProgress.Symbols ? "◆" : "○") + " Ký hiệu";
@@ -2010,8 +1934,7 @@ namespace ConnectPuzzle.View
             this.board.SetDimmed(this.session, false, PuzzleProgress.Symbols);
             this.board.ClearChain();
             this.chainPreview.gameObject.SetActive(false);
-            this.displayedScore = this.session.Score;
-            this.scoreText.text = this.session.Score.ToString();
+            this.hud.SetScore(this.session.Score);
             // Hoàn tác một bước ĐÃ DÙNG vật phẩm thì phải trả sao lại. Không trả thì
             // hoàn tác biến thành hình phạt, và người chơi học cách không bao giờ bấm nó.
             PuzzleSession.ItemKind undone = this.session.LastUndoneItem;
@@ -2614,9 +2537,8 @@ namespace ConnectPuzzle.View
             if (this.levelViewport == null) missing.Add(nameof(this.levelViewport));
             if (this.levelContent == null) missing.Add(nameof(this.levelContent));
             if (this.toast == null) missing.Add(nameof(this.toast));
-            if (this.scoreText == null) missing.Add(nameof(this.scoreText));
-            if (this.movesText == null) missing.Add(nameof(this.movesText));
-            if (this.undoButton == null) missing.Add(nameof(this.undoButton));
+            if (this.hud == null) missing.Add(nameof(this.hud));
+            if (this.controls == null) missing.Add(nameof(this.controls));
             if (this.duel == null) missing.Add(nameof(this.duel));
             if (this.items == null) missing.Add(nameof(this.items));
             if (Lan == null) missing.Add("duel.Lan");
