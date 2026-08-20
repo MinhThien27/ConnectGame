@@ -15,7 +15,7 @@ namespace ConnectPuzzle.View
     /// chỉ lo hiển thị, hoạt ảnh và điều hướng.
     /// </summary>
     [AddComponentMenu("Connect Puzzle/Puzzle Game")]
-    public sealed class PuzzleGame : MonoBehaviour, DuelPanel.IHost, ItemPanel.IHost
+    public sealed class PuzzleGame : MonoBehaviour, DuelPanel.IHost, ItemPanel.IHost, MenuScreen.IHost
     {
         private const float DiagnosisMinSeconds = 1.9f;
 
@@ -117,7 +117,7 @@ namespace ConnectPuzzle.View
                 // hai thứ này không phải là "dựng UI", nên không sinh bản sao nào.
                 if (this.uiFont != null) Ui.OverrideFont = this.uiFont;
                 BuildCamera();
-                BuildLevelGrid();     // lưới màn là nội dung theo tiến trình, luôn dựng lúc chạy
+                if (this.menu != null) this.menu.BuildGrid();   // lưới màn dựng theo tiến trình
                 WireAll();
                 this.audioPlayer = new PuzzleAudio(this.gameObject) { Enabled = PuzzleProgress.Sound };
                 return;
@@ -166,24 +166,8 @@ namespace ConnectPuzzle.View
 
             this.boardArea.Wire(OnPointerDown, OnPointerDrag, OnPointerUp);
 
-            // ---- menu
-            Bind(this.menuEndlessButton, OpenEndless);
-            Bind(this.menuDailyButton, OpenDaily);
-            Bind(this.menuSoundButton, ToggleSound);
-            Bind(this.menuSymbolButton, ToggleSymbols);
-            Bind(this.menuFreeButton, () =>
-            {
-                PuzzleProgress.FreePlay = !PuzzleProgress.FreePlay;
-                RefreshMenu();
-                Toast(PuzzleProgress.FreePlay
-                    ? "Chơi tự do: vào thẳng màn nào cũng được. Sao và điểm vẫn được ghi."
-                    : "Đã tắt chơi tự do — mở màn theo tiến trình như cũ.");
-            });
-            Bind(this.menuResetButton, () =>
-            {
-                PuzzleProgress.ResetAll(LevelCatalog.Levels.Length);
-                RefreshMenu();
-            });
+            // ---- menu: màn menu tự nối mọi nút của nó
+            if (this.menu != null) this.menu.Wire(this);
 
             // ---- màn chơi
             this.controls.Wire(OnUndo, OnShuffle, OnHint, RestartLevel, ToggleSound, OnBackFromGame);
@@ -264,6 +248,20 @@ namespace ConnectPuzzle.View
 
         // ------------------------------------------------------------------
 
+
+        // ==================================================================
+        // Menu — bảng nằm ở MenuScreen; đây chỉ giữ tham chiếu và bắc cầu
+        // ==================================================================
+
+        /// <summary>
+        /// Màn menu. Component nằm trên chính node MenuScreen và tự giữ 12 tham chiếu
+        /// của nó, cùng toàn bộ bố cục và việc dựng lưới 90 màn.
+        /// </summary>
+        [SerializeField] private MenuScreen menu;
+
+        /// <summary>Khoá ngày của thử thách đang chơi; 0 nếu không phải ván thử thách.</summary>
+        private int dailyKey;
+
         private void BuildMenuScreen()
         {
             this.menuScreen = Ui.Node("MenuScreen", this.contentRoot);
@@ -278,555 +276,102 @@ namespace ConnectPuzzle.View
                 PuzzlePalette.Dim, TextAnchor.UpperCenter);
             Ui.TopBand(subtitle.rectTransform, 172, 50, 60);
 
-            // Ví sao. Nằm ĐÈ lên dải tiêu đề chứ không chiếm dải riêng: tiêu đề căn
-            // giữa nên hai mép luôn trống, và menu đã phải nhường chỗ cho hai nút chế
-            // độ rồi — thêm một dải nữa là lưới màn bị đẩy xuống lần thứ ba.
-            //
-            // Trước đây số dư này KHÔNG hiện ở đâu cả: người chơi chỉ thấy nút vật phẩm
-            // xám đi mà không biết mình có bao nhiêu sao, cũng không biết còn thiếu mấy.
-            this.menuWalletText = Ui.Text("Wallet", this.menuScreen, "", 30,
+            // Ví sao. Nằm ĐÈ lên dải tiêu đề chứ không chiếm dải riêng: tiêu đề căn giữa
+            // nên hai mép luôn trống, và menu đã phải nhường chỗ cho ba nút chế độ rồi —
+            // thêm một dải nữa là lưới màn bị đẩy xuống lần thứ ba.
+            Text wallet = Ui.Text("Wallet", this.menuScreen, "", 30,
                 PuzzlePalette.Star, TextAnchor.UpperRight, FontStyle.Bold);
-            this.menuWalletText.supportRichText = true;
+            wallet.supportRichText = true;
 
-            // Nút Vô tận nằm NGAY DƯỚI tiêu đề chứ không lẫn trong footer: nó là một
-            // chế độ chơi riêng, không phải một tuỳ chọn.
-            this.menuEndlessButton = Ui.Button("MenuEndless", this.menuScreen, "", 32,
+            // Nút Vô tận nằm NGAY DƯỚI tiêu đề chứ không lẫn trong footer: nó là một chế
+            // độ chơi riêng, không phải một tuỳ chọn.
+            Button endless = Ui.Button("MenuEndless", this.menuScreen, "", 32,
                 PuzzlePalette.Accent, new Color(0.05f, 0.06f, 0.14f), PuzzlePalette.RadiusPanel, true);
 
             // Thử thách hôm nay: một bàn dùng chung cho mọi máy, đổi lúc 0h UTC.
-            this.menuDailyButton = Ui.Button("MenuDaily", this.menuScreen, "", 32,
+            Button daily = Ui.Button("MenuDaily", this.menuScreen, "", 32,
                 PuzzlePalette.Good, new Color(0.05f, 0.06f, 0.14f), PuzzlePalette.RadiusPanel, true);
 
-            // Đấu seed: cùng một mã ra cùng một bàn trên mọi máy — đã đo trên ARM64
-            // thật, không phải giả định (xem BoardFingerprint).
-            this.menuDuelButton = Ui.Button("MenuDuel", this.menuScreen, "⚔  Đấu seed bạn bè", 32,
+            // Đấu seed: cùng một mã ra cùng một bàn trên mọi máy — đã đo trên ARM64 thật,
+            // không phải giả định (xem BoardFingerprint).
+            Button duelOpen = Ui.Button("MenuDuel", this.menuScreen, "⚔  Đấu seed bạn bè", 32,
                 PuzzlePalette.Foreground, PuzzlePalette.Panel, PuzzlePalette.RadiusPanel, true);
 
+            this.menu = this.menuScreen.gameObject.AddComponent<MenuScreen>();
+            this.menu.BindForAuthoring(wallet, endless, daily, duelOpen);
+
             BuildDuelPanel();      // dựng luôn bảng Wi-Fi bên trong
-
-            BuildLevelScroll();
-            BuildLevelGrid();
-            BuildMenuFooter();
-
-            // bố cục ngay một lần để không phần tử nào ở trạng thái cỡ 0
-            LayoutMenu();
+            this.menu.BuildContents();
         }
 
-        // --- các số đo cố định của menu, tính theo chiều rộng logic 1080 ---
-        private const int MenuColumns = 5;
-        private const float MenuGap = 18f;
-        private const float MenuSideMargin = 45f;
-        private const float MenuHeaderHeight = 58f;
-        private const float MenuWorldSpacing = 26f;
-        private const float MenuFooterHeight = 300f;    // ba hàng: 2 nút gạt + chơi tự do + link
-
-        /// <summary>Kết quả tính bố cục menu cho một kích thước khung cụ thể.</summary>
-        public struct MenuMetrics
+        /// <summary>Vẽ lại trạng thái các nút màn và nhãn các nút gạt.</summary>
+        private void RefreshMenu()
         {
-            public int Columns;
-            public float ButtonSize;
-            public float HeaderTop;      // chiều cao khối tiêu đề
-            public float HeaderHeight;   // chiều cao một nhãn thế giới
-            public float FooterHeight;
-            public int TotalRows;
-            public float GridBottom;     // đáy lưới, đo từ đỉnh khung
-            public float ContentHeight;  // chiều cao phần cuộn được
+            this.menu.Refresh();
+            UpdateToggleLabels();
         }
 
         /// <summary>
-        /// Tính bố cục menu cho khung cỡ này. Hàm THUẦN nên kiểm được bất biến "lưới
-        /// luôn nằm trên footer" trên mọi tỉ lệ màn hình.
+        /// Nhãn của những thứ ĐỔI THEO TIẾN ĐỘ, ở cả hai màn.
         ///
-        /// Ba thứ cùng thích ứng, vì chỉ đổi cỡ nút là không đủ: trên canvas logic cao
-        /// 810 thì riêng chrome đã 592px, còn 24 nút 6 hàng không cách nào vừa.
-        ///  - chrome (tiêu đề, nhãn thế giới, footer) co lại trên màn thấp
-        ///  - số CỘT tăng lên để bớt hàng
-        ///  - cỡ nút lấy theo cả hai chiều
+        /// Gom về một chỗ vì chúng phải đổi cùng lúc: bật âm thanh ở menu mà nút ♪ trong
+        /// ván còn xám là hai màn hình nói hai điều khác nhau về cùng một trạng thái.
         /// </summary>
-        public static MenuMetrics ComputeMenuMetrics(float width, float height, int[] worldSizes)
+        private void UpdateToggleLabels()
         {
-            return ComputeMenuMetrics(width, height, worldSizes, -1f);
+            if (this.controls != null) this.controls.SetSoundOn(PuzzleProgress.Sound);
+            if (this.menu != null) this.menu.RefreshLabels();
+            RefreshWallet();
         }
 
-        /// <summary>
-        /// headerTop &lt; 0 nghĩa là ước lượng theo chiều cao khung; truyền số dương khi đã
-        /// ĐO được chiều cao chữ thật, để khối tiêu đề không lấn xuống lưới.
-        /// </summary>
-        public static MenuMetrics ComputeMenuMetrics(float width, float height, int[] worldSizes,
-                                                    float headerTop)
+        // ---- những gì menu cần từ ván chơi. Cài TƯỜNG MINH: đây là hợp đồng với
+        //      MenuScreen, không phải API của PuzzleGame.
+        void MenuScreen.IHost.PickLevel(int index) => OnLevelPicked(index);
+        void MenuScreen.IHost.OpenEndless() => OpenEndless();
+        void MenuScreen.IHost.OpenDaily() => OpenDaily();
+        void MenuScreen.IHost.OpenDuel() { if (this.duel != null) this.duel.OpenPanel(); }
+        void MenuScreen.IHost.ToggleSound() => ToggleSound();
+        void MenuScreen.IHost.ToggleSymbols() => ToggleSymbols();
+
+        void MenuScreen.IHost.ToggleFreePlay()
         {
-            // 0 ở màn thấp, 1 ở màn cao — dùng để co chrome
-            float tall = Mathf.Clamp01((height - 900f) / 1000f);
-
-            var best = new MenuMetrics
-            {
-                HeaderTop = headerTop > 0f ? headerTop : Mathf.Lerp(112f, 250f, tall),
-                HeaderHeight = Mathf.Lerp(42f, 58f, tall),
-                FooterHeight = Mathf.Lerp(200f, 281f, tall),
-                Columns = MenuColumns,
-                ButtonSize = 0f
-            };
-
-            // Lưới màn giờ NẰM TRONG VÙNG CUỘN, nên cỡ nút không còn phải ép cho vừa
-            // chiều cao — với 70 màn thì ép kiểu cũ ra nút 40px mà vẫn tràn. Cỡ nút chỉ
-            // lấy theo chiều RỘNG, phần cao bao nhiêu thì cuộn bấy nhiêu.
-            //
-            // Số cột vẫn tăng trên màn hẹp-cao để một màn hình thấy được nhiều màn hơn,
-            // nhưng không được nhỏ hơn ngưỡng bấm được.
-            for (int columns = MenuColumns; columns <= 8; columns++)
-            {
-                int rows = 0;
-                foreach (int count in worldSizes) rows += (count + columns - 1) / columns;
-                if (rows == 0) continue;
-
-                float size = (width - MenuSideMargin * 2f - MenuGap * (columns - 1)) / columns;
-                if (size < 88f && columns > MenuColumns) continue;   // nhỏ quá thì thôi
-
-                if (best.ButtonSize > 0f && size <= best.ButtonSize) continue;
-                best.ButtonSize = size;
-                best.Columns = columns;
-                best.TotalRows = rows;
-            }
-            if (best.ButtonSize <= 0f)
-            {
-                best.Columns = MenuColumns;
-                best.ButtonSize = Mathf.Max(40f,
-                    (width - MenuSideMargin * 2f - MenuGap * (MenuColumns - 1)) / MenuColumns);
-                best.TotalRows = 0;
-                foreach (int count in worldSizes) best.TotalRows += (count + MenuColumns - 1) / MenuColumns;
-            }
-
-            // Chiều cao NỘI DUNG cuộn — đo từ đầu lưới, không tính khối tiêu đề.
-            best.ContentHeight = worldSizes.Length * best.HeaderHeight
-                               + (worldSizes.Length - 1) * MenuWorldSpacing
-                               + best.TotalRows * (best.ButtonSize + MenuGap);
-
-            best.GridBottom = best.HeaderTop + best.ContentHeight;
-            return best;
+            PuzzleProgress.FreePlay = !PuzzleProgress.FreePlay;
+            RefreshMenu();
+            Toast(PuzzleProgress.FreePlay
+                ? "Chơi tự do: vào thẳng màn nào cũng được. Sao và điểm vẫn được ghi."
+                : "Đã tắt chơi tự do — mở màn theo tiến trình như cũ.");
         }
 
-        /// <summary>Số màn của từng thế giới, theo thứ tự xuất hiện.</summary>
-        public static int[] WorldSizes()
+        void MenuScreen.IHost.ResetProgress()
         {
-            var sizes = new List<int>();
-            int lastWorld = -1;
-            foreach (LevelConfig cfg in LevelCatalog.Levels)
+            PuzzleProgress.ResetAll(LevelCatalog.Levels.Length);
+            RefreshMenu();
+        }
+
+        private void OnLevelPicked(int index)
+        {
+            if (!PuzzleProgress.IsUnlocked(index))
             {
-                if (cfg.World != lastWorld) { sizes.Add(0); lastWorld = cfg.World; }
-                sizes[sizes.Count - 1]++;
-            }
-            return sizes.ToArray();
-        }
-
-        private sealed class WorldHeader
-        {
-            public int World;
-            public Text Label;
-        }
-
-        private readonly List<WorldHeader> worldHeaders = new List<WorldHeader>();
-
-        [SerializeField] private RectTransform levelViewport, levelContent;
-        [SerializeField] private ScrollRect levelScroll;
-
-        /// <summary>
-        /// Vùng cuộn cho danh sách màn.
-        ///
-        /// Bắt buộc phải có từ khi bảng màn lên 70: trên màn 4:3 lưới cao 1509 mà chỗ
-        /// trống chỉ tới 1255 — không cỡ nút nào cứu được, vì ép nhỏ nữa thì nút tụt
-        /// dưới ngưỡng bấm được mà vẫn tràn.
-        ///
-        /// Dùng RectMask2D chứ không Mask: Mask cần thêm một Image làm khuôn và tốn một
-        /// lượt stencil, còn ở đây chỉ cần cắt theo hình chữ nhật.
-        /// </summary>
-        private void BuildLevelScroll()
-        {
-            this.levelViewport = Ui.Node("LevelViewport", this.menuScreen);
-            this.levelViewport.gameObject.AddComponent<RectMask2D>();
-
-            this.levelContent = Ui.Node("LevelContent", this.levelViewport);
-            this.levelContent.anchorMin = new Vector2(0, 1);
-            this.levelContent.anchorMax = new Vector2(1, 1);
-            this.levelContent.pivot = new Vector2(0.5f, 1);
-
-            this.levelScroll = this.levelViewport.gameObject.AddComponent<ScrollRect>();
-            this.levelScroll.content = this.levelContent;
-            this.levelScroll.viewport = this.levelViewport;
-            this.levelScroll.horizontal = false;
-            this.levelScroll.vertical = true;
-            this.levelScroll.movementType = ScrollRect.MovementType.Elastic;
-            this.levelScroll.elasticity = 0.08f;
-            this.levelScroll.inertia = true;
-            this.levelScroll.decelerationRate = 0.12f;
-            this.levelScroll.scrollSensitivity = 34f;
-        }
-
-        /// <summary>Prefab nút chọn màn, nạp một lần rồi instantiate 90 bản.</summary>
-        [SerializeField] private GameObject levelButtonPrefab;
-
-        private void BuildLevelGrid()
-        {
-            // Nạp MỘT lần. Resources.Load trong vòng lặp 90 vòng là 90 lần tra bảng asset,
-            // và nếu thiếu thì báo lỗi 90 lần thay vì một lần.
-            this.levelButtonPrefab = Resources.Load<GameObject>(LevelButtonResourcePath);
-            if (this.levelButtonPrefab == null)
-            {
-                Debug.LogError("[UI] Thiếu prefab " + LevelButtonResourcePath +
-                               ". Chạy menu Connect Puzzle > Dựng lại prefab nút chọn màn.");
+                this.audioPlayer.Tone(180f, 0.2f);
+                Toast("Màn " + (index + 1) + " chưa mở. Qua màn trước để mở, hoặc bật Chơi tự do ở cuối menu.");
                 return;
             }
-
-            int lastWorld = -1;
-
-            // Gọi lại được: danh sách phải sạch trước, không thì mỗi lần gọi lại nhân đôi
-            // số mục và RefreshMenu ghi hai lần lên cùng một nút.
-            this.worldHeaders.Clear();
-            this.levelButtons.Clear();
-
-            for (int i = 0; i < LevelCatalog.Levels.Length; i++)
-            {
-                LevelConfig cfg = LevelCatalog.Levels[i];
-
-                if (cfg.World != lastWorld)
-                {
-                    lastWorld = cfg.World;
-                    RectTransform reusedHeader = Ui.Reuse("World" + cfg.World, this.levelContent);
-                    Text header = reusedHeader != null
-                        ? reusedHeader.GetComponent<Text>()
-                        : Ui.Text("World" + cfg.World, this.levelContent,
-                            LevelCatalog.WorldName(cfg.World).ToUpperInvariant(), 27, PuzzlePalette.Dim,
-                            TextAnchor.MiddleLeft, FontStyle.Bold);
-                    this.worldHeaders.Add(new WorldHeader { World = cfg.World, Label = header });
-                }
-
-                int captured = i;
-
-                // Dùng lại nút có sẵn nếu UI đến từ prefab, không thì instantiate.
-                // Tên "Level{N}" là hợp đồng: bài kiểm và deep-link tìm nút theo tên đó,
-                // nên nó cũng chính là khoá để nhận lại.
-                RectTransform reused = Ui.Reuse("Level" + (i + 1), this.levelContent);
-                GameObject instance = reused != null
-                    ? reused.gameObject
-                    : Instantiate(this.levelButtonPrefab, this.levelContent, false);
-                instance.name = "Level" + (i + 1);
-
-                var view = instance.GetComponent<LevelButtonView>();
-                if (view == null)
-                {
-                    Debug.LogError("[UI] Prefab nút chọn màn thiếu LevelButtonView.");
-                    continue;
-                }
-                if (i == 0)
-                {
-                    System.Collections.Generic.List<string> missing = view.MissingFields();
-                    if (missing.Count > 0)
-                        Debug.LogError("[UI] Prefab nút chọn màn chưa gán: " +
-                                       string.Join(", ", missing));
-                }
-
-                Button button = view.Button;
-                button.onClick.RemoveAllListeners();
-                button.onClick.AddListener(() => OnLevelPicked(captured));
-
-                Text label = view.Label;
-                Text stars = view.Stars;
-                view.SetGravity(cfg.Gravity);
-                Text badge = cfg.Gravity ? view.GravityBadge.GetComponent<Text>() : null;
-
-                this.levelButtons.Add(new LevelButton
-                {
-                    Index = i, Button = button, Label = label, Stars = stars, Badge = badge
-                });
-            }
+            OpenLevel(index);
         }
 
-        /// <summary>
-        /// Đặt lại vị trí toàn bộ menu theo kích thước hiện có. Gọi khi mở menu và khi
-        /// khung đổi (quay máy, đổi lề an toàn).
-        /// </summary>
-        private void LayoutMenu()
+        private void ToggleSound()
         {
-            // Trước lượt layout đầu tiên của Canvas, rect còn bằng 0. Dùng độ phân giải
-            // tham chiếu thay vì bỏ qua — bỏ qua thì nút giữ nguyên cỡ 0x0 và biến mất.
-            Vector2 real = this.menuScreen.rect.size;
-            bool canMeasure = real.x >= 1f && real.y >= 1f;
-            Vector2 size = canMeasure ? real : new Vector2(1080f, 1920f);
-
-            Text title = this.menuScreen.Find("Title").GetComponent<Text>();
-            Text subtitle = this.menuScreen.Find("Subtitle").GetComponent<Text>();
-
-            // --- Lượt 1: chốt cỡ chữ và chiều rộng, rồi ĐO chiều cao thật.
-            // Trước đây khối tiêu đề lấy theo tỉ lệ chiều cao khung, nên khi phụ đề tự
-            // xuống 2 dòng nó lấn xuống nhãn thế giới — đúng lỗi thấy trên ảnh chụp.
-            MenuMetrics guess = ComputeMenuMetrics(size.x, size.y, WorldSizes());
-            const float titleTop = 44f;
-            const float titleGap = 23f;
-            const float headerBottomPad = 22f;
-            const float titleMargin = 40f;
-            const float subtitleMargin = 60f;
-
-            title.fontSize = Mathf.RoundToInt(Mathf.Clamp(guess.HeaderTop * 0.34f, 40f, 78f));
-            subtitle.fontSize = Mathf.RoundToInt(Mathf.Clamp(guess.HeaderTop * 0.15f, 20f, 34f));
-            Ui.TopBand(title.rectTransform, titleTop, guess.HeaderTop * 0.42f, titleMargin);
-            Ui.TopBand(subtitle.rectTransform, titleTop + 10f, guess.HeaderTop * 0.32f, subtitleMargin);
-
-            // Chỉ ĐO khi rect đã có kích thước thật. Rect rộng 0 thì mỗi chữ tự xuống một
-            // dòng, preferredHeight ra số vô nghĩa và khối tiêu đề đẩy hết lưới ra ngoài.
-            float titleHeight = canMeasure ? Ui.MeasureTextHeight(title) : guess.HeaderTop * 0.42f;
-            float subtitleHeight = canMeasure ? Ui.MeasureTextHeight(subtitle) : guess.HeaderTop * 0.32f;
-
-            // --- Lượt 2: bố cục lại với chiều cao ĐÃ ĐO.
-            // Nút Vô tận chen giữa khối tiêu đề và lưới màn nên nó phải được cộng vào
-            // headerTop TRƯỚC khi tính bố cục, chứ không phải đặt xen vào sau — đặt sau
-            // thì lưới vẫn nghĩ mình bắt đầu ở chỗ cũ và nút đè lên nhãn thế giới.
-            // Hai nút chế độ xếp CHỒNG chứ không cạnh nhau: nhãn của chúng là câu có số
-            // ("kỷ lục 12345", "chuỗi 7 ngày"), nửa bề ngang không đủ chỗ và chữ sẽ bị cắt
-            // đúng ở phần mang thông tin.
-            const float endlessHeight = 92f;
-            const float endlessGap = 18f;
-            const float dailyHeight = 92f;
-            const float dailyGap = 14f;
-            const float duelHeight = 78f;
-            const float duelGap = 12f;
-            float modeBlock = duelHeight + duelGap + dailyHeight + dailyGap + endlessHeight + endlessGap;
-            float titleBlock = titleTop + titleHeight + titleGap + subtitleHeight + headerBottomPad;
-
-            float headerTop = canMeasure
-                ? titleBlock + modeBlock
-                : -1f;                                   // âm = để ComputeMenuMetrics tự ước lượng
-            MenuMetrics m = ComputeMenuMetrics(size.x, size.y, WorldSizes(), headerTop);
-
-            Ui.TopBand(title.rectTransform, titleTop, titleHeight, titleMargin);
-            Ui.TopBand(subtitle.rectTransform, titleTop + titleHeight + titleGap, subtitleHeight,
-                       subtitleMargin);
-
-            if (this.menuWalletText != null)
-            {
-                // Neo vào ĐÚNG dải tiêu đề, lề phải hẹp hơn lề của tiêu đề để không đè
-                // lên chữ khi tên game dài ra.
-                Ui.TopBand(this.menuWalletText.rectTransform, titleTop + 8f,
-                           Mathf.Max(34f, titleHeight * 0.45f), 34f);
-            }
-
-            float endlessTop = Mathf.Max(titleBlock + dailyHeight + dailyGap,
-                                         m.HeaderTop - endlessHeight - endlessGap);
-            float dailyTop = Mathf.Max(titleBlock + duelHeight + duelGap,
-                                       endlessTop - dailyGap - dailyHeight);
-            float duelTop = Mathf.Max(titleBlock, dailyTop - duelGap - duelHeight);
-
-            if (this.menuDuelButton != null)
-            {
-                Ui.TopBand(this.menuDuelButton.GetComponent<RectTransform>(),
-                           duelTop, duelHeight, 60f);
-                Ui.SetButtonRadius(this.menuDuelButton,
-                    Ui.SafeRadius(size.x - 120f, duelHeight, PuzzlePalette.RadiusPanel));
-                Ui.LabelOf(this.menuDuelButton).fontSize =
-                    Mathf.RoundToInt(Mathf.Clamp(duelHeight * 0.36f, 22f, 32f));
-            }
-
-            if (this.menuDailyButton != null)
-            {
-                Ui.TopBand(this.menuDailyButton.GetComponent<RectTransform>(),
-                           dailyTop, dailyHeight, 60f);
-                Ui.SetButtonRadius(this.menuDailyButton,
-                    Ui.SafeRadius(size.x - 120f, dailyHeight, PuzzlePalette.RadiusPanel));
-                Ui.LabelOf(this.menuDailyButton).fontSize =
-                    Mathf.RoundToInt(Mathf.Clamp(dailyHeight * 0.35f, 22f, 34f));
-            }
-
-            if (this.menuEndlessButton != null)
-            {
-                // đặt ngay trên lưới, đo ngược từ mốc lưới lên cho khớp mọi tỉ lệ màn hình
-                Ui.TopBand(this.menuEndlessButton.GetComponent<RectTransform>(),
-                           endlessTop, endlessHeight, 60f);
-                Ui.SetButtonRadius(this.menuEndlessButton,
-                    Ui.SafeRadius(size.x - 120f, endlessHeight, PuzzlePalette.RadiusPanel));
-                Ui.LabelOf(this.menuEndlessButton).fontSize =
-                    Mathf.RoundToInt(Mathf.Clamp(endlessHeight * 0.35f, 22f, 34f));
-            }
-
-            int columns = m.Columns;
-            float buttonSize = m.ButtonSize;
-            float gridWidth = columns * buttonSize + (columns - 1) * MenuGap;
-            float left = (size.x - gridWidth) * 0.5f;      // căn giữa, không dính lề trái
-
-            // Bán kính bo phải giảm theo cỡ nút, không thì nút nhỏ hơn 2 lần bán kính
-            // sẽ có hai border 9-slice chồng nhau và góc bo hiện ra khuyết.
-            int radius = Ui.SafeRadius(buttonSize, buttonSize, PuzzlePalette.RadiusSmall);
-
-            // Vùng cuộn chiếm đúng khoảng giữa khối tiêu đề và footer.
-            float viewportTop = m.HeaderTop;
-            float viewportHeight = Mathf.Max(160f, size.y - viewportTop - m.FooterHeight);
-            Ui.TopBand(this.levelViewport, viewportTop, viewportHeight, 0f);
-            this.levelContent.sizeDelta = new Vector2(0, m.ContentHeight);
-            this.levelContent.anchoredPosition = new Vector2(
-                0, Mathf.Clamp(this.levelContent.anchoredPosition.y, 0f,
-                               Mathf.Max(0f, m.ContentHeight - viewportHeight)));
-
-            // Bên trong vùng cuộn, y đo từ ĐẦU nội dung chứ không từ đỉnh màn hình.
-            float y = 0f;
-            int lastWorld = -1;
-            int headerIndex = -1;
-
-            for (int i = 0; i < LevelCatalog.Levels.Length; i++)
-            {
-                LevelConfig cfg = LevelCatalog.Levels[i];
-
-                if (cfg.World != lastWorld)
-                {
-                    if (lastWorld != -1) y += MenuWorldSpacing;
-                    lastWorld = cfg.World;
-                    headerIndex++;
-                    Text header = this.worldHeaders[headerIndex].Label;
-                    Ui.TopBand(header.rectTransform, y, m.HeaderHeight, left);
-                    header.fontSize = Mathf.RoundToInt(Mathf.Clamp(m.HeaderHeight * 0.47f, 18f, 27f));
-                    y += m.HeaderHeight;
-                }
-
-                int indexInWorld = CountBefore(i, cfg.World);
-                int row = indexInWorld / columns;
-                int column = indexInWorld % columns;
-
-                LevelButton entry = this.levelButtons[i];
-                RectTransform rect = entry.Button.GetComponent<RectTransform>();
-                rect.sizeDelta = new Vector2(buttonSize, buttonSize);
-                rect.anchoredPosition = new Vector2(
-                    left + column * (buttonSize + MenuGap),
-                    -(y + row * (buttonSize + MenuGap)));
-                Ui.SetButtonRadius(entry.Button, radius);
-
-                entry.Label.fontSize = Mathf.RoundToInt(Mathf.Max(14f, buttonSize * 0.24f));
-                Ui.Stretch(entry.Label.rectTransform, 0, 0, buttonSize * 0.07f, buttonSize * 0.3f);
-                entry.Stars.fontSize = Mathf.RoundToInt(Mathf.Max(9f, buttonSize * 0.12f));
-                entry.Stars.rectTransform.offsetMin = new Vector2(0, buttonSize * 0.08f);
-                entry.Stars.rectTransform.offsetMax = new Vector2(0, buttonSize * 0.24f);
-                if (entry.Badge != null)
-                    entry.Badge.fontSize = Mathf.RoundToInt(Mathf.Max(10f, buttonSize * 0.13f));
-
-                if (i + 1 >= LevelCatalog.Levels.Length || LevelCatalog.Levels[i + 1].World != cfg.World)
-                    y += (row + 1) * (buttonSize + MenuGap);
-            }
-
-            LayoutMenuFooter(size, m);
+            PuzzleProgress.Sound = !PuzzleProgress.Sound;
+            this.audioPlayer.Enabled = PuzzleProgress.Sound;
+            UpdateToggleLabels();
         }
 
-        /// <summary>Footer co theo chiều cao khung, và bán kính bo giảm theo cỡ nút.</summary>
-        private void LayoutMenuFooter(Vector2 size, MenuMetrics m)
+        private void ToggleSymbols()
         {
-            // Footer giờ có BA hàng: hai nút gạt, nút chơi tự do, rồi link xoá tiến độ.
-            float toggleHeight = Mathf.Clamp(m.FooterHeight * 0.28f, 58f, 84f);
-            float linkHeight = Mathf.Clamp(m.FooterHeight * 0.22f, 46f, 64f);
-            float toggleWidth = Mathf.Min(320f, (size.x - 60f) * 0.5f - 8f);
-            float wideWidth = Mathf.Min(654f, size.x - 60f);
-
-            float rowTop = m.FooterHeight - toggleHeight - 18f;
-            float rowFree = Mathf.Max(linkHeight + 24f, rowTop - toggleHeight - 12f);
-            float rowLink = 18f;
-
-            PlaceBottomRow(this.menuSoundButton.GetComponent<RectTransform>(),
-                rowTop, 0, 2, toggleWidth, toggleHeight);
-            PlaceBottomRow(this.menuSymbolButton.GetComponent<RectTransform>(),
-                rowTop, 1, 2, toggleWidth, toggleHeight);
-            PlaceBottomRow(this.menuFreeButton.GetComponent<RectTransform>(),
-                rowFree, 0, 1, wideWidth, toggleHeight);
-            PlaceBottomRow(this.menuResetButton.GetComponent<RectTransform>(),
-                rowLink, 0, 1, toggleWidth, linkHeight);
-
-            Ui.SetButtonRadius(this.menuFreeButton,
-                Ui.SafeRadius(wideWidth, toggleHeight, PuzzlePalette.RadiusPanel));
-            Ui.LabelOf(this.menuFreeButton).fontSize =
-                Mathf.RoundToInt(Mathf.Clamp(toggleHeight * 0.34f, 20f, 30f));
-
-            int toggleRadius = Ui.SafeRadius(toggleWidth, toggleHeight, PuzzlePalette.RadiusPanel);
-            Ui.SetButtonRadius(this.menuSoundButton, toggleRadius);
-            Ui.SetButtonRadius(this.menuSymbolButton, toggleRadius);
-            Ui.SetButtonRadius(this.menuResetButton,
-                Ui.SafeRadius(toggleWidth, linkHeight, PuzzlePalette.RadiusChip));
-
-            int fontSize = Mathf.RoundToInt(Mathf.Clamp(toggleHeight * 0.34f, 20f, 30f));
-            Ui.LabelOf(this.menuSoundButton).fontSize = fontSize;
-            Ui.LabelOf(this.menuSymbolButton).fontSize = fontSize;
-            Ui.LabelOf(this.menuResetButton).fontSize = Mathf.RoundToInt(Mathf.Clamp(linkHeight * 0.36f, 18f, 26f));
-        }
-
-        private sealed class LevelButton
-        {
-            public int Index;
-            public Button Button;
-            public Text Label;
-            public Text Stars;
-            public Text Badge;
-        }
-
-        private readonly List<LevelButton> levelButtons = new List<LevelButton>();
-        [SerializeField] private Button menuSoundButton, menuSymbolButton, menuResetButton, menuFreeButton, menuEndlessButton;
-        [SerializeField] private Button menuDailyButton;
-
-        /// <summary>
-        /// Nút mở bảng đấu. Ở lại đây vì LayoutMenu xếp nó cùng hai nút chế độ kia;
-        /// hành vi của nó thì DuelPanel giữ. Sẽ theo MenuScreen ở bước sau.
-        /// </summary>
-        [SerializeField] private Button menuDuelButton;
-        [SerializeField] private Text menuWalletText;
-
-        /// <summary>Khoá ngày của ván thử thách đang chơi; 0 nếu không phải thử thách.</summary>
-        private int dailyKey;
-
-        private static int CountBefore(int index, int world)
-        {
-            int n = 0;
-            for (int i = 0; i < index; i++) if (LevelCatalog.Levels[i].World == world) n++;
-            return n;
-        }
-
-        private void BuildMenuFooter()
-        {
-            // Cao 88 chứ không 78: bán kính 38 cần phần tử cao >= 76, sát quá thì làm
-            // tròn số dưới pixel là góc bo bị khuyết.
-            // Footer neo vào ĐÁY, không chạy theo lưới màn. Neo theo lưới thì trên máy
-            // cao nó dính lên giữa và chừa một dải trống lớn phía dưới.
-            this.menuSoundButton = Ui.Button("MenuSound", this.menuScreen, "", 30,
-                PuzzlePalette.Panel, PuzzlePalette.Dim);
-            PlaceBottomRow(this.menuSoundButton.GetComponent<RectTransform>(), 128, 0, 2, 320, 88);
-
-            this.menuSymbolButton = Ui.Button("MenuSymbols", this.menuScreen, "", 30,
-                PuzzlePalette.Panel, PuzzlePalette.Dim);
-            PlaceBottomRow(this.menuSymbolButton.GetComponent<RectTransform>(), 128, 1, 2, 320, 88);
-
-            this.menuFreeButton = Ui.Button("MenuFree", this.menuScreen, "", 28,
-                PuzzlePalette.Panel, PuzzlePalette.Dim);
-            PlaceBottomRow(this.menuFreeButton.GetComponent<RectTransform>(), 226, 0, 1, 654, 84);
-
-            // nút dạng link: nền trong suốt, không viền, bo nhỏ vì nó thấp
-            this.menuResetButton = Ui.Button("MenuReset", this.menuScreen, "Xoá tiến độ", 26,
-                new Color(0, 0, 0, 0), PuzzlePalette.Dim, 24, false, false);
-            PlaceBottomRow(this.menuResetButton.GetComponent<RectTransform>(), 40, 0, 1, 320, 72);
-        }
-
-        private static void PlaceRow(RectTransform rect, float top, int slot, int slotCount, float width, float height)
-        {
-            rect.anchorMin = new Vector2(0.5f, 1);
-            rect.anchorMax = new Vector2(0.5f, 1);
-            rect.pivot = new Vector2(0.5f, 1);
-            rect.sizeDelta = new Vector2(width, height);
-            rect.anchoredPosition = new Vector2(RowOffsetX(slot, slotCount, width), -top);
-        }
-
-        /// <summary>Như PlaceRow nhưng đo từ ĐÁY lên.</summary>
-        private static void PlaceBottomRow(RectTransform rect, float bottom, int slot, int slotCount,
-                                           float width, float height)
-        {
-            rect.anchorMin = new Vector2(0.5f, 0);
-            rect.anchorMax = new Vector2(0.5f, 0);
-            rect.pivot = new Vector2(0.5f, 0);
-            rect.sizeDelta = new Vector2(width, height);
-            rect.anchoredPosition = new Vector2(RowOffsetX(slot, slotCount, width), bottom);
-        }
-
-        private static float RowOffsetX(int slot, int slotCount, float width)
-        {
-            float totalWidth = slotCount * width + (slotCount - 1) * 16f;
-            return -totalWidth * 0.5f + width * 0.5f + slot * (width + 16f);
+            PuzzleProgress.Symbols = !PuzzleProgress.Symbols;
+            UpdateToggleLabels();
+            if (this.session != null && this.gameScreen.gameObject.activeSelf)
+                this.board.Refresh(this.session, PuzzleProgress.Symbols);
         }
 
         // ------------------------------------------------------------------
@@ -1114,52 +659,11 @@ namespace ConnectPuzzle.View
             RefreshMenu();
         }
 
-        private void RefreshMenu()
-        {
-            LayoutMenu();
-            foreach (LevelButton entry in this.levelButtons)
-            {
-                bool unlocked = PuzzleProgress.IsUnlocked(entry.Index);
-                int stars = PuzzleProgress.Stars(entry.Index);
-
-                // KHÔNG dùng interactable = false: nút tắt thì bấm vào không có gì xảy
-                // ra cả, không phân biệt được với game hỏng. Để nút sống và cho nó nói.
-                entry.Button.interactable = true;
-
-                // Không dùng 🔒: font mặc định của Unity không có glyph emoji nên nút
-                // khoá hiện ra TRỐNG TRƠN. Số màn mờ đi vừa đọc được vừa không phụ
-                // thuộc font.
-                entry.Label.text = (entry.Index + 1).ToString();
-                entry.Label.color = unlocked ? PuzzlePalette.Foreground : new Color(0.35f, 0.38f, 0.55f, 0.55f);
-
-                // Sao đầy và sao rỗng phải KHÁC MÀU. Trước đây cả hai tô cùng màu vàng
-                // nên màn 0 sao trông y như màn 3 sao — không đọc được tiến độ.
-                if (!unlocked) entry.Stars.text = "";
-                else entry.Stars.text =
-                    "<color=#FBBF24>" + new string('★', stars) + "</color>" +
-                    "<color=#3B4270>" + new string('★', 3 - stars) + "</color>";
-
-                Image bg = entry.Button.GetComponent<Image>();
-                bg.color = stars > 0 ? PuzzlePalette.PanelLight : PuzzlePalette.Panel;
-            }
-            UpdateToggleLabels();
-        }
 
         /// <summary>
         /// Nút màn chưa mở PHẢI phản hồi. Trước đây nó chỉ bị `interactable = false` nên
         /// bấm vào là im lặng hoàn toàn — không phân biệt được với "game hỏng".
         /// </summary>
-        private void OnLevelPicked(int index)
-        {
-            if (!PuzzleProgress.IsUnlocked(index))
-            {
-                this.audioPlayer.Tone(180f, 0.2f);
-                Toast("Màn " + (index + 1) + " chưa mở. Qua màn trước để mở, hoặc bật Chơi tự do ở cuối menu.");
-                return;
-            }
-            OpenLevel(index);
-        }
-
         /// <summary>
         /// Câu giới thiệu cho cơ chế LẦN ĐẦU gặp, tìm TỰ ĐỘNG theo bảng màn.
         /// Ghi số màn cứng thì mỗi lần thêm/bớt màn là các mốc lệch hết mà không ai báo —
@@ -1334,16 +838,7 @@ namespace ConnectPuzzle.View
         {
             // Menu cũng phải bố cục lại khi khung đổi (quay máy, lề an toàn thay đổi),
             // không thì lưới màn đè lên footer trên tỉ lệ màn hình khác.
-            if (this.menuScreen.gameObject.activeSelf)
-            {
-                Vector2 menuSize = this.menuScreen.rect.size;
-                if ((menuSize - this.lastMenuArea).sqrMagnitude > 1f)
-                {
-                    this.lastMenuArea = menuSize;
-                    LayoutMenu();
-                }
-                return;
-            }
+            if (this.menuScreen.gameObject.activeSelf) { this.menu.Tick(); return; }
 
             if (!this.gameScreen.gameObject.activeSelf) return;
             ApplyLayout(force: false);
@@ -1351,7 +846,6 @@ namespace ConnectPuzzle.View
             if (Lan != null) Lan.Tick();
         }
 
-        private Vector2 lastMenuArea;
 
         /// <summary>
         /// Đáy vùng bàn. Bảng vật phẩm là lớp NỔI nên nó không ăn chỗ của bàn.
@@ -1848,54 +1342,6 @@ namespace ConnectPuzzle.View
             if (this.toast != null) this.toast.Show(message);
         }
 
-        private void UpdateToggleLabels()
-        {
-            // KHÔNG dùng emoji: font mặc định của Unity chỉ có BMP nên 🔊 hiện ra ô
-            // trống. Nút nhỏ trong game dùng ♪ và đổi MÀU để phân biệt bật/tắt; nút ở
-            // menu dùng chữ, rõ hơn icon.
-            bool on = PuzzleProgress.Sound;
-            this.controls.SetSoundOn(on);
-
-            Ui.LabelOf(this.menuSoundButton).text = "Âm thanh: " + (on ? "Bật" : "Tắt");
-            Ui.LabelOf(this.menuSymbolButton).text = (PuzzleProgress.Symbols ? "◆" : "○") + " Ký hiệu";
-
-            if (this.menuFreeButton != null)
-            {
-                bool free = PuzzleProgress.FreePlay;
-                Ui.LabelOf(this.menuFreeButton).text = "Chơi tự do: " + (free ? "Bật" : "Tắt");
-                this.menuFreeButton.GetComponent<Image>().color =
-                    free ? PuzzlePalette.PanelLight : PuzzlePalette.Panel;
-            }
-            if (this.menuEndlessButton != null)
-                Ui.LabelOf(this.menuEndlessButton).text = "∞  Vô tận — kỷ lục " + PuzzleProgress.EndlessBest;
-
-            RefreshWallet();
-
-            if (this.menuDailyButton != null)
-            {
-                int today = DailyChallenge.TodayKey();
-                int streak = PuzzleProgress.DailyStreakLive(today);
-                string tail = PuzzleProgress.DailyWon(today)
-                    ? "đã xong ✓" + (streak > 0 ? "  chuỗi " + streak : "")
-                    : streak > 0 ? "chuỗi " + streak + " ngày" : "bàn mới mỗi ngày";
-                Ui.LabelOf(this.menuDailyButton).text = "✦  Thử thách hôm nay — " + tail;
-            }
-        }
-
-        private void ToggleSound()
-        {
-            PuzzleProgress.Sound = !PuzzleProgress.Sound;
-            this.audioPlayer.Enabled = PuzzleProgress.Sound;
-            UpdateToggleLabels();
-        }
-
-        private void ToggleSymbols()
-        {
-            PuzzleProgress.Symbols = !PuzzleProgress.Symbols;
-            UpdateToggleLabels();
-            if (this.session != null && this.gameScreen.gameObject.activeSelf)
-                this.board.Refresh(this.session, PuzzleProgress.Symbols);
-        }
 
         // ==================================================================
         // Hoàn tác / gợi ý / xáo lại
@@ -2272,7 +1718,7 @@ namespace ConnectPuzzle.View
             string text = "<color=#FBBF24>★ " + balance + "</color>";
             if (medals > 0) text += "  <color=#34D399>◆ " + medals + "</color>";
 
-            if (this.menuWalletText != null) this.menuWalletText.text = text;
+            if (this.menu != null) this.menu.ShowWallet(text);
             if (this.items != null) this.items.ShowWallet(text, balance);
         }
 
@@ -2364,7 +1810,7 @@ namespace ConnectPuzzle.View
             if (missing.Count > 0)
                 Debug.LogError("[UI] Prefab bảng đấu chưa gán: " + string.Join(", ", missing));
 
-            this.duel.BindOutsideForAuthoring(this.menuDuelButton, duelCatcher, lanPanel);
+            this.duel.BindOutsideForAuthoring(this.menu.DuelButton, duelCatcher, lanPanel);
             instance.SetActive(false);
         }
 
@@ -2513,8 +1959,7 @@ namespace ConnectPuzzle.View
             if (this.boardArea == null) missing.Add(nameof(this.boardArea));
             if (this.card == null) missing.Add(nameof(this.card));
             if (this.diagBanner == null) missing.Add(nameof(this.diagBanner));
-            if (this.levelViewport == null) missing.Add(nameof(this.levelViewport));
-            if (this.levelContent == null) missing.Add(nameof(this.levelContent));
+            if (this.menu == null) missing.Add(nameof(this.menu));
             if (this.toast == null) missing.Add(nameof(this.toast));
             if (this.hud == null) missing.Add(nameof(this.hud));
             if (this.controls == null) missing.Add(nameof(this.controls));
