@@ -509,8 +509,23 @@ namespace ConnectPuzzle.View
         // Bố cục theo kích thước màn hình
         // ==================================================================
 
-        private void Update()
+        private void Update() => TickFrame();
+
+        /// <summary>
+        /// Một nhịp khung hình. Tách khỏi Update để bài kiểm gọi được.
+        ///
+        /// Update KHÔNG chạy ở edit mode, nên khi nó còn là thân của Update thì THỨ TỰ
+        /// các việc trong đây là thứ không kiểm được — mà thứ tự chính là chỗ đã sai:
+        /// nhánh menu return sớm, và phiên Wi-Fi đặt sau nó nên không bao giờ chạy khi
+        /// người chơi đứng ở menu chờ tìm phòng.
+        /// </summary>
+        public void TickFrame()
         {
+            // Phiên Wi-Fi nhắc lại TRƯỚC mọi nhánh màn hình. Khách bấm "Tìm phòng" rồi
+            // ĐỨNG YÊN Ở MENU chờ, nên đặt sau nhánh menu là gói TÌM không bao giờ được
+            // phát lại — đúng lỗi "cùng Wi-Fi mà không thấy nhau".
+            if (Lan != null) Lan.Tick();
+
             // Menu cũng phải bố cục lại khi khung đổi (quay máy, lề an toàn thay đổi),
             // không thì lưới màn đè lên footer trên tỉ lệ màn hình khác.
             if (this.menuScreen.gameObject.activeSelf) { this.menu.Tick(); return; }
@@ -518,7 +533,6 @@ namespace ConnectPuzzle.View
             if (!this.gameScreen.gameObject.activeSelf) return;
             ApplyLayout(force: false);
             this.board.TickChain(Time.deltaTime);   // nét đứt chạy, như stroke-dashoffset
-            if (Lan != null) Lan.Tick();
         }
 
 
@@ -1366,6 +1380,12 @@ namespace ConnectPuzzle.View
         public void DebugOpenLanPanel() { if (Lan != null) Lan.OpenPanel(); }
         public void DebugStartLanHost() { if (Lan != null) Lan.TestStartHost(); }
         public bool DebugLanActive => Lan != null && Lan.Active;
+
+        /// <summary>Số nhịp phiên Wi-Fi đã nhận. Bài kiểm dùng để canh THỨ TỰ trong TickFrame.</summary>
+        public int DebugLanTicks => Lan == null ? -1 : Lan.TickCount;
+
+        /// <summary>Vẽ lại dòng trạng thái Wi-Fi ngay. Bài kiểm dùng để đo chữ dài nhất.</summary>
+        public void DebugLanForceStatus() { if (Lan != null) Lan.TestRefreshStatus(); }
         public string DebugLanStatus => Lan == null ? "" : Lan.StatusText;
         public void DebugFeedLanInvite(int seed, int preset, string who)
         {

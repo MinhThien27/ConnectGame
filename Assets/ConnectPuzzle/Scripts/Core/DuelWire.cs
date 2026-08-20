@@ -10,6 +10,13 @@ namespace ConnectPuzzle.Core
     /// Chỉ có hai loại tin:
     ///   MỜI   — chủ phòng công bố bàn (seed/preset/phiên bản) để bên kia dựng ĐÚNG bàn đó
     ///   XONG  — một bên gửi thành tích của mình
+    ///   TÌM   — khách hỏi "có ai mở phòng không", chủ nghe thấy thì mời riêng nó
+    ///
+    /// Vì sao cần TÌM khi đã có MỜI phát đều đặn: broadcast có thể đi được MỘT CHIỀU.
+    /// Có router chặn broadcast từ máy A mà không chặn từ máy B, và có Android bỏ gói
+    /// broadcast đến trong khi vẫn gửi đi bình thường. Hai chiều thì chỉ cần một chiều
+    /// thông là bắt được cặp, và câu trả lời cho TÌM đi bằng UNICAST — thứ gần như không
+    /// bao giờ bị chặn.
     ///
     /// Mỗi gói có magic + phiên bản giao thức + CRC. Nghe hơi thừa cho một mạng LAN,
     /// nhưng lý do rất thật: cổng UDP broadcast là cổng CHUNG. Máy in, TV, app khác đều
@@ -26,7 +33,7 @@ namespace ConnectPuzzle.Core
         public const int MaxNameBytes = 16;
         public const int MaxPacket = 40;
 
-        public enum Kind : byte { Invite = 1, Finished = 2 }
+        public enum Kind : byte { Invite = 1, Finished = 2, Seek = 3 }
 
         public enum ParseResult { Ok, TooShort, BadMagic, BadProtocol, BadKind, BadCrc, BadName }
 
@@ -69,6 +76,21 @@ namespace ConnectPuzzle.Core
             body[n++] = (byte)((seed >> 8) & 0xFF);
             body[n++] = (byte)((seed >> 16) & 0xFF);
             body[n++] = (byte)(((preset & 0xF) << 4) | (DuelCode.Version & 0xF));
+            n = WriteName(body, n, name);
+            return Finish(body, n);
+        }
+
+        /// <summary>Gói TÌM: chỉ có tên và mã máy, không mang bàn nào.</summary>
+        public static byte[] EncodeSeek(string name, int senderId)
+        {
+            var body = new byte[6 + 1 + MaxNameBytes];
+            int n = 0;
+            body[n++] = Magic0;
+            body[n++] = Magic1;
+            body[n++] = ProtocolVersion;
+            body[n++] = (byte)Kind.Seek;
+            body[n++] = (byte)(senderId & 0xFF);
+            body[n++] = (byte)((senderId >> 8) & 0xFF);
             n = WriteName(body, n, name);
             return Finish(body, n);
         }
@@ -163,8 +185,9 @@ namespace ConnectPuzzle.Core
                 r.Won = data[n++] != 0;
                 packet.Result = r;
             }
-            else
+            else if (kind != Kind.Seek)
             {
+                // TÌM không mang thêm trường nào, nên không có gì để đọc ở đây.
                 return ParseResult.BadKind;
             }
 

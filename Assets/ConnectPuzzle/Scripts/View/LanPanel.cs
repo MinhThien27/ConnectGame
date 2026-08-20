@@ -58,6 +58,9 @@ namespace ConnectPuzzle.View
         public float ContentHeight => this.contentHeight;
         public float PanelHeight => this.panel == null ? 0f : this.panel.rect.height;
         public bool Active => this.active;
+
+        /// <summary>Số lần Tick được gọi. Bài kiểm đọc để biết TickFrame có tới đây không.</summary>
+        public int TickCount { get; private set; }
         public string StatusText => this.status == null ? "" : this.status.text;
         public DuelLanLink Link => this.link;
 
@@ -188,7 +191,53 @@ namespace ConnectPuzzle.View
         private void StartSeek()
         {
             if (!this.link.Start(DuelLanLink.Role.Guest)) return;
-            SetStatus("Đang tìm phòng trên mạng Wi-Fi này…");
+            this.link.Seek();
+            this.nextAnnounce = Time.unscaledTime + 1f;
+            SetStatus(SeekingStatus());
+        }
+
+        /// <summary>Số lượt phát không nghe thấy gì thì mới nói ra lời khuyên dải mạng.</summary>
+        private const int QuietRounds = 4;
+
+        /// <summary>
+        /// Dòng trạng thái lúc đang tìm: nói rõ ĐỊA CHỈ máy này và đã gửi được bao nhiêu.
+        ///
+        /// Có nó vì "hai máy không thấy nhau" là báo lỗi không đầu mối nào: không biết
+        /// socket có mở không, gói có đi ra không, hai máy có cùng dải mạng không. Trên
+        /// điện thoại thì không cắm được debugger, nên ba câu đó phải đọc được tại chỗ.
+        ///
+        /// So dải mạng là việc người chơi làm được bằng mắt, và nó là nguyên nhân thường
+        /// gặp nhất: 192.168.1.x với 192.168.2.x là hai mạng khác nhau, không phải lỗi
+        /// game. Nhưng CHỈ nói khi đã im lặng vài lượt — nói ngay từ đầu thì thành cằn
+        /// nhằn trong đúng một giây mà mọi thứ vẫn bình thường.
+        ///
+        /// Gói gọn trong ĐÚNG HAI DÒNG, kể cả câu dài nhất: dải trạng thái cao 64px với
+        /// cỡ chữ 23, tức vừa hai dòng và không hơn. Bản đầu tôi viết năm dòng rồi rút
+        /// xuống ba — cả hai lần đều compile sạch và đều tràn ra ngoài khung. Giờ có phép
+        /// kiểm đo preferredHeight thật, và nó đã bắt được bản ba dòng (cần 76, có 64).
+        /// </summary>
+        private string SeekingStatus()
+        {
+            if (this.link == null) return "Đang tìm phòng…";
+            if (!string.IsNullOrEmpty(this.link.LastError)) return this.link.LastError;
+
+            string mine = this.link.LocalAddresses.Count == 0
+                ? "chưa thấy mạng"
+                : this.link.LocalAddresses[0];
+
+            if (this.link.SentCount >= QuietRounds && this.link.Received.Count == 0)
+                return "Chưa thấy ai sau " + this.link.SentCount + " lượt gọi.\n" +
+                       "Máy này " + mine + " — máy kia phải cùng dải " + Prefix(mine) + "x";
+
+            return "Đang tìm phòng… máy này " + mine + "\nĐã gọi " +
+                   this.link.SentCount + " lượt";
+        }
+
+        /// <summary>"192.168.2.49" -> "192.168.2." — phần người chơi so bằng mắt được.</summary>
+        private static string Prefix(string address)
+        {
+            int last = address.LastIndexOf(".", System.StringComparison.Ordinal);
+            return last < 0 ? address : address.Substring(0, last + 1);
         }
 
         private void OnInvite(int inviteSeed, int invitePreset, string who)
@@ -267,14 +316,42 @@ namespace ConnectPuzzle.View
             this.duel.ShowVerdict(this.opponent, outcome, reason);
         }
 
-        /// <summary>Chủ phòng phát lại lời mời đều đặn, để người bấm "Tìm phòng" muộn vẫn thấy.</summary>
+        /// <summary>
+        /// Nhắc lại đều đặn ở CẢ HAI vai, mỗi giây một lần.
+        ///
+        /// Chủ phát lại lời mời để người bấm "Tìm phòng" muộn vẫn thấy. Khách phát lại gói
+        /// TÌM để chủ mời riêng nó — cần cho mạng chỉ thông một chiều broadcast.
+        ///
+        /// Trước đây chỉ chủ nhắc lại, nên khách hoàn toàn IM LẶNG: chiều chủ->khách bị
+        /// chặn là hết đường, không còn cách nào khác để bắt cặp.
+        /// </summary>
         public void Tick()
         {
-            if (this.link == null || this.link.CurrentRole != DuelLanLink.Role.Host) return;
+            // Đếm TRƯỚC mọi điều kiện. Đây là thứ duy nhất bài kiểm bám được để biết
+            // TickFrame có CHẠY TỚI ĐÂY hay không — mà "có chạy tới đây không" chính là
+            // lỗi đã xảy ra: nhánh menu return sớm và bỏ qua cả phiên Wi-Fi.
+            //
+            // Không kiểm được nhịp một giây trong rig: nó đo bằng Time.unscaledTime, và
+            // ở edit mode đồng hồ đó ĐỨNG YÊN (đã đo: 1.6 giây thật, 0 nhịp). Nhịp thì
+            // chỉ chạy được khi bấm Play; thứ tự thì kiểm được ngay, và thứ tự mới là chỗ
+            // hỏng.
+            this.TickCount++;
+
+            if (this.link == null) return;
             if (this.hasOpponent) return;
             if (Time.unscaledTime < this.nextAnnounce) return;
             this.nextAnnounce = Time.unscaledTime + 1f;
-            this.link.Announce(this.seed, this.preset);
+
+            if (this.link.CurrentRole == DuelLanLink.Role.Host)
+            {
+                this.link.Announce(this.seed, this.preset);
+            }
+            else if (this.link.CurrentRole == DuelLanLink.Role.Guest && !this.active)
+            {
+                this.link.Seek();
+                if (this.panel != null && this.panel.gameObject.activeSelf)
+                    SetStatus(SeekingStatus());
+            }
         }
 
         /// <summary>
@@ -290,6 +367,11 @@ namespace ConnectPuzzle.View
         public void TestFeedInvite(int s, int p, string who) => OnInvite(s, p, who);
         public void TestFeedResult(DuelResult r, string who) => OnOpponentResult(r, who);
         public void TestStartHost() => StartHost();
+        public void TestStartSeek() => StartSeek();
+        public string TestSeekingStatus() => SeekingStatus();
+
+        /// <summary>Vẽ lại dòng trạng thái ngay, để bài kiểm đo được chữ dài nhất.</summary>
+        public void TestRefreshStatus() => SetStatus(SeekingStatus());
 
         private T Find<T>(string name) where T : Component
         {

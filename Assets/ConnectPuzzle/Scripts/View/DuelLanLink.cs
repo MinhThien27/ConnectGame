@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using ConnectPuzzle.Core;
 using UnityEngine;
@@ -41,8 +42,40 @@ namespace ConnectPuzzle.View
         public event Action<string> OnProblem;
 
         private UdpClient socket;
-        private IPEndPoint broadcast;
         private int senderId;
+
+        /// <summary>
+        /// MỌI địa chỉ phát cần thử, không chỉ 255.255.255.255.
+        ///
+        /// 255.255.255.255 là "broadcast giới hạn" — router không chuyển tiếp nó, và
+        /// KHÔNG ÍT thiết bị Android/Wi-Fi bỏ nó ở đường nhận. Broadcast có hướng của
+        /// từng card mạng (ví dụ 192.168.1.255) thì đi đáng tin cậy hơn nhiều. Không có
+        /// cách nào biết trước cái nào thông, nên gửi hết.
+        /// </summary>
+        private readonly List<IPEndPoint> targets = new List<IPEndPoint>();
+
+        /// <summary>Bàn đang mở, để chủ trả lời gói TÌM mà không cần bảng UI còn mở.</summary>
+        private int openSeed = -1, openPreset = -1;
+
+        // ---- số liệu để CHẨN ĐOÁN: không có chúng thì "hai máy không thấy nhau" là một
+        // câu không có đầu mối nào, trên máy không cắm được debugger.
+        public int SentCount { get; private set; }
+        public int SeekReplies { get; private set; }
+        public string LastError { get; private set; } = "";
+
+        /// <summary>Địa chỉ IPv4 của máy này trên từng card mạng đang bật.</summary>
+        public readonly List<string> LocalAddresses = new List<string>();
+
+        /// <summary>Danh sách địa chỉ phát, dạng đọc được — hiện thẳng ra bảng UI.</summary>
+        public string TargetList
+        {
+            get
+            {
+                var parts = new List<string>();
+                foreach (IPEndPoint t in this.targets) parts.Add(t.Address.ToString());
+                return string.Join(", ", parts.ToArray());
+            }
+        }
 
         /// <summary>Mã máy của phiên này — bài kiểm cần đọc để dựng hai đầu.</summary>
         public int SenderId => this.senderId;
@@ -73,8 +106,11 @@ namespace ConnectPuzzle.View
                 // (tên máy, địa chỉ IP): hai người có thể trùng tên, và địa chỉ thì trùng
                 // hẳn khi hai app chạy trên cùng một máy.
                 this.senderId = UnityEngine.Random.Range(1, 65536);
-                this.broadcast = new IPEndPoint(IPAddress.Broadcast, Port);
+                CollectTargets();
                 this.CurrentRole = role;
+                this.SentCount = 0;
+                this.SeekReplies = 0;
+                this.LastError = "";
                 return true;
             }
             catch (SocketException e)
@@ -86,6 +122,63 @@ namespace ConnectPuzzle.View
             }
         }
 
+        /// <summary>
+        /// Dựng danh sách địa chỉ phát từ các card mạng đang bật.
+        ///
+        /// Broadcast có hướng tính bằng địa chỉ OR phần bù của mặt nạ mạng: 192.168.1.7
+        /// với mặt nạ 255.255.255.0 ra 192.168.1.255. Bỏ loopback và card đang tắt —
+        /// gửi vào đó chỉ tốn thời gian và sinh lỗi rác.
+        /// </summary>
+        private void CollectTargets()
+        {
+            this.targets.Clear();
+            this.LocalAddresses.Clear();
+
+            try
+            {
+                foreach (NetworkInterface nic in NetworkInterface.GetAllNetworkInterfaces())
+                {
+                    if (nic.OperationalStatus != OperationalStatus.Up) continue;
+                    if (nic.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
+
+                    foreach (UnicastIPAddressInformation info in
+                             nic.GetIPProperties().UnicastAddresses)
+                    {
+                        if (info.Address.AddressFamily != AddressFamily.InterNetwork) continue;
+                        this.LocalAddresses.Add(info.Address.ToString());
+
+                        IPAddress mask = info.IPv4Mask;
+                        if (mask == null) continue;
+
+                        byte[] a = info.Address.GetAddressBytes();
+                        byte[] m = mask.GetAddressBytes();
+                        if (a.Length != 4 || m.Length != 4) continue;
+
+                        var b = new byte[4];
+                        for (int i = 0; i < 4; i++) b[i] = (byte)(a[i] | (byte)~m[i]);
+                        Add(new IPAddress(b));
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                // Liệt kê card mạng có thể văng trên một số nền tảng. Không được để nó
+                // giết cả tính năng — 255.255.255.255 bên dưới vẫn là một đường đi.
+                this.LastError = "Không đọc được danh sách card mạng: " + e.GetType().Name;
+            }
+
+            // Luôn giữ broadcast giới hạn làm đường cuối: có mạng mà mặt nạ đọc ra sai
+            // hoặc không đọc được, và ở đó nó là thứ duy nhất còn chạy.
+            Add(IPAddress.Broadcast);
+        }
+
+        private void Add(IPAddress address)
+        {
+            foreach (IPEndPoint existing in this.targets)
+                if (existing.Address.Equals(address)) return;
+            this.targets.Add(new IPEndPoint(address, Port));
+        }
+
         public void Stop()
         {
             if (this.socket != null)
@@ -94,13 +187,32 @@ namespace ConnectPuzzle.View
                 this.socket = null;
             }
             this.CurrentRole = Role.Off;
+
+            // Quên bàn đang mở, không thì lần sau bấm "Tìm phòng" mà máy này vẫn đi trả
+            // lời gói TÌM bằng bàn của ván trước.
+            this.openSeed = -1;
+            this.openPreset = -1;
         }
 
         private void OnDestroy() => Stop();
 
         public bool Announce(int seed, int preset)
         {
+            this.openSeed = seed;
+            this.openPreset = preset;
             byte[] data = DuelWire.EncodeInvite(seed, preset, this.LocalName, this.senderId);
+            return Send(data);
+        }
+
+        /// <summary>
+        /// Khách hỏi cả mạng "có ai mở phòng không".
+        ///
+        /// Không thay cho việc chủ phát lời mời đều đặn, mà THÊM một chiều nữa: chiều nào
+        /// thông cũng bắt được cặp.
+        /// </summary>
+        public bool Seek()
+        {
+            byte[] data = DuelWire.EncodeSeek(this.LocalName, this.senderId);
             return Send(data);
         }
 
@@ -110,17 +222,57 @@ namespace ConnectPuzzle.View
             return Send(data);
         }
 
+        /// <summary>
+        /// Gửi tới MỌI địa chỉ phát. Thành công nếu ít nhất một đường đi được.
+        ///
+        /// Không dừng ở lỗi đầu tiên: card mạng ảo (VPN, giả lập Android, Hyper-V) rất
+        /// hay từ chối broadcast, mà đúng cái card Wi-Fi thật thì lại đi được. Dừng sớm
+        /// là để một card rác chặn cả tính năng.
+        /// </summary>
         private bool Send(byte[] data)
         {
             if (this.socket == null) { Raise("Chưa bật kết nối Wi-Fi."); return false; }
+
+            int ok = 0;
+            SocketError lastCode = SocketError.Success;
+            foreach (IPEndPoint target in this.targets)
+            {
+                try
+                {
+                    this.socket.Send(data, data.Length, target);
+                    ok++;
+                }
+                catch (SocketException e) { lastCode = e.SocketErrorCode; }
+            }
+
+            if (ok == 0)
+            {
+                this.LastError = "Gửi không được (" + lastCode + ")";
+                Raise("Gửi không được (" + lastCode + ").");
+                return false;
+            }
+            this.SentCount++;
+            return true;
+        }
+
+        /// <summary>
+        /// Gửi riêng cho một máy. Dùng để trả lời gói TÌM.
+        ///
+        /// Unicast đi được ở gần như mọi mạng mà broadcast bị chặn, nên đây là đường
+        /// đáng tin nhất trong cả lớp này — chỉ cần gói TÌM đến được là xong.
+        /// </summary>
+        private bool SendTo(byte[] data, IPEndPoint to)
+        {
+            if (this.socket == null || to == null) return false;
             try
             {
-                this.socket.Send(data, data.Length, this.broadcast);
+                this.socket.Send(data, data.Length, to);
+                this.SentCount++;
                 return true;
             }
             catch (SocketException e)
             {
-                Raise("Gửi không được (" + e.SocketErrorCode + ").");
+                this.LastError = "Trả lời riêng không được (" + e.SocketErrorCode + ")";
                 return false;
             }
         }
@@ -138,6 +290,7 @@ namespace ConnectPuzzle.View
         {
             if (this.socket == null) return 0;
             int handled = 0;
+            IPEndPoint sender = null;
 
             while (true)
             {
@@ -145,8 +298,7 @@ namespace ConnectPuzzle.View
                 try
                 {
                     if (this.socket.Available <= 0) break;
-                    IPEndPoint from = null;
-                    data = this.socket.Receive(ref from);
+                    data = this.socket.Receive(ref sender);
                 }
                 catch (SocketException) { break; }
                 catch (ObjectDisposedException) { break; }
@@ -187,6 +339,29 @@ namespace ConnectPuzzle.View
                 else if (p.Kind == DuelWire.Kind.Finished)
                 {
                     if (this.OnOpponentResult != null) this.OnOpponentResult(p.Result, p.Name);
+                }
+                else if (p.Kind == DuelWire.Kind.Seek)
+                {
+                    // Chỉ chủ phòng ĐANG có bàn mới trả lời.
+                    //
+                    // Trả lời HAI đường: unicast về đúng địa chỉ vừa gửi, và broadcast
+                    // ngay lập tức. Unicast là đường đáng tin nhất — gói TÌM đến được thì
+                    // đường về gần như chắc chắn thông. Broadcast kèm theo vì có mạng làm
+                    // ngược lại, và vì đó là đường DUY NHẤT kiểm được bằng hai đầu trong
+                    // một tiến trình: đã đo, hai socket chung cổng trên cùng một máy thì
+                    // unicast chỉ vào được MỘT socket, còn broadcast vào cả hai.
+                    //
+                    // Trả lời nhiều lần cho một lần tìm là chuyện bình thường: gói TÌM
+                    // được phát tới từng địa chỉ trong danh sách nên chủ nghe thấy vài
+                    // bản. Bên nhận đã bỏ qua lời mời sau khi vào bàn, nên vô hại.
+                    if (this.CurrentRole == Role.Host && this.openSeed >= 0)
+                    {
+                        byte[] reply = DuelWire.EncodeInvite(this.openSeed, this.openPreset,
+                                                             this.LocalName, this.senderId);
+                        bool direct = SendTo(reply, sender);
+                        bool wide = Send(reply);
+                        if (direct || wide) this.SeekReplies++;
+                    }
                 }
             }
             return handled;
