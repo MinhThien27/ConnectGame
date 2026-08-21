@@ -210,16 +210,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 442077334742166710, guid: 6a8d769e21436634795604ef26b5c405,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2922687948616641562, guid: 6a8d769e21436634795604ef26b5c405,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 2975690757029183955, guid: 6a8d769e21436634795604ef26b5c405,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -270,45 +260,20 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3251724149585804100, guid: 6a8d769e21436634795604ef26b5c405,
+    - target: {fileID: 3789274861668017660, guid: 6a8d769e21436634795604ef26b5c405,
         type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3860147539608924650, guid: 6a8d769e21436634795604ef26b5c405,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4331732375823110502, guid: 6a8d769e21436634795604ef26b5c405,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
+      propertyPath: m_AnchoredPosition.y
+      value: 136.19995
       objectReference: {fileID: 0}
     - target: {fileID: 5598779157027186870, guid: 6a8d769e21436634795604ef26b5c405,
         type: 3}
       propertyPath: m_Name
       value: ConnectPuzzle
       objectReference: {fileID: 0}
-    - target: {fileID: 5712036144113521976, guid: 6a8d769e21436634795604ef26b5c405,
+    - target: {fileID: 6146792335779824310, guid: 6a8d769e21436634795604ef26b5c405,
         type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6924978220359811839, guid: 6a8d769e21436634795604ef26b5c405,
-        type: 3}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7504211553555816680, guid: 6a8d769e21436634795604ef26b5c405,
-        type: 3}
-      propertyPath: m_ScreenMatchMode
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7808156480447210669, guid: 6a8d769e21436634795604ef26b5c405,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
+      propertyPath: m_AnchoredPosition.y
+      value: 136.2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
