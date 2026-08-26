@@ -269,7 +269,45 @@ namespace ConnectPuzzle.View
         /// <summary>Đối thủ đã gửi gói XONG — từ lúc đó tiến độ không cập nhật nữa.</summary>
         private bool opponentDone;
 
-        private void OnOpponentProgress(DuelResult snapshot, string who)
+        // ---- Đòn tấn công ----------------------------------------------
+        //
+        // Hai con số, và cả hai đều là TỔNG CỘNG từ đầu ván:
+        //   sentAttacks    — mình đã đánh sang bên kia bao nhiêu ô băng (gửi trong mỗi gói)
+        //   appliedAttacks — mình đã CHỊU và áp dụng lên bàn mình bao nhiêu
+        // Bên kia báo tổng nó đã đánh; phần chênh so với appliedAttacks là phần chưa chịu.
+
+        private int sentAttacks;
+        private int appliedAttacks;
+        private int pendingAttacks;
+
+        /// <summary>
+        /// Đã nhận được ít nhất một gói tiến độ của đối thủ chưa.
+        ///
+        /// Là cái bắt tay của cả cơ chế, và nó không cần thêm gói tin nào: bản cũ không gửi
+        /// gói tiến độ, nên nếu mình chưa nhận được gói nào thì bên kia có thể là bản cũ —
+        /// và đánh một bên không đánh lại được thì không còn là đấu. Chỉ bắt đầu đánh sau
+        /// khi biết chắc bên kia cũng đánh được.
+        /// </summary>
+        public bool AttacksEnabled { get; private set; }
+
+        /// <summary>Ghi lại số ô băng mình vừa đánh sang. Trả về TỔNG mới để nhét vào gói.</summary>
+        public int NoteAttackSent(int count)
+        {
+            if (count > 0) this.sentAttacks += count;
+            return this.sentAttacks;
+        }
+
+        public int SentAttacks => this.sentAttacks;
+
+        /// <summary>Số ô băng đang chờ áp lên bàn mình. Lấy ra là xoá — bên gọi phải dùng ngay.</summary>
+        public int TakePendingAttacks()
+        {
+            int n = this.pendingAttacks;
+            this.pendingAttacks = 0;
+            return n;
+        }
+
+        private void OnOpponentProgress(DuelResult snapshot, int theirTotal, string who)
         {
             // Lọc theo DẤU BÀN. Không lọc thì một ván đấu khác đang chạy trên cùng mạng Wi-Fi
             // sẽ đẩy số của nó vào HUD của bạn, và bạn tưởng mình đang bị bỏ xa trên bàn này.
@@ -282,6 +320,18 @@ namespace ConnectPuzzle.View
             this.progress = snapshot;
             this.hasProgress = true;
             if (!string.IsNullOrEmpty(who)) this.opponentName = who;
+
+            // Nhận được gói tiến độ nghĩa là bên kia là bản có đòn tấn công — từ giờ mình
+            // cũng được đánh.
+            this.AttacksEnabled = true;
+
+            // Chỉ lấy PHẦN CHÊNH. Gói trùng thì chênh bằng 0, gói tới muộn thì tổng nhỏ hơn
+            // nên cũng bằng 0, gói mất thì gói sau mang tổng lớn hơn và bù lại đủ.
+            if (theirTotal > this.appliedAttacks)
+            {
+                this.pendingAttacks += theirTotal - this.appliedAttacks;
+                this.appliedAttacks = theirTotal;
+            }
         }
 
         /// <summary>
@@ -303,8 +353,14 @@ namespace ConnectPuzzle.View
                     return "⚔ " + who + " đã xong · " + this.opponent.MovesUsed + " lượt";
 
                 if (!this.hasProgress) return "";
-                return "⚔ " + who + " · " + this.progress.MovesUsed + " lượt · " +
-                       this.progress.CellsLeft + " ô";
+                string line = "⚔ " + who + " · " + this.progress.MovesUsed + " lượt · " +
+                              this.progress.CellsLeft + " ô";
+
+                // Số đòn hai bên đã trao chỉ hiện khi ĐÃ có đòn: ở ván không ai ăn chuỗi
+                // dài thì "0-0" chỉ làm dòng dài thêm mà không nói gì.
+                if (this.sentAttacks > 0 || this.appliedAttacks > 0)
+                    line += "  ❄ " + this.sentAttacks + "-" + this.appliedAttacks;
+                return line;
             }
         }
 
@@ -340,11 +396,15 @@ namespace ConnectPuzzle.View
             this.hasProgress = false;
             this.opponentDone = false;
             this.progress = default(DuelResult);
+            this.sentAttacks = 0;
+            this.appliedAttacks = 0;
+            this.pendingAttacks = 0;
+            this.AttacksEnabled = false;
 
             ClosePanel();
             this.duel.StartDuel(newSeed, newPreset);
             Toast(toast + " · bàn " + DuelChallenge.PresetName(newPreset) +
-                  ". Ai xong trước thì chờ, không phải thắng luôn.");
+                  ". Chuỗi dài đóng băng ô của đối thủ. Ai xong trước thì chờ, không thắng luôn.");
         }
 
         /// <summary>Gửi kết quả đi khi ván đấu Wi-Fi kết thúc, rồi so nếu đã có bên kia.</summary>

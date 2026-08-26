@@ -77,6 +77,19 @@ namespace ConnectPuzzle.Core
             /// một chỗ: Won hầu như luôn false, và Kind mới là thứ nói bản ghi này là gì.
             /// </summary>
             public DuelResult Progress;
+
+            /// <summary>
+            /// TIẾN ĐỘ: TỔNG SỐ ô băng bên gửi đã đánh sang mình từ đầu ván.
+            ///
+            /// Là số TỔNG CỘNG, không phải "vừa đánh thêm mấy ô", và đó là chỗ quan trọng
+            /// nhất của cả cơ chế đòn tấn công. UDP không có ack: gửi sự kiện "cộng 2 ô"
+            /// mà mất gói là mất đòn im lặng, mà gói tới hai lần là ăn đòn hai lần. Gửi
+            /// tổng thì bên nhận chỉ cần so với số nó ĐÃ áp dụng — gói sau tự chữa cho gói
+            /// mất, gói trùng thành vô hại, gói tới muộn (tổng nhỏ hơn) bị bỏ qua.
+            ///
+            /// Một byte nên trần là 255 ô băng cho cả ván; bàn đấu 7x7 chỉ có 49 ô.
+            /// </summary>
+            public int SentAttacks;
         }
 
         public static byte[] EncodeInvite(int seed, int preset, string name, int senderId)
@@ -115,7 +128,7 @@ namespace ConnectPuzzle.Core
         }
 
         public static byte[] EncodeFinished(DuelResult r, string name, int senderId)
-            => EncodeStats(Kind.Finished, r, name, senderId);
+            => EncodeStats(Kind.Finished, r, 0, name, senderId);
 
         /// <summary>
         /// Gói TIẾN ĐỘ: gửi sau mỗi nước đi để bên kia thấy mình đang ở đâu.
@@ -124,12 +137,23 @@ namespace ConnectPuzzle.Core
         /// `Won`: tiết kiệm được đúng 1 byte trên một gói ~15 byte, mà đổi lại là hai
         /// đường phân tích phải giữ cho khớp nhau — chỗ đó mới là chỗ sinh lỗi.
         /// </summary>
-        public static byte[] EncodeProgress(DuelResult r, string name, int senderId)
-            => EncodeStats(Kind.Progress, r, name, senderId);
+        /// <param name="sentAttacks">Tổng số ô băng đã đánh sang đối thủ từ đầu ván.</param>
+        public static byte[] EncodeProgress(DuelResult r, int sentAttacks, string name, int senderId)
+            => EncodeStats(Kind.Progress, r, sentAttacks, name, senderId);
 
-        private static byte[] EncodeStats(Kind kind, DuelResult r, string name, int senderId)
+        /// <summary>
+        /// Khuôn chung của gói XONG và gói TIẾN ĐỘ.
+        ///
+        /// Byte tổng đòn CHỈ có ở gói TIẾN ĐỘ. Thêm nó vào cả gói XONG thì bản cũ đọc gói
+        /// XONG của bản mới sẽ trả BadName (độ dài không khớp) — mất luôn khả năng phân
+        /// định thắng thua giữa hai bản, cái giá đắt hơn hẳn việc giữ hai khuôn lệch nhau
+        /// một byte. Gói TIẾN ĐỘ thì bản cũ vốn đã từ chối ở BadKind trước khi đọc tới
+        /// trường nào, nên thêm bao nhiêu byte cũng không ảnh hưởng.
+        /// </summary>
+        private static byte[] EncodeStats(Kind kind, DuelResult r, int sentAttacks,
+                                          string name, int senderId)
         {
-            var body = new byte[13 + 1 + MaxNameBytes];
+            var body = new byte[14 + 1 + MaxNameBytes];
             int n = 0;
             body[n++] = Magic0;
             body[n++] = Magic1;
@@ -144,6 +168,7 @@ namespace ConnectPuzzle.Core
             body[n++] = (byte)((Clamp(r.Score, 65535) >> 8) & 0xFF);
             body[n++] = (byte)Clamp(r.CellsLeft, 255);
             body[n++] = (byte)(r.Won ? 1 : 0);
+            if (kind == Kind.Progress) body[n++] = (byte)Clamp(sentAttacks, 255);
             n = WriteName(body, n, name);
             return Finish(body, n);
         }
@@ -208,7 +233,8 @@ namespace ConnectPuzzle.Core
             }
             else if (kind == Kind.Finished || kind == Kind.Progress)
             {
-                if (length < 16) return ParseResult.TooShort;
+                // Gói TIẾN ĐỘ dài hơn gói XONG đúng một byte (tổng đòn), nên hai mốc khác nhau.
+                if (length < (kind == Kind.Progress ? 17 : 16)) return ParseResult.TooShort;
                 var r = new DuelResult { Seed = -1, Preset = -1, Version = -1 };
                 r.BoardTag = data[n] | (data[n + 1] << 8); n += 2;
                 r.MovesUsed = data[n++];
@@ -219,7 +245,11 @@ namespace ConnectPuzzle.Core
                 // Cùng khối byte, khác chỗ đến: bên nhận không phải nhìn Kind lần nữa để
                 // biết bản ghi này là kết quả cuối hay chỉ là một mốc giữa ván.
                 if (kind == Kind.Finished) packet.Result = r;
-                else packet.Progress = r;
+                else
+                {
+                    packet.SentAttacks = data[n++];
+                    packet.Progress = r;
+                }
             }
             else if (kind != Kind.Seek)
             {

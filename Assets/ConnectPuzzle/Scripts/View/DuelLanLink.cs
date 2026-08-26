@@ -38,8 +38,11 @@ namespace ConnectPuzzle.View
         /// <summary>Kết quả đối thủ nhận được.</summary>
         public event Action<DuelResult, string> OnOpponentResult;
 
-        /// <summary>Tiến độ GIỮA VÁN của đối thủ, tới sau mỗi nước họ đi.</summary>
-        public event Action<DuelResult, string> OnOpponentProgress;
+        /// <summary>
+        /// Tiến độ GIỮA VÁN của đối thủ, tới sau mỗi nước họ đi. Tham số giữa là TỔNG SỐ
+        /// ô băng họ đã đánh sang mình từ đầu ván — xem DuelWire.Packet.SentAttacks.
+        /// </summary>
+        public event Action<DuelResult, int, string> OnOpponentProgress;
 
         /// <summary>Lỗi mạng nói được cho người chơi, không phải stack trace.</summary>
         public event Action<string> OnProblem;
@@ -233,9 +236,9 @@ namespace ConnectPuzzle.View
         /// thường, mà báo lỗi mỗi nước thì thành mười lăm cái toast trong một ván — và người
         /// chơi sẽ mất tin vào cả những cảnh báo thật.
         /// </summary>
-        public bool SendProgress(DuelResult snapshot)
+        public bool SendProgress(DuelResult snapshot, int sentAttacks)
         {
-            byte[] data = DuelWire.EncodeProgress(snapshot, this.LocalName, this.senderId);
+            byte[] data = DuelWire.EncodeProgress(snapshot, sentAttacks, this.LocalName, this.senderId);
             return Send(data, quiet: true);
         }
 
@@ -363,7 +366,8 @@ namespace ConnectPuzzle.View
                 }
                 else if (p.Kind == DuelWire.Kind.Progress)
                 {
-                    if (this.OnOpponentProgress != null) this.OnOpponentProgress(p.Progress, p.Name);
+                    if (this.OnOpponentProgress != null)
+                        this.OnOpponentProgress(p.Progress, p.SentAttacks, p.Name);
                 }
                 else if (p.Kind == DuelWire.Kind.Seek)
                 {

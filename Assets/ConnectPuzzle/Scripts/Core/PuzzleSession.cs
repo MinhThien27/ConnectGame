@@ -945,6 +945,97 @@ namespace ConnectPuzzle.Core
 
 
         // ------------------------------------------------------------------
+        // Đòn tấn công của chế độ đấu Wi-Fi
+        //
+        // Chuỗi dài của đối thủ đóng băng ô trên bàn mình. Chọn BĂNG chứ không phải đá vì
+        // hai lý do, và lý do thứ hai mới là lý do thật:
+        //
+        //  1. Băng không thêm ô, chỉ khoá ô đang có. Nhờ vậy phép phân định "ai còn ít ô
+        //     hơn" của DuelVerdict vẫn còn nghĩa sau khi hai bàn đã lệch nhau.
+        //  2. Đá thì KHÔNG GỠ ĐƯỢC nếu quanh nó hết chuỗi, nên đổ đá có thể làm bàn không
+        //     còn giải được — phá đúng cái bảo đảm mà cả bộ sinh màn dựng trên. Băng tan
+        //     được, nên tệ nhất nó chỉ làm chậm.
+        //
+        // Dù vậy băng vẫn giết được ván nếu đóng quá tay: bàn mà MỌI ô còn lại đều đóng
+        // băng thì không còn chuỗi nào để ăn cho tan, tức là chết. Hàm dưới bắt buộc phải
+        // kiểm lại và nhả băng ra tới khi bàn còn nước đi.
+        // ------------------------------------------------------------------
+
+        /// <summary>Số ô đang bị đóng băng bởi đòn tấn công (và bởi màn, nếu có).</summary>
+        public int FrozenCount()
+        {
+            int n = 0;
+            for (int i = 0; i < this.Board.Length; i++) if (IsFrozen(i)) n++;
+            return n;
+        }
+
+        /// <summary>
+        /// Đóng băng tối đa `count` ô thường. Trả về số ô ĐÃ đóng được thật.
+        ///
+        /// Chỉ nhắm ô MÀU THƯỜNG chưa mang dấu gì: ghi băng lên ô đích, ô liên kết, ô đa
+        /// sắc hay ô đá là xoá mất dấu cũ, tức là đòn tấn công phá luôn cơ chế của màn —
+        /// và ở màn mục tiêu thì xoá một ô đích là khoá chết ván của người bị đánh.
+        ///
+        /// `seed` để chọn ô: cùng seed cho cùng kết quả, nên bài kiểm lặp lại được. Không
+        /// cần giống nhau giữa hai máy — từ lúc có đòn tấn công thì hai bàn đã lệch nhau,
+        /// và đó là chủ ý của chế độ.
+        /// </summary>
+        public int ApplyFreezeAttack(int count, int seed)
+        {
+            // Màn gravity không dùng băng: dấu ở đó sống trong Stacks và đi theo ô khi rơi,
+            // nên ghi vào this.Marks sẽ bị lần rơi kế tiếp xoá sạch. Bàn đấu là bàn tĩnh.
+            if (count <= 0 || this.Level.Gravity || this.Marks == null) return 0;
+
+            var candidates = new List<int>();
+            for (int i = 0; i < this.Board.Length; i++)
+                if (IsColor(this.Board[i]) && this.Marks[i] == null) candidates.Add(i);
+
+            if (candidates.Count == 0) return 0;
+
+            // Xáo Fisher-Yates rồi lấy từ đầu, thay vì rút ngẫu nhiên có lặp: rút có lặp
+            // sẽ trúng lại ô vừa đóng và đòn tấn công bị hụt mà không ai biết vì sao.
+            var rng = new DeterministicRng(seed);
+            for (int i = candidates.Count - 1; i > 0; i--)
+            {
+                int j = rng.NextInt(i + 1);
+                int tmp = candidates[i]; candidates[i] = candidates[j]; candidates[j] = tmp;
+            }
+
+            var frozen = new List<int>();
+            int want = count < candidates.Count ? count : candidates.Count;
+            for (int k = 0; k < want; k++)
+            {
+                this.Marks[candidates[k]] = new CellMark { Kind = CellKind.Ice, Hp = 1 };
+                frozen.Add(candidates[k]);
+            }
+
+            // Nhả dần ra tới khi bàn còn đi được. Bỏ bước này thì một đòn đúng lúc có thể
+            // KHOÁ CHẾT ván của người bị đánh, và họ thua vì mạng chứ không vì chơi dở.
+            for (int k = frozen.Count - 1; k >= 0 && !HasMove(); k--)
+            {
+                this.Marks[frozen[k]] = null;
+                frozen.RemoveAt(k);
+            }
+
+            return frozen.Count;
+        }
+
+        /// <summary>
+        /// Số ô băng mà một chuỗi dài `length` gửi sang bàn đối thủ.
+        ///
+        /// Chuỗi tối thiểu KHÔNG gửi gì: nếu nước nào cũng thành đòn thì đòn tấn công chỉ
+        /// là một khoản thuế đều đặn hai bên cùng trả, không phải một thứ để nhắm tới. Phải
+        /// ăn dài hơn mức bắt buộc mới có, nên nó thưởng đúng thứ mà trần chuỗi đang bắt
+        /// người chơi cân nhắc: chẻ cục lớn ở đâu.
+        /// </summary>
+        public static int AttackFor(int length, int minChain, int maxChain)
+        {
+            if (length <= minChain) return 0;
+            if (maxChain != int.MaxValue && maxChain > 0 && length >= maxChain) return 2;
+            return 1;
+        }
+
+        // ------------------------------------------------------------------
         // Vật phẩm dùng một lần
         //
         // Mua bằng sao rồi dùng NGAY, không có kho đồ: mỗi lần bấm là một lần tiêu.

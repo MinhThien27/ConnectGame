@@ -849,6 +849,8 @@ namespace ConnectPuzzle.View
             // hoạt ảnh đứng im đúng ở chỗ hay được mở nhất.
             if (this.tutorial != null && this.tutorial.Visible) this.tutorial.Tick(Time.deltaTime);
 
+            TickLanProgressHeartbeat();
+
             // Menu cũng phải bố cục lại khi khung đổi (quay máy, lề an toàn thay đổi),
             // không thì lưới màn đè lên footer trên tỉ lệ màn hình khác.
             if (this.menuScreen.gameObject.activeSelf) { this.menu.Tick(); return; }
@@ -857,6 +859,28 @@ namespace ConnectPuzzle.View
             ApplyLayout(force: false);
             this.board.TickChain(Time.deltaTime);   // nét đứt chạy, như stroke-dashoffset
             TickOpponentLine();
+            ApplyIncomingLanAttacks();
+        }
+
+        private float nextLanProgressAt;
+
+        /// <summary>
+        /// Phát lại gói tiến độ mỗi giây trong lúc còn ván đấu Wi-Fi.
+        ///
+        /// Có vì số tổng cộng CHỈ tự chữa được khi còn gói sau nó. Đo được bằng mô phỏng
+        /// 40 ván trên đường mất 30% gói: 16 ván bị hụt đúng ĐÒN CUỐI — người đánh không đi
+        /// nước nào nữa nên không có gói nào mang lại tổng mới, và đối thủ thoát đòn mà
+        /// không ai biết. Nhịp lặp biến "tự chữa cho gói giữa" thành "cuối cùng cũng tới".
+        ///
+        /// Đặt TRƯỚC mọi nhánh màn hình, cạnh Lan.Tick: nó phải chạy cả khi người chơi đã
+        /// xong bàn và đang xem thẻ, vì đòn cuối của họ vẫn cần bay sang.
+        /// </summary>
+        private void TickLanProgressHeartbeat()
+        {
+            if (!IsDuel || Lan == null || !Lan.Active) return;
+            if (Time.unscaledTime < this.nextLanProgressAt) return;
+            this.nextLanProgressAt = Time.unscaledTime + 1f;
+            ReportLanProgress();
         }
 
         /// <summary>Dòng tiến độ đối thủ đang hiện, để biết khi nào nó thật sự đổi.</summary>
@@ -1166,9 +1190,58 @@ namespace ConnectPuzzle.View
             }
 
             UpdateHud();
+            NoteLanAttack(chainLength);
             ReportLanProgress();
             this.busy = false;
             Evaluate();
+        }
+
+        /// <summary>
+        /// Chuỗi dài hơn mức bắt buộc thì đóng băng ô của đối thủ.
+        ///
+        /// Ghi TRƯỚC ReportLanProgress: gói tiến độ chở tổng đòn, nên ghi sau là đòn của
+        /// nước này phải chờ tới nước sau mới bay đi.
+        /// </summary>
+        private void NoteLanAttack(int chainLength)
+        {
+            if (!IsDuel || Lan == null || !Lan.Active || !Lan.AttacksEnabled) return;
+
+            int count = PuzzleSession.AttackFor(chainLength, this.level.MinChain, this.level.MaxChain);
+            if (count <= 0) return;
+
+            Lan.NoteAttackSent(count);
+            Toast("❄ Chuỗi " + chainLength + " ô — đóng băng " + count + " ô của đối thủ.");
+        }
+
+        /// <summary>
+        /// Áp đòn tấn công nhận được lên bàn mình.
+        ///
+        /// Gọi từ nhịp khung hình chứ không từ CommitRoutine, vì đòn tới từ MẠNG vào lúc
+        /// bất kỳ — kể cả lúc mình đang ngồi nghĩ, không đi nước nào. Chờ tới nước sau mới
+        /// áp thì người chơi thấy ô đông băng ra sau một nước chẳng liên quan.
+        ///
+        /// Chỉ áp khi RẢNH: đang chạy hoạt ảnh hay đang kéo ngón mà bàn đổi dưới tay là
+        /// vừa giật hình vừa có thể làm chuỗi đang chọn thành không hợp lệ giữa cú kéo.
+        /// </summary>
+        private void ApplyIncomingLanAttacks()
+        {
+            if (!IsDuel || this.session == null || Lan == null || !Lan.Active) return;
+            if (this.busy || this.dragging || this.session.Selection.Count > 0) return;
+            if (this.session.IsWon() || this.session.MovesUsed >= this.level.MaxMoves) return;
+
+            int count = Lan.TakePendingAttacks();
+            if (count <= 0) return;
+
+            int frozen = this.session.ApplyFreezeAttack(
+                count, this.session.MovesUsed * 7919 + this.session.Score);
+            if (frozen <= 0) return;
+
+            this.board.Refresh(this.session, PuzzleProgress.Symbols);
+            this.effects.Flash(0.22f);
+            this.audioPlayer.Tone(520f, 0.3f);
+            Haptics.Strong();
+            Toast("❄ Đối thủ đóng băng " + frozen + " ô của bạn. Ăn chuỗi cạnh nó cho tan.");
+            UpdateHud();
         }
 
         /// <summary>
@@ -1182,7 +1255,7 @@ namespace ConnectPuzzle.View
         {
             if (!IsDuel || this.duel == null) return;
             if (Lan == null || !Lan.Active || Lan.Link == null) return;
-            Lan.Link.SendProgress(this.duel.SnapshotProgress());
+            Lan.Link.SendProgress(this.duel.SnapshotProgress(), Lan.SentAttacks);
         }
 
         private static string Praise(int chainLength)
