@@ -18,6 +18,12 @@ namespace ConnectPuzzle.EditorTools
     /// Nó canh đúng thứ UiPrefabDiff từng canh: ai đó kéo nhầm một node trong Editor.
     /// Nó KHÔNG canh được "code và prefab trôi khỏi nhau" — nhưng sau bước cuối thì
     /// không còn hai bên để trôi nữa.
+    ///
+    /// Có ghi THỨ TỰ ANH EM (trường after=). Trước đây không ghi, và đó là một lỗ thật:
+    /// các dòng được sắp theo thứ tự chữ cái rồi so theo khoá đường dẫn, nên kéo đổi chỗ
+    /// hai node cho ra ảnh chụp Y HỆT — dù trong Unity UI thứ tự anh em chính là thứ tự
+    /// vẽ, tức là một thay đổi hiển thị thật. Lỗ đó lọt một lần rồi: Board và ChainPreview
+    /// đổi chỗ trong BoardArea mà ảnh chụp không nói gì.
     /// </summary>
     public static class PrefabSnapshot
     {
@@ -122,12 +128,16 @@ namespace ConnectPuzzle.EditorTools
                 Transform child = node.GetChild(i);
                 string path = prefix.Length == 0 ? child.name : prefix + "/" + child.name;
 
-                if (child is RectTransform rect) lines.Add(path + "|" + Describe(rect, path));
+                // Anh em đứng NGAY TRƯỚC, hoặc "-" nếu là con đầu. Đây là cách ghi lại
+                // THỨ TỰ ANH EM, mà trong Unity UI thứ tự anh em chính là thứ tự vẽ.
+                string after = i == 0 ? "-" : node.GetChild(i - 1).name;
+
+                if (child is RectTransform rect) lines.Add(path + "|" + Describe(rect, path, after));
                 Walk(child, path, lines);
             }
         }
 
-        private static string Describe(RectTransform rect, string path)
+        private static string Describe(RectTransform rect, string path, string after)
         {
             var sb = new StringBuilder();
             sb.Append("size=").Append(V(rect.sizeDelta));
@@ -135,6 +145,15 @@ namespace ConnectPuzzle.EditorTools
             sb.Append(" anchor=").Append(V(rect.anchorMin)).Append('-').Append(V(rect.anchorMax));
             sb.Append(" pivot=").Append(V(rect.pivot));
             sb.Append(" on=").Append(rect.gameObject.activeSelf ? 1 : 0);
+
+            // Ghi TÊN ANH EM ĐỨNG TRƯỚC, không ghi chỉ số.
+            //
+            // Chỉ số thì đơn giản hơn nhưng nó dựng lại đúng cái hỏng mà CountDifferences
+            // đã cố tránh: chèn một node ở giữa làm lệch chỉ số của MỌI anh em phía sau,
+            // nên một lần chèn báo ra hàng chục dòng "đã đổi" và báo cáo thành vô dụng.
+            // Tên anh em trước thì ổn định: chèn một node chỉ đổi đúng dòng nằm sau nó,
+            // còn đảo chỗ hai node thì đổi đúng hai dòng.
+            sb.Append(" after=").Append(after);
 
             var text = rect.GetComponent<Text>();
             if (text != null)
