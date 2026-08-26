@@ -58,6 +58,9 @@ namespace ConnectPuzzle.Core
 
         /// <summary>Chế độ vô tận: ô rớt xuống mãi, không lượt, không mục tiêu.</summary>
         public bool Endless;
+
+        /// <summary>Màn chính xác: MaxMoves == Par, không dư lượt. Xem LevelConfig.Exact.</summary>
+        public bool Exact;
     }
 
     public static class LevelBuilder
@@ -122,8 +125,23 @@ namespace ConnectPuzzle.Core
             }
 
             level.Par = best;
-            level.MaxMoves = best + cfg.Slack;
-            level.TwoStarMoves = best + Math.Max(1, (int)Math.Ceiling(cfg.Slack / 2.0));
+            level.Exact = cfg.Exact;
+
+            // Màn chính xác chốt ngân sách ở ĐÚNG par, bỏ qua Slack. Cộng Slack rồi trông
+            // vào việc bảng màn khai Slack = 0 là để ngỏ khả năng hai trường nói khác nhau,
+            // và khi đó cái sai lại là cái im lặng: màn vẫn chơi được, chỉ là dư lượt nên
+            // không còn là màn chính xác nữa.
+            level.MaxMoves = cfg.Exact ? best : best + cfg.Slack;
+
+            // Ở màn chính xác, THẮNG là ba sao — mọi ván thắng đều dùng đúng par lượt, và
+            // par chính là mốc ba sao. Không phải hào phóng mà là đúng nghĩa: ở đây chỉ có
+            // giải được hoặc không, nên một thang ba bậc không có gì để đo. Đã đo thử: bàn
+            // nhỏ với par 6-11 hầu như không đủ ba chuỗi kịch trần, nên huy hiệu kỹ thuật
+            // cũng không lấp được chỗ đó (9/10 màn ra MedalChains = 0). Cứ để nó là
+            // được-hoặc-không.
+            level.TwoStarMoves = cfg.Exact
+                ? best
+                : best + Math.Max(1, (int)Math.Ceiling(cfg.Slack / 2.0));
 
             ApplyMedal(level, cfg);
         }

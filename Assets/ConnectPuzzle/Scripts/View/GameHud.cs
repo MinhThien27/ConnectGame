@@ -29,6 +29,20 @@ namespace ConnectPuzzle.View
         [SerializeField] private Text queue;
         [SerializeField] private Text[] stars;
 
+        /// <summary>
+        /// Dòng tiến độ đối thủ trong ván đấu Wi-Fi; rỗng nghĩa là không có gì để hiện.
+        ///
+        /// Là trạng thái của HUD chứ không phải tham số của Refresh, vì nó đến từ MẠNG —
+        /// tức đổi vào lúc khác hẳn với lúc Refresh chạy. Truyền qua tham số thì mọi chỗ
+        /// gọi Refresh (có nhiều) đều phải biết về đấu Wi-Fi.
+        /// </summary>
+        private string opponentLine = "";
+
+        public void SetOpponentLine(string line)
+        {
+            this.opponentLine = line ?? "";
+        }
+
         private int displayedScore;
         private Coroutine scoreRoutine;
 
@@ -139,10 +153,19 @@ namespace ConnectPuzzle.View
                     : new Color(PuzzlePalette.Star.r, PuzzlePalette.Star.g, PuzzlePalette.Star.b, 0.2f);
             }
 
+            // Ô này chở ba thứ khác nhau, theo thứ tự ưu tiên rõ ràng.
+            //
+            // Tiến độ ĐỐI THỦ đứng trước tất cả: nó là thứ duy nhất ở đây đến từ bên ngoài
+            // và đổi theo thời gian thật, nên nó cũng là thứ duy nhất người chơi cần nhìn
+            // đúng lúc. Trong ván đấu thì hai thứ còn lại cũng chẳng có nghĩa: huy hiệu
+            // không được cấp khi đấu, và bàn đấu thì không dùng gravity.
+            if (!string.IsNullOrEmpty(this.opponentLine))
+                this.queue.text = this.opponentLine;
+
             // Tiến độ huy hiệu phải hiện TRONG lúc chơi, không phải chỉ ở thẻ kết ván:
             // biết mình còn thiếu mấy chuỗi đầy là thứ đổi được cách đi nước tiếp theo,
             // biết sau khi xong ván thì chỉ còn là lời trách.
-            if (level.MedalChains > 0 && !isDaily)
+            else if (level.MedalChains > 0 && !isDaily)
                 this.queue.text = "◆ " + session.FullChains + "/" + level.MedalChains;
             else
                 this.queue.text = level.Gravity ? "▼ hàng chờ " + session.QueueLeft() : "";

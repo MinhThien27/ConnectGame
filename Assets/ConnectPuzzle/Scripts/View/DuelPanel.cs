@@ -386,6 +386,18 @@ namespace ConnectPuzzle.View
         // Chia sẻ kết quả và phân định
         // ==================================================================
 
+        /// <summary>
+        /// Ảnh chụp trạng thái ĐANG chơi, để báo tiến độ. Cùng hàm dựng với kết quả cuối
+        /// (DuelVerdict.From) nên hai bên chắc chắn nói về cùng một bàn và cùng bộ số.
+        /// </summary>
+        public DuelResult SnapshotProgress()
+        {
+            return DuelVerdict.From(this.host.Session, this.seed, this.preset);
+        }
+
+        /// <summary>Dấu bàn đang chơi — để lọc gói tiến độ đến từ một bàn khác.</summary>
+        public int CurrentBoardTag => DuelResult.TagOf(this.seed, this.preset, DuelCode.Version);
+
         public void CaptureResult()
         {
             if (!this.host.OnDuelBoard) return;

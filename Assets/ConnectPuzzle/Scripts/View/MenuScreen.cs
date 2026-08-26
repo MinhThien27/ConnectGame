@@ -37,6 +37,12 @@ namespace ConnectPuzzle.View
             void ToggleSymbols();
             void ToggleFreePlay();
             void ResetProgress();
+
+            /// <summary>
+            /// Bấm nhãn thế giới — mở thẻ của thế giới đó (hướng dẫn cơ chế, leo tháp).
+            /// Menu không biết trên thẻ có gì; nó chỉ nói "người chơi vừa bấm nhãn này".
+            /// </summary>
+            void OpenWorldCard(int world);
         }
 
         /// <summary>Tên prefab nút chọn màn trong Resources.</summary>
@@ -322,6 +328,7 @@ namespace ConnectPuzzle.View
                         : Ui.Text("World" + cfg.World, this.levelContent,
                             LevelCatalog.WorldName(cfg.World).ToUpperInvariant(), 27, PuzzlePalette.Dim,
                             TextAnchor.MiddleLeft, FontStyle.Bold);
+                    MakeWorldHeaderTappable(header, cfg.World);
                     this.worldHeaders.Add(new WorldHeader { World = cfg.World, Label = header });
                 }
 
@@ -629,6 +636,51 @@ namespace ConnectPuzzle.View
             PlaceBottomRow(this.menuResetButton.GetComponent<RectTransform>(), 40, 0, 1, 320, 72);
         }
 
+        /// <summary>
+        /// Nhãn thế giới thành chỗ bấm được để XEM LẠI bài hướng dẫn.
+        ///
+        /// Cần có vì bài hướng dẫn chỉ tự hiện MỘT lần: bỏ qua nó rồi thì không còn đường
+        /// nào quay lại, và người chơi gặp một bàn đầy đá mà không ai giải thích đá là gì.
+        /// Đặt lên nhãn thế giới chứ không thêm nút mới, vì nhãn đã nằm ngay trên đúng
+        /// nhóm màn mà nó nói về — và thêm nút là phải sửa prefab.
+        ///
+        /// Chữ được gán ở CẢ HAI nhánh (nhận lại từ prefab hay tự dựng): nhánh nhận lại
+        /// trước đây giữ nguyên chữ của prefab, nên dấu "(?)" sẽ có hoặc không tuỳ node
+        /// đến từ đâu.
+        /// </summary>
+        private void MakeWorldHeaderTappable(Text header, int world)
+        {
+            if (header == null) return;
+
+            header.text = LevelCatalog.WorldName(world).ToUpperInvariant() + "   (?)";
+
+            // Text do Ui.Text dựng có raycastTarget = false, và node từ prefab thì tuỳ
+            // prefab — bật tường minh, không có nó thì nút nhận không nổi cú chạm.
+            header.raycastTarget = true;
+
+            // BuildGrid gọi lại được, nên không thêm Button lần thứ hai.
+            var button = header.GetComponent<Button>();
+            if (button == null)
+            {
+                button = header.gameObject.AddComponent<Button>();
+                button.targetGraphic = header;
+            }
+
+            var colors = button.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1.3f, 1.3f, 1.3f, 1f);
+            colors.pressedColor = new Color(0.75f, 0.75f, 0.75f, 1f);
+            colors.fadeDuration = 0.08f;
+            button.colors = colors;
+
+            int captured = world;
+            button.onClick.RemoveAllListeners();
+
+            // Đọc this.host lúc BẤM, không lúc dựng: BuildGrid chạy TRƯỚC Wire (lưới màn
+            // dựng theo tiến trình nên nó phải xong trước), nên lúc này host vẫn là null.
+            button.onClick.AddListener(() => this.host?.OpenWorldCard(captured));
+        }
+
         private static void PlaceRow(RectTransform rect, float top, int slot, int slotCount, float width, float height)
         {
             rect.anchorMin = new Vector2(0.5f, 1);
@@ -694,8 +746,13 @@ namespace ConnectPuzzle.View
         /// </summary>
         public void RefreshLabels()
         {
-            bool on = PuzzleProgress.Sound;
-            Ui.LabelOf(this.menuSoundButton).text = "Âm thanh: " + (on ? "Bật" : "Tắt");
+            // Nút này đi qua BA trạng thái (tắt / tiếng / tiếng + rung) nên nhãn không còn
+            // suy ra được từ một bool. Xem PuzzleProgress.FeedbackLabel.
+            Ui.LabelOf(this.menuSoundButton).text = PuzzleProgress.FeedbackLabel();
+            this.menuSoundButton.GetComponent<Image>().color =
+                PuzzleProgress.Sound || PuzzleProgress.Haptics
+                    ? PuzzlePalette.PanelLight : PuzzlePalette.Panel;
+
             Ui.LabelOf(this.menuSymbolButton).text = (PuzzleProgress.Symbols ? "◆" : "○") + " Ký hiệu";
 
             if (this.menuFreeButton != null)

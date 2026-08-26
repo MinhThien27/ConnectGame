@@ -33,7 +33,16 @@ namespace ConnectPuzzle.Core
         public const int MaxNameBytes = 16;
         public const int MaxPacket = 40;
 
-        public enum Kind : byte { Invite = 1, Finished = 2, Seek = 3 }
+        /// <summary>
+        /// TIẾN ĐỘ được thêm mà KHÔNG tăng ProtocolVersion, và đó là chủ ý.
+        ///
+        /// Tăng phiên bản thì bản cũ từ chối MỌI gói (Parse trả BadProtocol ngay ở byte
+        /// thứ ba), tức hai bản không nói chuyện được nữa — mất cả mời lẫn kết quả, chỉ để
+        /// thêm một loại tin phụ. Giữ nguyên phiên bản thì bản cũ chỉ từ chối đúng gói nó
+        /// không hiểu (BadKind, có đếm trong Rejected) còn mời và kết quả vẫn đi bình
+        /// thường: người dùng bản cũ mất phần xem tiến độ đối thủ, nhưng vẫn đấu được.
+        /// </summary>
+        public enum Kind : byte { Invite = 1, Finished = 2, Seek = 3, Progress = 4 }
 
         public enum ParseResult { Ok, TooShort, BadMagic, BadProtocol, BadKind, BadCrc, BadName }
 
@@ -58,6 +67,16 @@ namespace ConnectPuzzle.Core
 
             // XONG: thành tích
             public DuelResult Result;
+
+            /// <summary>
+            /// TIẾN ĐỘ: trạng thái GIỮA ván của đối thủ.
+            ///
+            /// Cùng kiểu DuelResult với Result, và đó không phải cẩu thả: DuelVerdict.From
+            /// đọc từ một PuzzleSession đang chạy và cho ra đúng năm con số này, nên "tiến
+            /// độ" chỉ là cùng bản ghi đó lấy ở giữa ván thay vì lúc kết. Khác nhau ở đúng
+            /// một chỗ: Won hầu như luôn false, và Kind mới là thứ nói bản ghi này là gì.
+            /// </summary>
+            public DuelResult Progress;
         }
 
         public static byte[] EncodeInvite(int seed, int preset, string name, int senderId)
@@ -96,13 +115,26 @@ namespace ConnectPuzzle.Core
         }
 
         public static byte[] EncodeFinished(DuelResult r, string name, int senderId)
+            => EncodeStats(Kind.Finished, r, name, senderId);
+
+        /// <summary>
+        /// Gói TIẾN ĐỘ: gửi sau mỗi nước đi để bên kia thấy mình đang ở đâu.
+        ///
+        /// Cùng khuôn byte với gói XONG. Dùng chung một khuôn chứ không tiết kiệm đi byte
+        /// `Won`: tiết kiệm được đúng 1 byte trên một gói ~15 byte, mà đổi lại là hai
+        /// đường phân tích phải giữ cho khớp nhau — chỗ đó mới là chỗ sinh lỗi.
+        /// </summary>
+        public static byte[] EncodeProgress(DuelResult r, string name, int senderId)
+            => EncodeStats(Kind.Progress, r, name, senderId);
+
+        private static byte[] EncodeStats(Kind kind, DuelResult r, string name, int senderId)
         {
             var body = new byte[13 + 1 + MaxNameBytes];
             int n = 0;
             body[n++] = Magic0;
             body[n++] = Magic1;
             body[n++] = ProtocolVersion;
-            body[n++] = (byte)Kind.Finished;
+            body[n++] = (byte)kind;
             body[n++] = (byte)(senderId & 0xFF);
             body[n++] = (byte)((senderId >> 8) & 0xFF);
             body[n++] = (byte)(r.BoardTag & 0xFF);
@@ -174,7 +206,7 @@ namespace ConnectPuzzle.Core
                 packet.RulesVersion = data[n] & 0xF;
                 n++;
             }
-            else if (kind == Kind.Finished)
+            else if (kind == Kind.Finished || kind == Kind.Progress)
             {
                 if (length < 16) return ParseResult.TooShort;
                 var r = new DuelResult { Seed = -1, Preset = -1, Version = -1 };
@@ -183,7 +215,11 @@ namespace ConnectPuzzle.Core
                 r.Score = data[n] | (data[n + 1] << 8); n += 2;
                 r.CellsLeft = data[n++];
                 r.Won = data[n++] != 0;
-                packet.Result = r;
+
+                // Cùng khối byte, khác chỗ đến: bên nhận không phải nhìn Kind lần nữa để
+                // biết bản ghi này là kết quả cuối hay chỉ là một mốc giữa ván.
+                if (kind == Kind.Finished) packet.Result = r;
+                else packet.Progress = r;
             }
             else if (kind != Kind.Seek)
             {

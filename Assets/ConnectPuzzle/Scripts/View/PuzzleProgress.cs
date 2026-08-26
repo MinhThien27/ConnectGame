@@ -29,6 +29,119 @@ namespace ConnectPuzzle.View
             set { PlayerPrefs.SetInt(SymbolsKey, value ? 1 : 0); PlayerPrefs.Save(); }
         }
 
+        private const string HapticsKey = "connectPuzzle.haptics";
+
+        /// <summary>
+        /// Rung phản hồi. Mặc định BẬT: nó chỉ cảm được khi đang chơi, nên để mặc định tắt
+        /// thì gần như không ai đi tìm để bật lên — tức là viết xong rồi không ai dùng.
+        /// </summary>
+        public static bool Haptics
+        {
+            get => PlayerPrefs.GetInt(HapticsKey, 1) == 1;
+            set { PlayerPrefs.SetInt(HapticsKey, value ? 1 : 0); PlayerPrefs.Save(); }
+        }
+
+        /// <summary>
+        /// Vòng ba trạng thái của nút phản hồi ở chân menu:
+        /// tắt hết → chỉ âm thanh → âm thanh + rung → tắt hết.
+        ///
+        /// Ba trạng thái dồn vào MỘT nút chứ không thêm nút thứ năm, vì bố cục chân menu
+        /// và ảnh chụp prefab đều đang chốt theo bốn nút hiện có — thêm nút là sửa prefab
+        /// và chốt lại ảnh chụp, một cái giá quá đắt cho một tuỳ chọn.
+        /// </summary>
+        public static void CycleFeedback()
+        {
+            if (!Sound) { Sound = true; Haptics = false; }
+            else if (!Haptics) Haptics = true;
+            else { Sound = false; Haptics = false; }
+        }
+
+        /// <summary>
+        /// Nhãn đọc từ CẶP (âm thanh, rung) chứ không từ vị trí trong vòng, nên nó nói
+        /// đúng cả tổ hợp mà vòng không sinh ra: nút ♪ trong ván tắt tiếng riêng, để lại
+        /// trạng thái còn rung mà không còn tiếng.
+        /// </summary>
+        public static string FeedbackLabel()
+        {
+            if (Sound && Haptics) return "Âm thanh + Rung";
+            if (Sound) return "Âm thanh: Bật";
+            if (Haptics) return "Chỉ rung";
+            return "Âm thanh: Tắt";
+        }
+
+        // ------------------------------------------------------------------
+        // Bài hướng dẫn — mỗi thế giới một bài, hiện MỘT LẦN
+        // ------------------------------------------------------------------
+        private const string TutorialKey = "connectPuzzle.tutorial.";
+
+        /// <summary>Đã xem bài hướng dẫn của thế giới này chưa.</summary>
+        public static bool TutorialSeen(int world) =>
+            PlayerPrefs.GetInt(TutorialKey + world, 0) == 1;
+
+        public static void MarkTutorialSeen(int world)
+        {
+            PlayerPrefs.SetInt(TutorialKey + world, 1);
+            PlayerPrefs.Save();
+        }
+
+        /// <summary>
+        /// Câu nhắc ngắn (toast) cho BIẾN THỂ của một cơ chế đã được thẻ hướng dẫn dạy —
+        /// ví dụ "đá dày cần va 2 lần". Đánh số theo thứ tự trong bảng ở PuzzleGame.
+        ///
+        /// Trước đây danh sách đã-hiện chỉ là một HashSet trong bộ nhớ, nên mọi câu nhắc
+        /// hiện LẠI sau mỗi lần mở app — câu "lần đầu gặp" mà gặp lại mãi.
+        /// </summary>
+        private const string IntroKey = "connectPuzzle.intro.";
+
+        /// <summary>
+        /// Cận trên số câu nhắc, chỉ dùng để dọn khoá khi xoá tiến độ. Là cận trên chứ
+        /// không phải số thật vì bảng câu nhắc nằm ở PuzzleGame (tầng trên), và để tầng
+        /// dưới hỏi ngược lên thì đổi được một con số không đáng.
+        /// </summary>
+        private const int IntroCapacity = 16;
+
+        public static bool IntroSeen(int rule) => PlayerPrefs.GetInt(IntroKey + rule, 0) == 1;
+
+        public static void MarkIntroSeen(int rule)
+        {
+            PlayerPrefs.SetInt(IntroKey + rule, 1);
+            PlayerPrefs.Save();
+        }
+
+        // ------------------------------------------------------------------
+        // Leo tháp — kết quả tốt nhất của mỗi thế giới
+        //
+        // Chỉ lưu THÀNH TÍCH, không cấp sao. Chặng leo tháp chơi lại được vô hạn lần, nên
+        // cho nó đẻ ra sao là mở một vòng cày: chạy lại chặng dễ nhất để mua vật phẩm.
+        // ------------------------------------------------------------------
+        private const string TowerDoneKey = "connectPuzzle.tower.done.";
+        private const string TowerLeftKey = "connectPuzzle.tower.left.";
+
+        /// <summary>Số màn qua được nhiều nhất trong một chặng của thế giới này.</summary>
+        public static int TowerBest(int world) => PlayerPrefs.GetInt(TowerDoneKey + world, 0);
+
+        /// <summary>Số lượt còn lại của lần tốt nhất — mốc để lần sau vượt.</summary>
+        public static int TowerBestLeft(int world) => PlayerPrefs.GetInt(TowerLeftKey + world, 0);
+
+        /// <summary>
+        /// Ghi kết quả một chặng. Trả true nếu tốt hơn lần trước.
+        ///
+        /// So THEO THỨ TỰ: số màn qua được trước, rồi mới tới lượt còn lại. Qua 5 màn mà
+        /// cạn lượt vẫn hơn qua 4 màn mà dư nhiều — nếu so lượt trước thì bảng thành tích
+        /// sẽ khen người bỏ chặng giữa đường.
+        /// </summary>
+        public static bool RecordTower(int world, int cleared, int movesLeft)
+        {
+            int bestDone = TowerBest(world);
+            if (cleared < bestDone) return false;
+            if (cleared == bestDone && movesLeft <= TowerBestLeft(world)) return false;
+
+            PlayerPrefs.SetInt(TowerDoneKey + world, cleared);
+            PlayerPrefs.SetInt(TowerLeftKey + world, movesLeft);
+            PlayerPrefs.Save();
+            return true;
+        }
+
         private const string FreeKey        = "connectPuzzle.freePlay";
         private const string EndlessBestKey = "connectPuzzle.endlessBest";
 
@@ -175,6 +288,18 @@ namespace ConnectPuzzle.View
             PlayerPrefs.DeleteKey(DailyLastKey);
             PlayerPrefs.DeleteKey(StarsSpentKey);
             for (int i = 0; i < levelCount; i++) PlayerPrefs.DeleteKey(MedalKey + i);
+
+            // Bài hướng dẫn cũng là tiến độ: hồ sơ vừa xoá trắng thì phải được dạy lại
+            // từ đầu, không thì người chơi mới nhận một bàn có đá mà chưa ai nói đá là gì.
+            foreach (TutorialLesson lesson in TutorialLessons.All)
+                PlayerPrefs.DeleteKey(TutorialKey + lesson.World);
+            for (int i = 0; i < IntroCapacity; i++) PlayerPrefs.DeleteKey(IntroKey + i);
+
+            foreach (TutorialLesson lesson in TutorialLessons.All)
+            {
+                PlayerPrefs.DeleteKey(TowerDoneKey + lesson.World);
+                PlayerPrefs.DeleteKey(TowerLeftKey + lesson.World);
+            }
 
             PlayerPrefs.SetInt(LevelCount, levelCount);
             PlayerPrefs.Save();

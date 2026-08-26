@@ -64,6 +64,51 @@ namespace ConnectPuzzle.View
         public void Hide() { gameObject.SetActive(false); }
 
         /// <summary>
+        /// Cho lớp phủ và nền thẻ ĂN cú chạm, để không có gì phía sau nhận được nó.
+        ///
+        /// Cần vì Ui.Image đặt raycastTarget = false cho mọi ảnh nó dựng, kể cả lớp phủ
+        /// tối — nên lớp phủ chỉ LÀM TỐI chứ không chặn gì. Trong ván thì cờ `busy` che
+        /// được chỗ đó, nhưng thẻ mở trên MENU thì không có cờ nào: bấm vào một khoảng
+        /// trống của thẻ là cú chạm rơi xuống nút chọn màn nằm sau và mở luôn màn đó.
+        ///
+        /// Nút của thẻ vẫn bấm được: chúng nằm sâu hơn trong cây nên nhận raycast trước.
+        /// Bật ở đây chứ không sửa Ui.Image, vì raycastTarget = false là mặc định ĐÚNG cho
+        /// ảnh trang trí — chỉ hai ảnh này mới cần khác.
+        /// </summary>
+        private void BlockTapsBehind()
+        {
+            var shade = GetComponent<Image>();
+            if (shade == null)
+            {
+                Transform found = transform.Find("Shade");
+                if (found != null) shade = found.GetComponent<Image>();
+            }
+            if (shade != null) shade.raycastTarget = true;
+
+            Transform fill = this.card != null ? this.card.Find("Fill") : null;
+            if (fill != null)
+            {
+                var image = fill.GetComponent<Image>();
+                if (image != null) image.raycastTarget = true;
+            }
+        }
+
+        /// <summary>
+        /// Chiều cao tối đa thẻ được phép chiếm.
+        ///
+        /// Công khai vì Header() chỉ biết xếp CHỮ: thẻ nào có hình minh hoạ (thẻ hướng
+        /// dẫn) phải tự xếp, và muốn tự xếp thì phải biết trần cao là bao nhiêu.
+        /// </summary>
+        public float AvailableHeight => Available;
+
+        /// <summary>Chốt chiều cao thẻ. Dùng thay Header() khi bên gọi tự xếp bố cục.</summary>
+        public void SetHeight(float height)
+        {
+            this.card.sizeDelta = new Vector2(this.card.sizeDelta.x,
+                Mathf.Clamp(height, 320f, Available));
+        }
+
+        /// <summary>
         /// Mở một thẻ mới với đúng buttonCount nút.
         ///
         /// Chốt chiều RỘNG ngay tại đây, TRƯỚC khi bên gọi tạo chữ: preferredHeight của
@@ -74,6 +119,7 @@ namespace ConnectPuzzle.View
         {
             Ui.ClearChildren(this.card, ChromeChildren);
             gameObject.SetActive(true);
+            BlockTapsBehind();
             this.buttonCount = buttonCount;
             this.scale = 1f;
 

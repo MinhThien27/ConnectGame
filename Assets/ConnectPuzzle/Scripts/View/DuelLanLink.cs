@@ -38,6 +38,9 @@ namespace ConnectPuzzle.View
         /// <summary>Kết quả đối thủ nhận được.</summary>
         public event Action<DuelResult, string> OnOpponentResult;
 
+        /// <summary>Tiến độ GIỮA VÁN của đối thủ, tới sau mỗi nước họ đi.</summary>
+        public event Action<DuelResult, string> OnOpponentProgress;
+
         /// <summary>Lỗi mạng nói được cho người chơi, không phải stack trace.</summary>
         public event Action<string> OnProblem;
 
@@ -223,15 +226,33 @@ namespace ConnectPuzzle.View
         }
 
         /// <summary>
+        /// Báo tiến độ giữa ván. Gửi IM LẶNG: hỏng thì bỏ qua, không báo cho người chơi.
+        ///
+        /// Khác hẳn gửi kết quả. Kết quả gửi một lần và nếu hỏng thì cả ván đấu không phân
+        /// định được, nên phải nói ra. Tiến độ gửi mỗi nước; mạng chập một nhịp là chuyện
+        /// thường, mà báo lỗi mỗi nước thì thành mười lăm cái toast trong một ván — và người
+        /// chơi sẽ mất tin vào cả những cảnh báo thật.
+        /// </summary>
+        public bool SendProgress(DuelResult snapshot)
+        {
+            byte[] data = DuelWire.EncodeProgress(snapshot, this.LocalName, this.senderId);
+            return Send(data, quiet: true);
+        }
+
+        /// <summary>
         /// Gửi tới MỌI địa chỉ phát. Thành công nếu ít nhất một đường đi được.
         ///
         /// Không dừng ở lỗi đầu tiên: card mạng ảo (VPN, giả lập Android, Hyper-V) rất
         /// hay từ chối broadcast, mà đúng cái card Wi-Fi thật thì lại đi được. Dừng sớm
         /// là để một card rác chặn cả tính năng.
         /// </summary>
-        private bool Send(byte[] data)
+        private bool Send(byte[] data, bool quiet = false)
         {
-            if (this.socket == null) { Raise("Chưa bật kết nối Wi-Fi."); return false; }
+            if (this.socket == null)
+            {
+                if (!quiet) Raise("Chưa bật kết nối Wi-Fi.");
+                return false;
+            }
 
             int ok = 0;
             SocketError lastCode = SocketError.Success;
@@ -248,7 +269,7 @@ namespace ConnectPuzzle.View
             if (ok == 0)
             {
                 this.LastError = "Gửi không được (" + lastCode + ")";
-                Raise("Gửi không được (" + lastCode + ").");
+                if (!quiet) Raise("Gửi không được (" + lastCode + ").");
                 return false;
             }
             this.SentCount++;
@@ -339,6 +360,10 @@ namespace ConnectPuzzle.View
                 else if (p.Kind == DuelWire.Kind.Finished)
                 {
                     if (this.OnOpponentResult != null) this.OnOpponentResult(p.Result, p.Name);
+                }
+                else if (p.Kind == DuelWire.Kind.Progress)
+                {
+                    if (this.OnOpponentProgress != null) this.OnOpponentProgress(p.Progress, p.Name);
                 }
                 else if (p.Kind == DuelWire.Kind.Seek)
                 {

@@ -126,6 +126,7 @@ namespace ConnectPuzzle.View
 
             WireAll();
             this.audioPlayer = new PuzzleAudio(this.gameObject) { Enabled = PuzzleProgress.Sound };
+            Haptics.Enabled = PuzzleProgress.Haptics;
         }
 
 
@@ -240,8 +241,60 @@ namespace ConnectPuzzle.View
         void MenuScreen.IHost.OpenEndless() => OpenEndless();
         void MenuScreen.IHost.OpenDaily() => OpenDaily();
         void MenuScreen.IHost.OpenDuel() { if (this.duel != null) this.duel.OpenPanel(); }
-        void MenuScreen.IHost.ToggleSound() => ToggleSound();
+        void MenuScreen.IHost.ToggleSound() => CycleFeedback();
         void MenuScreen.IHost.ToggleSymbols() => ToggleSymbols();
+
+        void MenuScreen.IHost.OpenWorldCard(int world) => ShowWorldCard(world);
+
+        /// <summary>
+        /// Thẻ của một thế giới, mở bằng cách bấm nhãn thế giới ở menu.
+        ///
+        /// Hai lối vào dồn vào một thẻ vì menu hết chỗ: chân menu đã bốn nút, ba nút chế độ
+        /// nằm trong prefab, và thêm nút là sửa prefab rồi chốt lại ảnh chụp bố cục. Nhãn
+        /// thế giới thì đã nằm ngay trên đúng nhóm màn nó nói về — chỗ tự nhiên nhất để
+        /// treo cả hai. Thẻ nằm TRÊN menu nên đây cũng là đường xem trước cơ chế và thử
+        /// leo tháp ở thế giới còn đang khoá.
+        /// </summary>
+        private void ShowWorldCard(int world)
+        {
+            TutorialLesson lesson = TutorialLessons.For(world);
+            bool towerOk = GauntletRun.AvailableFor(world);
+
+            this.card.Begin(1 + (lesson != null ? 1 : 0) + (towerOk ? 1 : 0));
+
+            Text title = Ui.Text("Title", this.card.Root, LevelCatalog.WorldName(world),
+                46, PuzzlePalette.Foreground, TextAnchor.UpperCenter, FontStyle.Bold);
+
+            var body = new System.Text.StringBuilder();
+            if (lesson != null) body.Append(lesson.Title);
+
+            int bestDone = PuzzleProgress.TowerBest(world);
+            if (bestDone > 0)
+            {
+                if (body.Length > 0) body.Append('\n');
+                body.Append("▲ Tháp: tốt nhất ").Append(bestDone).Append(" màn");
+                int left = PuzzleProgress.TowerBestLeft(world);
+                if (left > 0) body.Append(", còn dư ").Append(left).Append(" lượt");
+            }
+            else if (towerOk)
+            {
+                if (body.Length > 0) body.Append('\n');
+                body.Append("▲ Tháp: chưa leo lần nào");
+            }
+
+            Text detail = Ui.Text("Detail", this.card.Root, body.ToString(),
+                29, PuzzlePalette.Dim, TextAnchor.UpperCenter);
+
+            this.card.Header(new[] { title, detail }, new[] { 46, 29 });
+
+            int slot = 0;
+            if (lesson != null)
+                this.card.AddButton("Hướng dẫn cơ chế", slot++, slot == 1,
+                    () => OpenTutorial(lesson, "Đóng", null));
+            if (towerOk)
+                this.card.AddButton("▲ Leo tháp", slot++, slot == 1, () => StartTower(world));
+            this.card.AddButton("Đóng", slot, false, this.card.Hide);
+        }
 
         void MenuScreen.IHost.ToggleFreePlay()
         {
@@ -263,17 +316,38 @@ namespace ConnectPuzzle.View
             if (!PuzzleProgress.IsUnlocked(index))
             {
                 this.audioPlayer.Tone(180f, 0.2f);
+                Haptics.Reject();
                 Toast("Màn " + (index + 1) + " chưa mở. Qua màn trước để mở, hoặc bật Chơi tự do ở cuối menu.");
                 return;
             }
             OpenLevel(index);
         }
 
+        /// <summary>
+        /// Nút ♪ trong ván: tắt/bật TIẾNG, không đụng tới rung.
+        ///
+        /// Cố ý khác nút ở chân menu. Nút ♪ là nút tắt tiếng gấp — bấm giữa ván vì chỗ
+        /// đang ngồi cần im lặng — mà chỗ cần im lặng thì rung lại đúng là thứ muốn giữ.
+        /// </summary>
         private void ToggleSound()
         {
             PuzzleProgress.Sound = !PuzzleProgress.Sound;
             this.audioPlayer.Enabled = PuzzleProgress.Sound;
             UpdateToggleLabels();
+        }
+
+        /// <summary>Nút phản hồi ở chân menu: tắt hết → tiếng → tiếng + rung.</summary>
+        private void CycleFeedback()
+        {
+            PuzzleProgress.CycleFeedback();
+            this.audioPlayer.Enabled = PuzzleProgress.Sound;
+            Haptics.Enabled = PuzzleProgress.Haptics;
+            UpdateToggleLabels();
+
+            // Nghe/cảm được ngay cái mình vừa bật. Không có phản hồi tại chỗ thì nút này
+            // là nút duy nhất ở chân menu bấm vào mà không có gì xảy ra ngoài đổi chữ.
+            if (PuzzleProgress.Sound) this.audioPlayer.Tone(PuzzleAudio.Note(3), 0.24f);
+            if (PuzzleProgress.Haptics) Haptics.Medium();
         }
 
         private void ToggleSymbols()
@@ -328,6 +402,8 @@ namespace ConnectPuzzle.View
         public void ShowMenu()
         {
             CancelDiagnosis();
+            CloseTutorial();
+            EndTower();          // rời màn hình giữa chặng là bỏ chặng
             this.card.Hide();
             this.gameScreen.gameObject.SetActive(false);
             this.menuScreen.gameObject.SetActive(true);
@@ -340,37 +416,238 @@ namespace ConnectPuzzle.View
         /// bấm vào là im lặng hoàn toàn — không phân biệt được với "game hỏng".
         /// </summary>
         /// <summary>
-        /// Câu giới thiệu cho cơ chế LẦN ĐẦU gặp, tìm TỰ ĐỘNG theo bảng màn.
-        /// Ghi số màn cứng thì mỗi lần thêm/bớt màn là các mốc lệch hết mà không ai báo —
-        /// người chơi gặp đá ở màn 31 mà lời giải thích nhảy ra ở màn 25.
+        /// Câu nhắc ngắn cho BIẾN THỂ của một cơ chế, hiện ở màn đầu tiên có nó.
+        ///
+        /// Bảng này từng chứa cả các cơ chế CHÍNH (đá, đa sắc, ngòi, đích, băng, trói).
+        /// Chúng đã chuyển sang thẻ hướng dẫn có hình (TutorialLessons), nên giữ lại ở đây
+        /// là nói hai lần cùng một điều — người chơi vừa đọc thẻ xong thì một toast nhảy
+        /// ra lặp lại đúng câu đó. Còn lại đúng những gì thẻ KHÔNG dạy: biến thể "dày",
+        /// vốn chỉ là một con số khác trên một luật đã biết, nên một dòng chữ là đủ.
+        ///
+        /// Tìm TỰ ĐỘNG theo bảng màn. Ghi số màn cứng thì mỗi lần thêm/bớt màn là các mốc
+        /// lệch hết mà không ai báo.
+        ///
+        /// THỨ TỰ LÀ HỢP ĐỒNG: chỉ số trong bảng chính là khoá lưu "đã hiện" ở
+        /// PuzzleProgress, nên chèn dòng mới vào GIỮA sẽ làm câu nhắc cũ hiện lại một lần.
+        /// Thêm vào CUỐI.
         /// </summary>
         private static readonly (System.Func<LevelConfig, bool> Match, string Message)[] IntroRules =
         {
-            (c => c.Stones > 0, "Đá không nối được. Nó chỉ vỡ khi bạn ăn một chuỗi NGAY CẠNH nó."),
             (c => c.Stones > 0 && c.StoneHp >= 2, "Đá dày cần bị va 2 lần mới vỡ."),
-            (c => c.Wilds > 0, "Ô đa sắc ✦ ghép được với mọi màu — nhưng mỗi chuỗi chỉ được dùng 1 ô."),
-            (c => c.Bombs > 0, "Ô có số là ngòi nổ: hết số mà chưa ăn tới là thua ngay."),
-            (c => c.Goals > 0, "Màn này chỉ cần dọn các ô có vòng vàng, không cần sạch bàn."),
-            (c => c.Ices > 0, "Ô phủ băng chưa chọn được. Ăn một chuỗi NGAY CẠNH cho tan băng, rồi mới ăn nó."),
-            (c => c.Ices > 0 && c.IceHp >= 2, "Băng dày cần làm tan 2 lần mới ăn được ô bên dưới."),
-            (c => c.Links > 0, "◇ Hai ô cùng vòng màu bị TRÓI nhau: ăn một ô thì ô kia vỡ theo, dù ở xa.")
+            (c => c.Ices > 0 && c.IceHp >= 2, "Băng dày cần làm tan 2 lần mới ăn được ô bên dưới.")
         };
-
-        private readonly HashSet<int> introShown = new HashSet<int>();
 
         private void ShowIntroFor(int index)
         {
             for (int r = 0; r < IntroRules.Length; r++)
             {
-                if (this.introShown.Contains(r)) continue;
+                if (PuzzleProgress.IntroSeen(r)) continue;
 
                 int first = -1;
                 for (int i = 0; i < LevelCatalog.Levels.Length; i++)
                     if (IntroRules[r].Match(LevelCatalog.Levels[i])) { first = i; break; }
 
                 if (first != index) continue;
-                this.introShown.Add(r);
+                PuzzleProgress.MarkIntroSeen(r);
                 Toast(IntroRules[r].Message);
+            }
+        }
+
+        // ==================================================================
+        // Leo tháp
+        // ==================================================================
+
+        /// <summary>Chặng đang chạy, null nếu không leo tháp.</summary>
+        private GauntletRun tower;
+
+        private bool IsTower => this.tower != null;
+
+        /// <summary>
+        /// Bắt đầu một chặng. Dựng cả 5 màn ngay (GauntletRun.Start làm việc đó) vì ngân
+        /// sách là tổng par của cả chặng.
+        /// </summary>
+        private void StartTower(int world)
+        {
+            GauntletRun run = GauntletRun.Start(world);
+            if (run == null)
+            {
+                Toast("Thế giới này không mở được chặng leo tháp.");
+                return;
+            }
+            this.tower = run;
+            OpenTowerLevel();
+            Toast("Leo tháp " + run.Levels.Length + " màn · " + run.Budget +
+                  " lượt cho cả chặng (chơi rời được " + run.SeparateBudget() + ").");
+        }
+
+        /// <summary>
+        /// Mở màn hiện tại của chặng.
+        ///
+        /// Ghi MaxMoves vào LevelData TRƯỚC khi OpenLevelData dựng session: hàm dựng của
+        /// PuzzleSession nhớ lại MaxMoves làm ngân sách gốc, nên sửa sau đó thì nút Chơi
+        /// lại sẽ trả về con số cũ.
+        /// </summary>
+        private void OpenTowerLevel()
+        {
+            LevelData level = this.tower.CurrentLevel;
+            if (level == null) return;
+            level.MaxMoves = this.tower.BudgetForCurrentLevel();
+            OpenLevelData(this.tower.CurrentLevelIndex, level);
+        }
+
+        private void EndTower()
+        {
+            this.tower = null;
+        }
+
+        /// <summary>Thẻ tổng kết chặng — hiện cho cả khi xong và khi hỏng.</summary>
+        private void ShowTowerCard()
+        {
+            GauntletRun run = this.tower;
+            bool cleared = run.Cleared;
+            bool best = PuzzleProgress.RecordTower(run.World, run.Done, cleared ? run.Budget : 0);
+
+            this.card.Begin(2);
+
+            Text title = Ui.Text("Title", this.card.Root,
+                cleared ? "Lên đỉnh tháp!" : "Chặng dừng ở màn " + (run.Done + 1),
+                56, cleared ? PuzzlePalette.Foreground : PuzzlePalette.Bad,
+                TextAnchor.UpperCenter, FontStyle.Bold);
+
+            var body = new System.Text.StringBuilder();
+            body.Append(LevelCatalog.WorldName(run.World)).Append('\n')
+                .Append("Qua ").Append(run.Done).Append('/').Append(run.Levels.Length)
+                .Append(" màn · ").Append(run.Score).Append(" điểm");
+            if (cleared) body.Append("\nCòn dư ").Append(run.Budget).Append(" lượt");
+            if (best) body.Append("\n<color=#34D399>★ Thành tích mới</color>");
+            else
+            {
+                int bestDone = PuzzleProgress.TowerBest(run.World);
+                if (bestDone > 0)
+                    body.Append("\nTốt nhất: ").Append(bestDone).Append('/')
+                        .Append(run.Levels.Length).Append(" màn");
+            }
+
+            Text detail = Ui.Text("Detail", this.card.Root, body.ToString(),
+                30, PuzzlePalette.Dim, TextAnchor.UpperCenter);
+            detail.supportRichText = true;
+
+            this.card.Header(new[] { title, detail }, new[] { 56, 30 });
+
+            int world = run.World;
+            this.card.AddButton("↻ Leo lại từ đầu", 0, true, () => { EndTower(); StartTower(world); });
+            this.card.AddButton("Danh sách màn", 1, false, () => { EndTower(); ShowMenu(); });
+        }
+
+        /// <summary>
+        /// Thẻ giữa chặng: vừa qua một màn, còn bấy nhiêu lượt cho phần còn lại.
+        ///
+        /// Con số "còn N lượt" là thứ duy nhất người chơi cần ở đây, và nó phải to: cả chế
+        /// độ này là quyết định tiêu lượt, mà quyết định đó được đưa ra ở đúng thời điểm
+        /// đọc thẻ này.
+        /// </summary>
+        private void ShowTowerStepCard(int movesUsed)
+        {
+            GauntletRun run = this.tower;
+            this.card.Begin(2);
+
+            Text title = Ui.Text("Title", this.card.Root,
+                "Qua màn " + run.Done + "/" + run.Levels.Length,
+                56, PuzzlePalette.Foreground, TextAnchor.UpperCenter, FontStyle.Bold);
+
+            Text budget = Ui.Text("Budget", this.card.Root,
+                "còn " + run.Budget + " lượt",
+                72, run.Budget <= 6 ? PuzzlePalette.Bad : PuzzlePalette.Star,
+                TextAnchor.UpperCenter, FontStyle.Bold);
+
+            Text detail = Ui.Text("Detail", this.card.Root,
+                "Màn này tốn " + movesUsed + " lượt · " + run.Score + " điểm" +
+                "\ncho " + (run.Levels.Length - run.Done) + " màn còn lại",
+                30, PuzzlePalette.Dim, TextAnchor.UpperCenter);
+
+            this.card.Header(new[] { title, budget, detail }, new[] { 56, 72, 30 });
+
+            this.card.AddButton("Màn tiếp theo →", 0, true, OpenTowerLevel);
+            this.card.AddButton("Bỏ chặng", 1, false, () => { EndTower(); ShowMenu(); });
+        }
+
+        // ==================================================================
+        // Bài hướng dẫn cơ chế
+        // ==================================================================
+
+        /// <summary>
+        /// Thẻ hướng dẫn. Dựng chậm (lúc cần lần đầu) vì phần lớn phiên chơi không mở nó,
+        /// và nó ngồi trên chính OverlayCard của thẻ cuối ván nên không tốn node riêng.
+        /// </summary>
+        private TutorialCard tutorial;
+        private Coroutine tutorialRoutine;
+
+        /// <summary>
+        /// Mở bài hướng dẫn của thế giới chứa màn này, nếu chưa từng xem. Trả true nếu
+        /// đã mở — bên gọi dùng nó để HOÃN các câu nhắc khác lại sau khi thẻ đóng, không
+        /// thì toast chạy phía sau một thẻ đang che kín và coi như không ai đọc.
+        ///
+        /// Bám theo THẾ GIỚI của màn đang mở chứ không theo "màn đầu của thế giới": bật
+        /// Chơi tự do là vào thẳng màn 45 được, và ở đó vẫn cần biết ô đa sắc là gì.
+        /// </summary>
+        private bool MaybeShowTutorial(int index, System.Action after)
+        {
+            if (index < 0 || index >= LevelCatalog.Levels.Length) return false;   // vô tận/thử thách/đấu
+
+            int world = LevelCatalog.Levels[index].World;
+            if (PuzzleProgress.TutorialSeen(world)) return false;
+
+            TutorialLesson lesson = TutorialLessons.For(world);
+            if (lesson == null) return false;
+
+            PuzzleProgress.MarkTutorialSeen(world);
+            OpenTutorial(lesson, "Bắt đầu", after);
+            return true;
+        }
+
+        /// <summary>
+        /// Mở thẻ hướng dẫn cho một bài cụ thể. Dùng cho cả lần đầu tự hiện và lần bấm
+        /// nhãn thế giới ở menu để xem lại.
+        /// </summary>
+        private void OpenTutorial(TutorialLesson lesson, string buttonLabel, System.Action after)
+        {
+            if (this.tutorialRoutine != null) StopCoroutine(this.tutorialRoutine);
+            this.tutorialRoutine = StartCoroutine(TutorialRoutine(lesson, buttonLabel, after));
+        }
+
+        /// <summary>
+        /// Chờ ĐÚNG một khung hình trước khi dựng thẻ.
+        ///
+        /// OverlayCard.Begin chốt chiều rộng thẻ theo rect của lớp phủ, mà rect đó chỉ có
+        /// số thật sau khi Canvas đã bố cục xong. Dựng ngay trong cùng khung hình với
+        /// OpenLevelData thì thẻ nhận chiều rộng dự phòng 420 trên mọi máy, và mọi phép đo
+        /// chữ bên trong đều sai theo.
+        /// </summary>
+        private IEnumerator TutorialRoutine(TutorialLesson lesson, string buttonLabel,
+                                            System.Action after)
+        {
+            yield return null;
+
+            if (this.tutorial == null) this.tutorial = new TutorialCard(this.card);
+
+            // busy chặn cú chạm xuống bàn thật phía sau lớp phủ.
+            this.busy = true;
+
+            yield return this.tutorial.Show(lesson, buttonLabel, () =>
+            {
+                this.busy = false;
+                this.tutorialRoutine = null;
+                after?.Invoke();
+            });
+        }
+
+        private void CloseTutorial()
+        {
+            if (this.tutorialRoutine != null) { StopCoroutine(this.tutorialRoutine); this.tutorialRoutine = null; }
+            if (this.tutorial != null && this.tutorial.Visible)
+            {
+                this.tutorial.Close();
+                this.busy = false;
             }
         }
 
@@ -378,7 +655,9 @@ namespace ConnectPuzzle.View
         public void OpenLevel(int index)
         {
             OpenLevelData(index, LevelBuilder.Build(LevelCatalog.Levels[index]));
-            ShowIntroFor(index);
+
+            // Thẻ hướng dẫn đi TRƯỚC câu nhắc: nếu thẻ mở, câu nhắc chờ tới lúc thẻ đóng.
+            if (!MaybeShowTutorial(index, () => ShowIntroFor(index))) ShowIntroFor(index);
         }
 
         /// <summary>Mở chế độ vô tận. Dùng chung toàn bộ đường chơi, chỉ khác dữ liệu màn.</summary>
@@ -449,6 +728,16 @@ namespace ConnectPuzzle.View
 
         private void RestartLevel()
         {
+            // Leo tháp không cho chơi lại MỘT màn. Chơi lại đặt lại ngân sách về đúng con
+            // số lúc vào màn, tức là thử được vô hạn lần ở cùng ngân sách — chỉ cần lặp
+            // tới khi đi đúng par là cả chặng thành chuyện chắc chắn xong. Muốn thử lại
+            // thì leo lại từ đầu, và nút đó nằm trên thẻ tổng kết.
+            if (IsTower)
+            {
+                Toast("Leo tháp không chơi lại một màn — đó là cái giá của ngân sách chung.");
+                return;
+            }
+
             CancelDiagnosis();
             // Chơi lại/Chơi ván mới cũng là một lối THOÁT khỏi ván hiện tại — bấm nút
             // này giữa lúc đang chơi vô tận (không phải từ thẻ đã bí) trước đây xoá điểm
@@ -475,6 +764,8 @@ namespace ConnectPuzzle.View
             string hudTitle = this.level.Endless ? "∞ Vô tận"
                 : IsDuel ? "⚔ Đấu " + this.duel.Code
                 : IsDaily ? "✦ Thử thách hôm nay"
+                : IsTower ? "▲ Tháp " + (this.tower.Done + 1) + "/" + this.tower.Levels.Length +
+                            " · " + cfg.Name
                 : ((this.levelIndex + 1) + ". " + cfg.Name);
             string hudSub =
                 this.level.Endless ? "kỷ lục " + PuzzleProgress.EndlessBest + " · ô rớt xuống mãi"
@@ -492,9 +783,14 @@ namespace ConnectPuzzle.View
             string rule = "chuỗi " + this.level.MinChain +
                 (this.level.MaxChain == int.MaxValue ? "+ ô" : "-" + this.level.MaxChain + " ô");
             this.hud.SetTitle(hudTitle, hudSub);
+            // Màn chính xác phải NÓI RA là nó khít. "tối ưu 8" bên cạnh "8 lượt" trông y
+            // như mọi màn khác, và người chơi chỉ phát hiện ra mình không có lượt dư vào
+            // lúc hết lượt — tức là lúc đã quá muộn để chơi khác đi.
             this.hud.SetRuleLine(this.level.Endless
                 ? rule + " · " + EndlessRules.ColorsFor(this.session.Score) + " màu"
-                : rule + " · tối ưu " + this.level.Par);
+                : this.level.Exact
+                    ? rule + " · đúng " + this.level.Par + " lượt, không dư"
+                    : rule + " · tối ưu " + this.level.Par);
 
             this.board.SetDimmed(this.session, false, PuzzleProgress.Symbols);
             this.board.ClearChain();
@@ -526,6 +822,11 @@ namespace ConnectPuzzle.View
             // phát lại — đúng lỗi "cùng Wi-Fi mà không thấy nhau".
             if (Lan != null) Lan.Tick();
 
+            // Thẻ hướng dẫn nhắc TRƯỚC mọi nhánh màn hình: nó mở được từ cả menu (bấm nhãn
+            // thế giới) lẫn trong ván, mà nhánh menu phía dưới return sớm — đặt sau nó thì
+            // hoạt ảnh đứng im đúng ở chỗ hay được mở nhất.
+            if (this.tutorial != null && this.tutorial.Visible) this.tutorial.Tick(Time.deltaTime);
+
             // Menu cũng phải bố cục lại khi khung đổi (quay máy, lề an toàn thay đổi),
             // không thì lưới màn đè lên footer trên tỉ lệ màn hình khác.
             if (this.menuScreen.gameObject.activeSelf) { this.menu.Tick(); return; }
@@ -533,6 +834,29 @@ namespace ConnectPuzzle.View
             if (!this.gameScreen.gameObject.activeSelf) return;
             ApplyLayout(force: false);
             this.board.TickChain(Time.deltaTime);   // nét đứt chạy, như stroke-dashoffset
+            TickOpponentLine();
+        }
+
+        /// <summary>Dòng tiến độ đối thủ đang hiện, để biết khi nào nó thật sự đổi.</summary>
+        private string shownOpponentLine = "";
+
+        /// <summary>
+        /// Vẽ lại HUD khi tiến độ đối thủ đổi.
+        ///
+        /// Phải nằm trong nhịp khung hình chứ không nằm trong UpdateHud: gói tin tới từ
+        /// MẠNG, vào lúc chẳng liên quan gì tới lượt của mình. Chỉ dựa vào UpdateHud thì
+        /// dòng đó đứng im suốt lúc mình đang ngồi nghĩ — đúng lúc nó đáng đọc nhất, vì
+        /// biết đối thủ vừa vượt lên là thứ đổi được nước mình sắp đi.
+        ///
+        /// SO CHUỖI trước khi vẽ: Refresh ghi cả chục Text, chạy mỗi khung hình là phí, mà
+        /// tiến độ thì chỉ đổi vài lần trong cả ván.
+        /// </summary>
+        private void TickOpponentLine()
+        {
+            string line = Lan == null ? "" : Lan.OpponentLine;
+            if (line == this.shownOpponentLine) return;
+            this.shownOpponentLine = line;
+            UpdateHud();
         }
 
 
@@ -681,6 +1005,7 @@ namespace ConnectPuzzle.View
             {
                 this.board.SetSelected(cell, true);
                 this.audioPlayer.Select(this.session.Selection.Count);
+                Haptics.Tick();
                 Vector2 center = this.board.CellCenter(cell);
                 this.effects.Burst(BoardToEffect(center), PuzzlePalette.Colors[this.session.SelectionColor], 3,
                     this.board.CellSize * 0.4f);
@@ -739,7 +1064,7 @@ namespace ConnectPuzzle.View
         {
             if (this.session.Selection.Count < this.level.MinChain)
             {
-                if (this.session.Selection.Count > 0) this.audioPlayer.Bad();
+                if (this.session.Selection.Count > 0) { this.audioPlayer.Bad(); Haptics.Reject(); }
                 ClearSelectionVisuals();
                 this.session.ClearSelection();
                 yield break;
@@ -777,6 +1102,12 @@ namespace ConnectPuzzle.View
             if (chainLength >= 6) this.effects.Shake(this.board.Root, this.board.CellSize * 0.09f);
             this.audioPlayer.Clear(chainLength);
 
+            // Cùng ba ngưỡng mà rung màn hình và cỡ chữ điểm đang dùng (5 / 6 / 8), để ba
+            // kênh phản hồi nói CÙNG một điều về cùng một nước đi.
+            if (chainLength >= 8) Haptics.Strong();
+            else if (chainLength >= 5) Haptics.Medium();
+            else Haptics.Light();
+
             this.hud.AnimateScore(result.ScoreBefore, this.session.Score);
             UpdateHud();
 
@@ -808,12 +1139,28 @@ namespace ConnectPuzzle.View
                 // hai âm khác nhau: nứt là tiếng gõ đanh, tan là tiếng vỡ cao hơn
                 if (result.ThawedIce.Count > 0) this.audioPlayer.Tone(880f, 0.22f);
                 else this.audioPlayer.Tone(520f, 0.12f);
+                Haptics.Light();
                 yield return this.board.PlayIce(result.CrackedIce, result.ThawedIce);
             }
 
             UpdateHud();
+            ReportLanProgress();
             this.busy = false;
             Evaluate();
+        }
+
+        /// <summary>
+        /// Báo cho đối thủ biết mình đang ở đâu. Gọi sau mỗi thay đổi làm đổi bộ số
+        /// (lượt / ô còn / điểm) — nước đi và hoàn tác.
+        ///
+        /// Chỉ gửi khi đang có ván đấu Wi-Fi: ở màn thường thì không có ai nghe, mà mở
+        /// socket ra phát vào mạng LAN của người ta là chuyện không nên làm khi không cần.
+        /// </summary>
+        private void ReportLanProgress()
+        {
+            if (!IsDuel || this.duel == null) return;
+            if (Lan == null || !Lan.Active || Lan.Link == null) return;
+            Lan.Link.SendProgress(this.duel.SnapshotProgress());
         }
 
         private static string Praise(int chainLength)
@@ -846,6 +1193,7 @@ namespace ConnectPuzzle.View
                 PuzzleProgress.ClearEndlessState();
 
                 this.audioPlayer.Tone(180f, 0.35f);
+                Haptics.Strong();
                 this.busy = true;
                 this.diagnosisRoutine = StartCoroutine(DiagnoseRoutine(new LossReason
                 {
@@ -863,12 +1211,25 @@ namespace ConnectPuzzle.View
                 this.duel.CaptureResult();
                 if ((Lan != null && Lan.TryShowVerdict())) return;
 
+                // Leo tháp đi đường riêng và KHÔNG ghi gì vào tiến độ chiến dịch: chặng
+                // chơi lại được vô hạn, nên ghi sao ở đây là mở đường cày sao bằng cách
+                // chạy lại màn dễ nhất của chặng.
+                if (IsTower)
+                {
+                    int used = this.session.MovesUsed;
+                    this.tower.Complete(used, this.session.Score);
+                    Celebrate();
+                    if (this.tower.Cleared) ShowTowerCard();
+                    else ShowTowerStepCard(used);
+                    return;
+                }
+
                 int stars = this.session.StarsEarned();
 
                 // Huy hiệu kỹ thuật: chỉ ở chiến dịch. Thử thách hằng ngày không ghi
                 // huy hiệu vì huy hiệu đẻ ra sao, mà sao mua được vật phẩm — vòng đó
                 // sẽ phá đúng cái công bằng mà thử thách dựa vào.
-                this.medalJustEarned = !IsDaily && !IsDuel && this.session.MedalEarned &&
+                this.medalJustEarned = !IsDaily && !IsDuel && !IsTower && this.session.MedalEarned &&
                                        PuzzleProgress.RecordMedal(this.levelIndex);
 
                 // Ván đấu KHÔNG ghi vào tiến độ chiến dịch. Không chặn thì chỉ số -3 tạo
@@ -900,7 +1261,12 @@ namespace ConnectPuzzle.View
             // ngày thì con số trên menu phải là lần tốt nhất, không phải chỉ lần thắng.
             if (IsDaily) PuzzleProgress.RecordDaily(this.dailyKey, 0, this.session.Score, false);
 
+            // Hỏng chặng ghi NGAY tại đây, trước khi hoạt ảnh chẩn đoán chạy: thẻ tổng kết
+            // hiện ra ở cuối hoạt ảnh đó và nó đọc trạng thái đã hỏng.
+            if (IsTower) this.tower.Fail(this.session.Score);
+
             this.audioPlayer.Tone(180f, 0.35f);
+            Haptics.Strong();
             this.busy = true;
             this.diagnosisRoutine = StartCoroutine(DiagnoseRoutine(reason));
         }
@@ -988,6 +1354,7 @@ namespace ConnectPuzzle.View
         private void UpdateHud()
         {
             this.items.RefreshBar();
+            this.hud.SetOpponentLine(Lan == null ? "" : Lan.OpponentLine);
             this.hud.Refresh(this.session, this.level, IsDaily);
             this.controls.Refresh(this.session, this.level.Endless);
             UpdateToggleLabels();
@@ -1021,7 +1388,12 @@ namespace ConnectPuzzle.View
         {
             if (this.busy) return;
             PuzzleSession.UndoResult outcome = this.session.Undo();
-            if (outcome != PuzzleSession.UndoResult.Ok) { this.audioPlayer.Bad(); return; }
+            if (outcome != PuzzleSession.UndoResult.Ok)
+            {
+                this.audioPlayer.Bad();
+                Haptics.Reject();
+                return;
+            }
 
             this.board.SetDimmed(this.session, false, PuzzleProgress.Symbols);
             this.board.ClearChain();
@@ -1037,14 +1409,21 @@ namespace ConnectPuzzle.View
             }
 
             this.audioPlayer.Undo();
+            Haptics.Light();
             UpdateHud();
+            ReportLanProgress();
         }
 
         private void OnHint()
         {
             if (this.busy) return;
             int[] cells = this.session.FindHint();
-            if (cells == null || cells.Length == 0) { this.audioPlayer.Bad(); return; }
+            if (cells == null || cells.Length == 0)
+            {
+                this.audioPlayer.Bad();
+                Haptics.Reject();
+                return;
+            }
             StartCoroutine(this.board.PlayHint(cells));
         }
 
@@ -1062,11 +1441,13 @@ namespace ConnectPuzzle.View
                 if (this.session.ShufflesLeft <= 0 || !this.session.ReshuffleEndless())
                 {
                     this.audioPlayer.Bad();
+                    Haptics.Reject();
                     yield break;
                 }
                 this.board.Refresh(this.session, PuzzleProgress.Symbols);
                 UpdateHud();
                 this.audioPlayer.Tone(420f, 0.18f);
+                Haptics.Medium();
                 Toast("Đã xáo lại bàn — mạch combo về 0.");
                 yield break;
             }
@@ -1079,6 +1460,7 @@ namespace ConnectPuzzle.View
             if (plan == null)
             {
                 this.audioPlayer.Bad();
+                Haptics.Reject();
                 UpdateHud();
                 LossReason reason = this.session.MovesUsed >= this.level.MaxMoves
                     ? LossAnalyzer.OutOfMoves(this.session)
@@ -1106,7 +1488,8 @@ namespace ConnectPuzzle.View
             this.card.Hide();
             UpdateHud();
 
-            for (int i = 0; i < 4; i++) this.audioPlayer.Tone(392f * Mathf.Pow(1.26f, i), 0.2f);
+            this.audioPlayer.Fanfare(2);
+            Haptics.Medium();
             yield return this.board.PlaySlide(moves, this.session);
 
             this.effects.FloatText(Vector2.zero,
@@ -1122,7 +1505,9 @@ namespace ConnectPuzzle.View
         {
             // ĐẾM nút trước rồi mới mở thẻ: khung phải biết nó cần cao bao nhiêu
             bool last = this.levelIndex >= LevelCatalog.Levels.Length - 1;
-            this.card.Begin(IsDuel ? 4 : 1 + (last ? 0 : 1) + (stars < 3 ? 1 : 0));
+            this.card.Begin(IsDuel ? 4
+                          : IsDaily ? 2 + (stars < 3 ? 1 : 0)
+                          : 1 + (last ? 0 : 1) + (stars < 3 ? 1 : 0));
 
             Text title = Ui.Text("Title", this.card.Root, "Qua màn!",
                 60, PuzzlePalette.Foreground, TextAnchor.UpperCenter, FontStyle.Bold);
@@ -1165,14 +1550,56 @@ namespace ConnectPuzzle.View
                 this.card.AddButton("Danh sách màn", slot, false, ShowMenu);
                 return;
             }
+            if (IsTower) { ShowTowerCard(); return; }   // Evaluate đã đi đường riêng; chốt hai lần cho chắc
+            if (IsDaily)
+            {
+                // KHÔNG có "Màn tiếp theo →" ở đây, và đó là một lỗi được sửa chứ không
+                // phải một lựa chọn: chỉ số của thử thách là -2, nên `last` ra false và
+                // nhánh chung phía dưới dựng nút gọi OpenLevel(-1) — tức
+                // LevelCatalog.Levels[-1], ném ra ngoài mảng. Thắng thử thách rồi bấm nút
+                // sáng nhất trên thẻ là gặp exception.
+                this.card.AddButton("Chia sẻ kết quả", slot++, true, CopyDailyShare);
+                if (stars < 3) this.card.AddButton("Thử lại để lấy 3★", slot++, false, RestartLevel);
+                this.card.AddButton("Danh sách màn", slot, false, ShowMenu);
+                return;
+            }
             if (!last) this.card.AddButton("Màn tiếp theo →", slot++, true, () => OpenLevel(this.levelIndex + 1));
             if (stars < 3) this.card.AddButton("Thử lại để lấy 3★", slot++, false, RestartLevel);
             this.card.AddButton("Danh sách màn", slot, false, ShowMenu);
         }
 
+        /// <summary>
+        /// Sao chép kết quả thử thách hôm nay ra clipboard.
+        ///
+        /// Đọc chuỗi ngày SAU khi Evaluate đã ghi ván (RecordDaily chạy trước ShowWinCard),
+        /// nên con số đã tính cả hôm nay.
+        /// </summary>
+        private void CopyDailyShare()
+        {
+            string text = DailyShare.Build(
+                this.dailyKey,
+                this.session.IsWon(),
+                this.session.StarsEarned(),
+                this.session.MovesUsed,
+                this.level.Par,
+                this.session.Score,
+                PuzzleProgress.DailyStreakLive(this.dailyKey),
+                this.session.ChainLog,
+                this.level.MinChain,
+                this.level.MaxChain);
+
+            Clipboard = text;
+            Toast("Đã sao chép kết quả — dán vào Zalo, Messenger hay chỗ nào cũng được.");
+        }
+
         private void ShowLoseCard(LossReason reason)
         {
             // ĐẾM nút trước rồi mới mở thẻ
+            // Leo tháp không có phao: hết lượt là hỏng chặng, không xáo cũng không hoàn tác
+            // ngược lại một nước đã tiêu. Cho phao ở đây là cho thử lại vô hạn trên cùng
+            // một ngân sách, và cả chặng mất nghĩa.
+            if (IsTower) { ShowTowerCard(); return; }
+
             bool canShuffle = this.session.CanShuffle;
             bool canUndo = this.session.CanUndo;
             // Ván đấu: bỏ phao (xáo/hoàn tác) và thay bằng hai nút chia sẻ kết quả — thua
@@ -1281,7 +1708,7 @@ namespace ConnectPuzzle.View
         /// một bộ luật.
         /// </summary>
         private bool ItemsUsable =>
-            this.session != null && this.session.ItemsAllowed && !IsDaily && !IsDuel;
+            this.session != null && this.session.ItemsAllowed && !IsDaily && !IsDuel && !IsTower;
 
         /// <summary>
         /// Chạy hoạt ảnh của một lần dùng vật phẩm rồi đánh giá lại ván.
@@ -1333,7 +1760,7 @@ namespace ConnectPuzzle.View
         bool ItemPanel.IHost.Busy => this.busy;
         bool ItemPanel.IHost.ItemsUsable => ItemsUsable;
         void ItemPanel.IHost.Toast(string message) => Toast(message);
-        void ItemPanel.IHost.BadSound() => this.audioPlayer.Bad();
+        void ItemPanel.IHost.BadSound() { this.audioPlayer.Bad(); Haptics.Reject(); }
         void ItemPanel.IHost.Tone(float hertz, float seconds) => this.audioPlayer.Tone(hertz, seconds);
         void ItemPanel.IHost.PlayItemEffect(MoveResult effect) => StartCoroutine(PlayItemEffect(effect));
         void ItemPanel.IHost.RefreshWallet() => RefreshWallet();
@@ -1413,7 +1840,7 @@ namespace ConnectPuzzle.View
         }
 
         void DuelPanel.IHost.Toast(string message) => Toast(message);
-        void DuelPanel.IHost.BadSound() => this.audioPlayer.Bad();
+        void DuelPanel.IHost.BadSound() { this.audioPlayer.Bad(); Haptics.Reject(); }
         void DuelPanel.IHost.Tone(float hertz, float seconds) => this.audioPlayer.Tone(hertz, seconds);
         void DuelPanel.IHost.Celebrate() => Celebrate();
         void DuelPanel.IHost.OpenDuelBoard(LevelData board) => OpenLevelData(DuelIndex, board);
@@ -1421,13 +1848,15 @@ namespace ConnectPuzzle.View
         void DuelPanel.IHost.ShowMenu() => ShowMenu();
 
         /// <summary>
-        /// Pháo giấy + chuỗi bốn nốt. Dùng cho cả thắng màn, hết ván vô tận, và thắng một
-        /// ván đấu — ba chỗ này trước đây chép lại đúng hai dòng giống hệt nhau.
+        /// Pháo giấy + chuỗi bốn nốt + nhịp rung đôi. Dùng cho cả thắng màn, hết ván vô
+        /// tận, và thắng một ván đấu — ba chỗ này trước đây chép lại đúng hai dòng giống
+        /// hệt nhau.
         /// </summary>
         private void Celebrate()
         {
             this.effects.Confetti(Vector2.zero, this.board.Root.sizeDelta.x * 0.5f);
-            for (int i = 0; i < 4; i++) this.audioPlayer.Tone(523f * Mathf.Pow(1.26f, i), 0.3f);
+            this.audioPlayer.Fanfare(5);
+            Haptics.Success();
         }
 
         // ==================================================================

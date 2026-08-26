@@ -126,8 +126,10 @@ namespace ConnectPuzzle.View
                 this.link.OnInvite -= OnInvite;
                 this.link.OnOpponentResult -= OnOpponentResult;
                 this.link.OnProblem -= OnProblem;
+                this.link.OnOpponentProgress -= OnOpponentProgress;
                 this.link.OnInvite += OnInvite;
                 this.link.OnOpponentResult += OnOpponentResult;
+                this.link.OnOpponentProgress += OnOpponentProgress;
                 this.link.OnProblem += OnProblem;
             }
 
@@ -252,10 +254,65 @@ namespace ConnectPuzzle.View
         /// phản xạ tự nhiên là "đối thủ xong rồi, dừng lại và so" — mà đúng luật thì phải
         /// chơi hết, vì thắng thua tính theo dọn sạch bàn và số lượt.
         /// </summary>
+        // ------------------------------------------------------------------
+        // Tiến độ đối thủ giữa ván
+        //
+        // Trước đây hai người nhập cùng một mã rồi ai chơi máy nấy, xong mới so — nên suốt
+        // cả ván không có gì để cảm thấy là đang ĐẤU. Một dòng "đối thủ 12 lượt · 8 ô" đổi
+        // hẳn chỗ đó mà không đổi một luật nào: bạn biết mình đang dẫn hay đang bị bỏ xa,
+        // và cái biết đó đổi cách bạn chọn nước tiếp theo.
+        // ------------------------------------------------------------------
+
+        private bool hasProgress;
+        private DuelResult progress;
+
+        /// <summary>Đối thủ đã gửi gói XONG — từ lúc đó tiến độ không cập nhật nữa.</summary>
+        private bool opponentDone;
+
+        private void OnOpponentProgress(DuelResult snapshot, string who)
+        {
+            // Lọc theo DẤU BÀN. Không lọc thì một ván đấu khác đang chạy trên cùng mạng Wi-Fi
+            // sẽ đẩy số của nó vào HUD của bạn, và bạn tưởng mình đang bị bỏ xa trên bàn này.
+            if (this.duel != null && snapshot.BoardTag != this.duel.CurrentBoardTag) return;
+
+            // Gói XONG đã tới rồi thì bỏ qua tiến độ đến sau: UDP không giữ thứ tự, nên một
+            // gói tiến độ cũ tới muộn sẽ ghi đè "đã xong" thành một con số giữa ván.
+            if (this.opponentDone) return;
+
+            this.progress = snapshot;
+            this.hasProgress = true;
+            if (!string.IsNullOrEmpty(who)) this.opponentName = who;
+        }
+
+        /// <summary>
+        /// Dòng tiến độ để HUD hiện, hoặc chuỗi rỗng khi chưa có gì.
+        ///
+        /// Rỗng chứ không phải null, và cũng không phải một câu chờ: chưa nhận được gói nào
+        /// thì hoặc đối thủ chưa đi nước nào, hoặc bản của họ cũ và không gửi tiến độ. Cả hai
+        /// trường hợp đều KHÔNG có gì để nói, mà hiện "đang chờ…" suốt ván thì thành một
+        /// dòng nói sai.
+        /// </summary>
+        public string OpponentLine
+        {
+            get
+            {
+                if (!this.active) return "";
+                string who = this.opponentName == "" ? "Đối thủ" : this.opponentName;
+
+                if (this.opponentDone)
+                    return "⚔ " + who + " đã xong · " + this.opponent.MovesUsed + " lượt";
+
+                if (!this.hasProgress) return "";
+                return "⚔ " + who + " · " + this.progress.MovesUsed + " lượt · " +
+                       this.progress.CellsLeft + " ô";
+            }
+        }
+
         private void OnOpponentResult(DuelResult result, string who)
         {
             this.opponent = result;
             this.hasOpponent = true;
+            this.opponentDone = true;
             this.opponentName = string.IsNullOrEmpty(who) ? "Đối thủ" : who;
 
             if (this.duel != null && this.duel.ResultReady)
@@ -277,6 +334,13 @@ namespace ConnectPuzzle.View
             this.active = true;
             this.hasOpponent = false;
             this.opponentName = "";
+
+            // Xoá cả tiến độ của ván TRƯỚC. Bỏ sót chỗ này thì ván đấu thứ hai mở ra đã hiện
+            // sẵn "đối thủ 14 lượt" của ván vừa xong — một con số sai nhưng trông rất thật.
+            this.hasProgress = false;
+            this.opponentDone = false;
+            this.progress = default(DuelResult);
+
             ClosePanel();
             this.duel.StartDuel(newSeed, newPreset);
             Toast(toast + " · bàn " + DuelChallenge.PresetName(newPreset) +

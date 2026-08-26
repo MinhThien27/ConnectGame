@@ -236,6 +236,7 @@ namespace ConnectPuzzle.Core
             if (this.baseMaxMoves > 0) level.MaxMoves = this.baseMaxMoves;
             this.LastUndoneItem = ItemKind.None;
             this.FullChains = 0;
+            this.ChainLog.Clear();
             this.MovesUsed = 0;
             this.Score = 0;
             this.UndosLeft = level.Undos;
@@ -369,6 +370,18 @@ namespace ConnectPuzzle.Core
 
         /// <summary>Số chuỗi KỊCH TRẦN đã ăn trong ván này.</summary>
         public int FullChains { get; private set; }
+
+        /// <summary>
+        /// Độ dài từng chuỗi đã ăn, theo thứ tự nước đi.
+        ///
+        /// Đây là DẤU VẾT CÁCH CHƠI, không phải điểm: cùng 12 lượt nhưng toàn chuỗi kịch
+        /// trần khác hẳn toàn chuỗi tối thiểu, mà con số "12 lượt" không nói ra được điều
+        /// đó. Dùng cho ô vuông chia sẻ kết quả thử thách hằng ngày.
+        ///
+        /// Chỉ ghi nước ĂN CHUỖI. Dùng vật phẩm hay xáo lại không thêm gì vào đây — chúng
+        /// không phải một chuỗi, và nhồi chúng vào sẽ làm chuỗi ô vuông nói sai.
+        /// </summary>
+        public List<int> ChainLog { get; } = new List<int>();
 
         /// <summary>
         /// Huy hiệu kỹ thuật của ván. Chỉ tính khi ĐÃ THẮNG — gom đủ chuỗi đầy rồi
@@ -617,6 +630,8 @@ namespace ConnectPuzzle.Core
             // Chuỗi kịch trần — đơn vị đo của huy hiệu kỹ thuật.
             if (this.Level.MaxChain != int.MaxValue && this.Selection.Count == this.Level.MaxChain)
                 this.FullChains++;
+
+            this.ChainLog.Add(this.Selection.Count);
 
             // ô đích vừa dọn được
             if (this.Level.GoalMode)
@@ -961,8 +976,13 @@ namespace ConnectPuzzle.Core
         /// <summary>
         /// Vô tận không cho dùng vật phẩm: ở đó không có giới hạn lượt để mà nới, và
         /// búa thì biến việc giữ combo thành chuyện mua được bằng sao.
+        ///
+        /// Màn CHÍNH XÁC cũng không, và ở đây lý do còn gắt hơn: cả cái hay của màn nằm ở
+        /// chỗ không dư lượt, mà "+1 lượt" giá ★2 thì xoá đúng điều đó — người chơi mua
+        /// hai lượt là màn chính xác trở thành màn thường. Búa cũng vậy: nó dọn một ô
+        /// không tốn lượt, tức là hạ số nước cần xuống dưới par.
         /// </summary>
-        public bool ItemsAllowed => !this.Level.Endless;
+        public bool ItemsAllowed => !this.Level.Endless && !this.Level.Exact;
 
         /// <summary>Vật phẩm của bước vừa bị hoàn tác — để hoàn lại sao. None nếu là nước đi thường.</summary>
         public ItemKind LastUndoneItem { get; private set; }
@@ -1132,6 +1152,15 @@ namespace ConnectPuzzle.Core
             public int MaxMoves;
             public int FullChains;
 
+            /// <summary>
+            /// SỐ PHẦN TỬ của ChainLog lúc chụp, không phải một bản copy.
+            ///
+            /// Đủ vì nhật ký chỉ được THÊM VÀO CUỐI, mỗi nước nhiều nhất một phần tử —
+            /// nên hoàn tác chỉ là cắt lại về con số này. Chép cả danh sách ở mỗi ảnh chụp
+            /// là tốn bộ nhớ theo bình phương số nước đi mà không thêm thông tin nào.
+            /// </summary>
+            public int ChainCount;
+
             /// <summary>Vật phẩm đã dùng ở bước này; None nếu là nước đi thường.</summary>
             public ItemKind Item;
         }
@@ -1156,6 +1185,7 @@ namespace ConnectPuzzle.Core
                 Combo = this.Combo,
                 MaxMoves = this.Level.MaxMoves,
                 FullChains = this.FullChains,
+                ChainCount = this.ChainLog.Count,
                 Item = ItemKind.None
             };
             if (this.Stacks != null)
@@ -1193,6 +1223,9 @@ namespace ConnectPuzzle.Core
             this.Combo = snapshot.Combo;
             this.Level.MaxMoves = snapshot.MaxMoves;
             this.FullChains = snapshot.FullChains;
+            if (snapshot.ChainCount < this.ChainLog.Count)
+                this.ChainLog.RemoveRange(snapshot.ChainCount,
+                                          this.ChainLog.Count - snapshot.ChainCount);
             this.LastUndoneItem = snapshot.Item;
             this.UndosLeft--;
             this.ShuffleImpossible = false;

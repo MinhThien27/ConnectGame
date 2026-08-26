@@ -126,6 +126,21 @@ namespace ConnectPuzzle.Core
         /// </summary>
         public int Links = 0;
 
+        /// <summary>
+        /// Màn CHÍNH XÁC: ngân sách lượt bằng ĐÚNG par, không dư một lượt nào.
+        ///
+        /// Không suy ra từ Slack = 0 mà là một cờ riêng, vì nó đổi ba thứ khác nữa: cấm
+        /// vật phẩm (xem PuzzleSession.ItemsAllowed), đổi câu trên HUD, và bỏ hẳn nút xáo.
+        /// Đọc Slack = 0 rồi ngầm hiểu ra cả ba là kiểu ràng buộc mà sáu tháng sau không
+        /// ai nhớ nữa.
+        ///
+        /// Vẫn bảo đảm giải được: par là số nước của lời giải tham chiếu (hoặc của bot
+        /// tham lam, cái nào ngắn hơn), tức là một dãy nước CÓ THẬT vừa đúng ngân sách.
+        /// Nó KHÔNG được chứng minh là ngắn nhất — và không cần: cái cần là "có đường
+        /// đi", còn việc người chơi phải tìm ra một đường ngắn bằng thế mới chính là bài.
+        /// </summary>
+        public bool Exact = false;
+
         public int ResolvedShuffles => this.Shuffles >= 0 ? this.Shuffles : (this.World == 1 ? 3 : 2);
     }
 
@@ -179,6 +194,7 @@ namespace ConnectPuzzle.Core
                 case 7:  return "Thế giới 7 · Mục tiêu";
                 case 8:  return "Thế giới 8 · Băng giá";
                 case 9:  return "Thế giới 9 · Dây trói";
+                case 10: return "Thế giới 10 · Chính xác";
                 default: return "Thế giới " + world;
             }
         }
@@ -319,7 +335,36 @@ namespace ConnectPuzzle.Core
             new LevelConfig { World=9, Name="Trói & băng",  Columns=7, Rows=7, Colors=4, Seed=13733, Slack=3, Fuse=0.55, Undos=3, MinChain=3, MaxChain=5, Links=2, Ices=4 },
             new LevelConfig { World=9, Name="Trói & sắc",   Columns=8, Rows=7, Colors=5, Seed=13837, Slack=3, Fuse=0.60, Undos=3, MinChain=3, MaxChain=5, Links=3, Wilds=2 },
             new LevelConfig { World=9, Name="Trói & ngòi",  Columns=8, Rows=7, Colors=5, Seed=13941, Slack=3, Fuse=0.60, Undos=3, MinChain=3, MaxChain=5, Links=3, Bombs=2 },
-            new LevelConfig { World=9, Name="Nút thắt",     Columns=8, Rows=8, Colors=5, Seed=14047, Slack=3, Fuse=0.65, Undos=2, MinPathLength=3, MaxPathLength=6, MinChain=3, MaxChain=6, Links=4, Ices=4, Goals=5 }
+            new LevelConfig { World=9, Name="Nút thắt",     Columns=8, Rows=8, Colors=5, Seed=14047, Slack=3, Fuse=0.65, Undos=2, MinPathLength=3, MaxPathLength=6, MinChain=3, MaxChain=6, Links=4, Ices=4, Goals=5 },
+
+            // ---------- Thế giới 10 · CHÍNH XÁC ----------
+            // Ngân sách lượt bằng ĐÚNG par: không dư một nước nào. Đây là thế giới duy
+            // nhất mà độ khó KHÔNG đến từ một cơ chế mới — nó đến từ việc bỏ hết lượt dư.
+            // Chín thế giới trước đều cho Slack 2-5, nên một nước hớ vẫn trôi được tới
+            // cuối ván; ở đây một nước hớ là hết.
+            //
+            // Ba lựa chọn cân bằng đi kèm, cả ba đều cần chứ không phải trang trí:
+            //  - BÀN NHỎ (5x5 đến 6x7). Không dư lượt nghĩa là phải nhìn ra cả kế hoạch
+            //    trước khi đi nước đầu, mà bàn 8x8 thì đó là việc không làm nổi bằng mắt.
+            //  - NHIỀU HOÀN TÁC (6-8). Một nước hớ phải sửa được tại chỗ; không có nó thì
+            //    mỗi sai sót đều bắt chơi lại từ đầu, và người chơi bỏ chứ không cố.
+            //  - KHÔNG XÁO (Shuffles=0). Xáo lại dựng một lời giải mới cần RequiredMoves
+            //    lượt rồi so với số lượt CÒN LẠI; với ngân sách khít thì nó gần như luôn
+            //    thất bại, nên để nút đó sống chỉ là mời người chơi bấm vào một chỗ chết.
+            //
+            // Cơ chế thì DÙNG LẠI những gì chín thế giới trước đã dạy, mỗi màn một thứ.
+            // Chồng cơ chế mới lên ngân sách khít là cộng hai cái khó vào nhau, và khi
+            // thua thì người chơi không biết mình thua vì cái nào.
+            new LevelConfig { World=10, Exact=true, Name="Khít khao",      Columns=5, Rows=5, Colors=3, Seed=15101, Slack=0, Fuse=0.30, Undos=8, Shuffles=0, MinPathLength=3, MaxPathLength=4, MinChain=2, MaxChain=4 },
+            new LevelConfig { World=10, Exact=true, Name="Không dư",       Columns=5, Rows=5, Colors=3, Seed=15207, Slack=0, Fuse=0.35, Undos=8, Shuffles=0, MinPathLength=3, MaxPathLength=4, MinChain=3, MaxChain=4 },
+            new LevelConfig { World=10, Exact=true, Name="Đúng bấy nhiêu", Columns=5, Rows=6, Colors=3, Seed=15311, Slack=0, Fuse=0.40, Undos=7, Shuffles=0, MinChain=3, MaxChain=5 },
+            new LevelConfig { World=10, Exact=true, Name="Kim cương khít", Shape=DiamondShape, Colors=3, Seed=15413, Slack=0, Fuse=0.40, Undos=7, Shuffles=0, MinChain=3, MaxChain=5 },
+            new LevelConfig { World=10, Exact=true, Name="Bốn màu khít",   Columns=6, Rows=6, Colors=4, Seed=15519, Slack=0, Fuse=0.45, Undos=7, Shuffles=0, MinChain=3, MaxChain=5 },
+            new LevelConfig { World=10, Exact=true, Name="Đá khít",        Columns=6, Rows=6, Colors=4, Seed=15623, Slack=0, Fuse=0.45, Undos=7, Shuffles=0, MinChain=3, MaxChain=5, Stones=3 },
+            new LevelConfig { World=10, Exact=true, Name="Sắc khít",       Columns=6, Rows=6, Colors=4, Seed=15729, Slack=0, Fuse=0.50, Undos=6, Shuffles=0, MinChain=3, MaxChain=5, Wilds=1 },
+            new LevelConfig { World=10, Exact=true, Name="Băng khít",      Columns=6, Rows=6, Colors=4, Seed=15833, Slack=0, Fuse=0.50, Undos=6, Shuffles=0, MinChain=3, MaxChain=5, Ices=3 },
+            new LevelConfig { World=10, Exact=true, Name="Trói khít",      Columns=6, Rows=6, Colors=4, Seed=15937, Slack=0, Fuse=0.50, Undos=6, Shuffles=0, MinChain=3, MaxChain=5, Links=2 },
+            new LevelConfig { World=10, Exact=true, Name="Không sai một nước", Columns=6, Rows=7, Colors=4, Seed=16043, Slack=0, Fuse=0.55, Undos=6, Shuffles=0, MinChain=3, MaxChain=5, Stones=3, Wilds=1 }
         };
     }
 }

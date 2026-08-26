@@ -1372,48 +1372,193 @@ namespace ConnectPuzzle.View
     }
 
     /// <summary>
-    /// Âm thanh sinh tại runtime: một clip sine, đổi pitch khi phát.
-    /// Giữ được chi tiết dễ thương của source gốc — pitch tăng dần theo độ dài chuỗi.
+    /// Âm thanh sinh tại runtime: một clip gõ ngắn, đổi cao độ khi phát.
+    ///
+    /// Ba chỗ khác bản trước, và cả ba đều là sửa lỗi nghe được chứ không phải trang trí:
+    ///
+    /// 1. NHIỀU AudioSource thay vì một. `pitch` là thuộc tính của AudioSource, KHÔNG
+    ///    phải tham số của PlayOneShot — nên phát nhiều nốt khác cao độ trong CÙNG một
+    ///    khung hình trên một source thì tất cả nghe thành nốt cuối. Chuỗi bốn nốt ăn
+    ///    mừng vì thế vốn là bốn nốt y hệt nhau. Dàn voice quay vòng chữa đúng chỗ đó,
+    ///    và mở đường cho rải nốt.
+    ///
+    /// 2. THANG NGŨ CUNG thay vì nửa cung. Trước đây mỗi ô nối thêm nhân cao độ 1.0595,
+    ///    tức đi từng nửa cung: chuỗi 5 ô là một cụm năm nửa cung liền nhau, nghe chối
+    ///    và không đo được độ dài bằng tai. Ngũ cung trưởng không có hai nốt nào cách
+    ///    nhau nửa cung, nên quãng nào cũng hoà và chuỗi dài nghe rõ là đang đi lên.
+    ///
+    /// 3. Clip có HOÀ ÂM BỘI thay vì sine trơn. Sine trơn là tiếng máy đo; thêm bội 2 và
+    ///    3 tắt nhanh hơn bội gốc là ra tiếng gõ có "đầu" — nghe được trên loa điện thoại,
+    ///    nơi sine 260Hz gần như biến mất.
     /// </summary>
     public sealed class PuzzleAudio
     {
+        /// <summary>Cao độ thật của clip. Mọi nốt là clip này bị đổi pitch quanh đây.</summary>
         private const float BaseFrequency = 440f;
-        private readonly AudioSource source;
-        private readonly AudioClip sine;
+
+        private const float ClipSeconds = 0.28f;
+
+        /// <summary>
+        /// Đô giữa — gốc của thang. Chọn C4 vì cả thang nằm gọn trong dải loa điện thoại
+        /// còn phát ra được; hạ xuống một quãng tám là phần lớn nốt mất tiếng trên máy thật.
+        /// </summary>
+        private const float Root = 261.63f;
+
+        /// <summary>
+        /// Ngũ cung trưởng, tính bằng nửa cung từ gốc. Không có nửa cung liền nhau nên
+        /// hai nốt BẤT KỲ trong thang ghép lại vẫn hoà — đó là lý do chọn nó thay vì
+        /// thang bảy nốt: chuỗi ô người chơi nối ra không theo thứ tự nào cả.
+        /// </summary>
+        private static readonly int[] Pentatonic = { 0, 2, 4, 7, 9 };
+
+        /// <summary>
+        /// Đủ cho chuỗi rải nốt dài nhất (4 nốt) cộng một hai âm chồng lên. Thêm nữa chỉ
+        /// tốn AudioSource không bao giờ tới lượt.
+        /// </summary>
+        private const int VoiceCount = 6;
+
+        private readonly AudioSource[] voices = new AudioSource[VoiceCount];
+
+        /// <summary>Mốc dspTime mà mỗi voice hết việc — để chọn voice rảnh nhất.</summary>
+        private readonly double[] freeAt = new double[VoiceCount];
+
+        private readonly AudioClip clip;
 
         public bool Enabled = true;
 
         public PuzzleAudio(GameObject host)
         {
-            this.source = host.AddComponent<AudioSource>();
-            this.source.playOnAwake = false;
-            this.source.spatialBlend = 0f;
+            for (int i = 0; i < VoiceCount; i++)
+            {
+                var voice = host.AddComponent<AudioSource>();
+                voice.playOnAwake = false;
+                voice.spatialBlend = 0f;
+                voice.loop = false;
+                this.voices[i] = voice;
+            }
 
             int sampleRate = 44100;
-            int samples = sampleRate / 8;                       // 0.125s
+            int samples = (int)(sampleRate * ClipSeconds);
             var data = new float[samples];
             for (int i = 0; i < samples; i++)
             {
                 float t = i / (float)sampleRate;
-                float envelope = Mathf.Exp(-t * 22f);           // tắt dần cho đỡ gắt
-                data[i] = Mathf.Sin(2f * Mathf.PI * BaseFrequency * t) * envelope;
+                float w = 2f * Mathf.PI * BaseFrequency * t;
+
+                // Bội càng cao càng tắt nhanh, y như vật thật. Cho cả ba tắt cùng tốc độ
+                // thì âm giữ nguyên độ chói suốt cả nốt và nghe lại thành tiếng máy.
+                float body = Mathf.Sin(w) * Mathf.Exp(-t * 9f)
+                           + Mathf.Sin(w * 2f) * 0.34f * Mathf.Exp(-t * 17f)
+                           + Mathf.Sin(w * 3f) * 0.12f * Mathf.Exp(-t * 26f);
+
+                // Vào tiếng trong 3ms. Nhảy thẳng từ 0 lên biên độ đầy ở mẫu đầu tiên là
+                // một bậc nhảy, và bậc nhảy nghe ra thành tiếng "cụp" trước mỗi nốt.
+                float attack = Mathf.Min(1f, t / 0.003f);
+
+                data[i] = body * attack * 0.6f;
             }
-            this.sine = AudioClip.Create("puzzleSine", samples, 1, sampleRate, false);
-            this.sine.SetData(data, 0);
+
+            this.clip = AudioClip.Create("puzzleTone", samples, 1, sampleRate, false);
+            this.clip.SetData(data, 0);
+            for (int i = 0; i < VoiceCount; i++) this.voices[i].clip = this.clip;
         }
 
-        public void Tone(float frequency, float volume = 0.3f)
+        /// <summary>
+        /// Tần số của bậc thứ `degree` trên thang, đếm từ 0. Vượt quá 5 bậc thì lên quãng
+        /// tám tiếp theo — nhờ vậy chuỗi dài bao nhiêu cũng còn nốt để đi lên.
+        /// </summary>
+        public static float Note(int degree)
         {
-            if (!this.Enabled || this.sine == null) return;
-            this.source.pitch = Mathf.Clamp(frequency / BaseFrequency, 0.15f, 4f);
-            this.source.PlayOneShot(this.sine, volume);
+            if (degree < 0) degree = 0;
+            int semitone = Pentatonic[degree % Pentatonic.Length]
+                         + 12 * (degree / Pentatonic.Length);
+            return Root * Mathf.Pow(2f, semitone / 12f);
         }
 
-        public void Select(int chainLength) => Tone(392f * Mathf.Pow(1.0595f, chainLength), 0.28f);
-        public void Clear(int chainLength)  => Tone(190f + chainLength * 38f, 0.4f);
-        public void Fall()                 => Tone(150f, 0.22f);
-        public void Bad()                  => Tone(140f, 0.3f);
-        public void Undo()                 => Tone(300f, 0.25f);
-        public void Blip(int step)         => Tone(280f + step * 55f, 0.2f);
+        /// <summary>
+        /// Voice rảnh sớm nhất. Khi tất cả đang kêu thì đây là voice đã kêu lâu nhất —
+        /// cắt nó là ít lộ nhất, vì nó đang ở phần ngân đã gần tắt.
+        /// </summary>
+        private AudioSource Take(double startTime, double duration)
+        {
+            int best = 0;
+            for (int i = 1; i < VoiceCount; i++)
+                if (this.freeAt[i] < this.freeAt[best]) best = i;
+            this.freeAt[best] = startTime + duration;
+            return this.voices[best];
+        }
+
+        /// <summary>
+        /// Phát một nốt, có thể lùi lại `delay` giây. Lùi bằng PlayScheduled chứ không
+        /// bằng coroutine: coroutine không chạy ở edit mode, và chuỗi rải nốt lệch một
+        /// khung hình là đủ để mất cảm giác đều nhịp.
+        /// </summary>
+        private void PlayAt(float frequency, float volume, float delay)
+        {
+            if (!this.Enabled || this.clip == null) return;
+
+            float pitch = Mathf.Clamp(frequency / BaseFrequency, 0.15f, 4f);
+            double start = AudioSettings.dspTime + (delay > 0f ? delay : 0d);
+
+            // Đổi pitch là đổi cả tốc độ phát, nên nốt cao ngắn hơn nốt thấp. Voice phải
+            // được giữ đúng bằng độ dài THẬT, không phải độ dài clip.
+            AudioSource voice = Take(start, ClipSeconds / pitch);
+            voice.pitch = pitch;
+            voice.volume = Mathf.Clamp01(volume);
+
+            if (delay > 0f) voice.PlayScheduled(start);
+            else voice.Play();
+        }
+
+        public void Tone(float frequency, float volume = 0.3f) => PlayAt(frequency, volume, 0f);
+
+        /// <summary>
+        /// Bậc cao nhất còn nghe được đúng cao độ.
+        ///
+        /// Trần này KHÔNG tuỳ ý: clip gốc ở 440Hz và pitch bị kẹp ở 4.0, nên mọi nốt từ
+        /// 1760Hz (bậc 14) trở lên đều phát ra CÙNG một cao độ. Chế độ vô tận không có
+        /// trần chuỗi (MaxChain = int.MaxValue) nên chuỗi 15 ô là chuyện xảy ra được, và
+        /// nếu để nó chạy quá bậc 13 thì chuỗi càng dài lại càng nghe giống nhau — đúng
+        /// cái mà thang ngũ cung đang được dùng để chữa.
+        /// </summary>
+        private const int TopDegree = 13;
+
+        /// <summary>Mỗi ô nối thêm là một bậc ngũ cung đi lên, tới bậc cao nhất còn nghe được.</summary>
+        public void Select(int chainLength) =>
+            Tone(Note(Mathf.Min(chainLength - 1, TopDegree)), 0.26f);
+
+        /// <summary>
+        /// Ăn chuỗi: rải nốt đi lên, số nốt và độ cao theo độ dài chuỗi. Chuỗi ngắn cho
+        /// hai nốt thấp, chuỗi kịch trần cho bốn nốt cao — tai biết mình vừa ăn lớn hay
+        /// nhỏ trước khi mắt kịp đọc số điểm bay lên.
+        /// </summary>
+        public void Clear(int chainLength)
+        {
+            int notes = Mathf.Clamp(chainLength / 2, 2, 4);
+            int top = Mathf.Clamp(chainLength - 1, 2, TopDegree);
+            for (int i = 0; i < notes; i++)
+                PlayAt(Note(top - (notes - 1 - i) * 2), 0.34f, i * 0.045f);
+        }
+
+        /// <summary>
+        /// Chuỗi bốn nốt ăn mừng. Có mặt ở đây thay vì để chỗ gọi tự lặp bốn lần: vòng
+        /// lặp ở chỗ gọi phát cả bốn trong một khung hình, mà một khung hình thì không
+        /// phải một chuỗi — nó là một hợp âm, và trước khi có dàn voice thì còn tệ hơn,
+        /// cả bốn ra đúng một nốt.
+        /// </summary>
+        public void Fanfare(int fromDegree = 2)
+        {
+            for (int i = 0; i < 4; i++) PlayAt(Note(fromDegree + i), 0.3f, i * 0.085f);
+        }
+
+        public void Fall()                 => Tone(Note(0) * 0.5f, 0.2f);
+        public void Undo()                 => Tone(Note(2), 0.22f);
+        public void Blip(int step)         => Tone(Note(step + 2), 0.2f);
+
+        /// <summary>
+        /// Nước không hợp lệ. Cố ý NGOÀI thang: một nốt lạc mới nói được "sai", còn nốt
+        /// nào trong thang cũng nghe như một phần của bản nhạc đang chơi.
+        /// </summary>
+        public void Bad()                  => Tone(138f, 0.3f);
     }
 }

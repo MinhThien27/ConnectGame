@@ -15,7 +15,7 @@ namespace ConnectPuzzle.EditorTools
     /// </summary>
     public static class IconSetup
     {
-        private const string Art = "Assets/ConnectPuzzle/Art/";
+        /*private const string Art = "Assets/ConnectPuzzle/Art/";
 
         [MenuItem("Connect Puzzle/Gán icon + splash vào PlayerSettings", priority = 61)]
         public static void Apply()
@@ -123,6 +123,6 @@ namespace ConnectPuzzle.EditorTools
             }
             if (importer.maxTextureSize < 1024) { importer.maxTextureSize = 1024; dirty = true; }
             if (dirty) importer.SaveAndReimport();
-        }
+        }*/
     }
 }
