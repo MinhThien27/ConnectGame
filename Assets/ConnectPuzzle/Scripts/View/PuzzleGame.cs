@@ -500,12 +500,34 @@ namespace ConnectPuzzle.View
             this.tower = null;
         }
 
-        /// <summary>Thẻ tổng kết chặng — hiện cho cả khi xong và khi hỏng.</summary>
+        /// <summary>
+        /// Chặng vừa kết thúc có phá được thành tích cũ không.
+        ///
+        /// Ghi ở chỗ chặng KẾT THÚC, đọc ở chỗ dựng thẻ. Phải là một trường chứ không phải
+        /// tham số vì hai chỗ đó cách nhau về thời gian: khi thua, thẻ chỉ hiện sau khi
+        /// hoạt ảnh chẩn đoán chạy xong. Cùng khuôn với medalJustEarned.
+        /// </summary>
+        private bool towerBestJustSet;
+
+        /// <summary>
+        /// Ghi kết quả chặng. Tách khỏi ShowTowerCard vì ghi thành tích là việc của LUỒNG
+        /// CHƠI, không phải của hàm vẽ thẻ — trộn vào nhau thì mỗi lần dựng thẻ là một lần
+        /// ghi vào bản lưu, và bài kiểm bố cục (mở thẻ 36 lần) đã ghi 36 thành tích giả vào
+        /// save thật. ShowWinCard(stars, record) trong file này vốn đã tách sẵn như vậy.
+        /// </summary>
+        private void RecordTowerRun()
+        {
+            GauntletRun run = this.tower;
+            this.towerBestJustSet = PuzzleProgress.RecordTower(
+                run.World, run.Done, run.Cleared ? run.Budget : 0);
+        }
+
+        /// <summary>Thẻ tổng kết chặng — hiện cho cả khi xong và khi hỏng. KHÔNG ghi gì.</summary>
         private void ShowTowerCard()
         {
             GauntletRun run = this.tower;
             bool cleared = run.Cleared;
-            bool best = PuzzleProgress.RecordTower(run.World, run.Done, cleared ? run.Budget : 0);
+            bool best = this.towerBestJustSet;
 
             this.card.Begin(2);
 
@@ -1219,7 +1241,7 @@ namespace ConnectPuzzle.View
                     int used = this.session.MovesUsed;
                     this.tower.Complete(used, this.session.Score);
                     Celebrate();
-                    if (this.tower.Cleared) ShowTowerCard();
+                    if (this.tower.Cleared) { RecordTowerRun(); ShowTowerCard(); }
                     else ShowTowerStepCard(used);
                     return;
                 }
@@ -1263,7 +1285,7 @@ namespace ConnectPuzzle.View
 
             // Hỏng chặng ghi NGAY tại đây, trước khi hoạt ảnh chẩn đoán chạy: thẻ tổng kết
             // hiện ra ở cuối hoạt ảnh đó và nó đọc trạng thái đã hỏng.
-            if (IsTower) this.tower.Fail(this.session.Score);
+            if (IsTower) { this.tower.Fail(this.session.Score); RecordTowerRun(); }
 
             this.audioPlayer.Tone(180f, 0.35f);
             Haptics.Strong();
@@ -1666,6 +1688,55 @@ namespace ConnectPuzzle.View
         {
             ShowLoseCard(reason);
             return this.card.Root;
+        }
+
+        // ------------------------------------------------------------------
+        // Lối vào cho bài kiểm bố cục ba thẻ mới.
+        //
+        // Cả ba đều KHÔNG cần PuzzleSession — chúng chỉ đọc thế giới, chặng leo tháp và
+        // PlayerPrefs. Nhờ vậy bài kiểm mở được thẻ THẬT trên một instance prefab mà không
+        // phải dựng cả một ván, và nó đo đúng thứ code sản phẩm dựng ra chứ không đo một
+        // bản mô phỏng dễ trôi khỏi bản thật.
+        // ------------------------------------------------------------------
+
+        public RectTransform DebugShowWorldCard(int world)
+        {
+            ShowWorldCard(world);
+            return this.card.Root;
+        }
+
+        /// <summary>Thẻ giữa chặng, với chặng thật của thế giới đó. Trả null nếu không mở được chặng.</summary>
+        public RectTransform DebugShowTowerStepCard(int world, int movesUsed)
+        {
+            this.tower = GauntletRun.Start(world);
+            if (this.tower == null) return null;
+
+            // Cho chặng tiến một màn để thẻ có số thật mà hiện, đúng như lúc chơi.
+            this.tower.Complete(movesUsed, 120);
+            ShowTowerStepCard(movesUsed);
+            RectTransform root = this.card.Root;
+            this.tower = null;
+            return root;
+        }
+
+        /// <summary>Thẻ tổng kết chặng. `cleared` = leo hết, ngược lại là hỏng giữa đường.</summary>
+        public RectTransform DebugShowTowerCard(int world, bool cleared)
+        {
+            this.tower = GauntletRun.Start(world);
+            if (this.tower == null) return null;
+
+            if (cleared)
+                foreach (LevelData level in this.tower.Levels) this.tower.Complete(level.Par, 90);
+            else
+                this.tower.Fail(45);
+
+            // KHÔNG gọi RecordTowerRun: bài kiểm bố cục mở thẻ này hàng chục lần, và ghi
+            // thành tích ở đây là ghi thành tích giả vào bản lưu của người chơi.
+            this.towerBestJustSet = false;
+            ShowTowerCard();
+            RectTransform root = this.card.Root;
+            this.tower = null;
+            return root;
         }
 
         private void OnShuffleFromCard()

@@ -9,7 +9,7 @@ using UnityEngine.UI;
 namespace ConnectPuzzle.EditorTools
 {
     /// <summary>
-    /// Kiểm BỐ CỤC của thẻ hướng dẫn ở nhiều cỡ màn hình.
+    /// Kiểm BỐ CỤC của các thẻ nổi ở nhiều cỡ màn hình.
     ///
     /// Vì sao cần: thẻ hướng dẫn KHÔNG dùng OverlayCard.Header() (Header chỉ biết xếp
     /// chữ, còn thẻ này có một bàn minh hoạ phải giữ tỉ lệ), nên nó tự xếp bố cục bằng
@@ -52,6 +52,9 @@ namespace ConnectPuzzle.EditorTools
         {
             var log = new StringBuilder();
             int problems = 0;
+
+            problems += CheckGameCards(log);
+            log.Append('\n');
 
             foreach (Vector2 frame in Frames)
             {
@@ -159,6 +162,180 @@ namespace ConnectPuzzle.EditorTools
                    .Append(" · nội dung tới ").Append(lowest.ToString("F0"))
                    .Append(" · mốc nút ").Append(contentLimit.ToString("F0"))
                    .Append(boardInfo).Append('\n');
+
+            return problems;
+        }
+
+        // ==================================================================
+        // Ba thẻ dựng bởi PuzzleGame: thẻ thế giới, thẻ giữa chặng, thẻ tổng kết chặng
+        //
+        // Khác thẻ hướng dẫn ở chỗ chúng đi qua OverlayCard.Header() — đường mà bốn thẻ cũ
+        // đã dùng — nên rủi ro đo chữ thấp. Cái đáng canh ở đây là chuyện khác: Begin(n)
+        // phải KHỚP với số nút thật sự tạo ra. AddButton xếp nút từ đáy lên theo công thức
+        // (n - 1 - slot), nên khai thiếu một nút là nút cuối rơi xuống DƯỚI đáy thẻ. Thẻ
+        // thế giới có số nút thay đổi 1-3 tuỳ thế giới, nên đó là chỗ dễ lệch nhất.
+        //
+        // Mở thẻ THẬT trên một instance prefab thật, không dựng lại hình dạng thẻ trong bài
+        // kiểm: bản mô phỏng sẽ trôi khỏi bản thật ngay lần sửa kế tiếp.
+        // ==================================================================
+
+        private const string RootPrefabPath = "Assets/ConnectPuzzle/Resources/UI/PuzzleRoot.prefab";
+
+        private static int CheckGameCards(StringBuilder log)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(RootPrefabPath);
+            if (prefab == null)
+            {
+                log.Append("LOI: khong nap duoc ").Append(RootPrefabPath).Append('\n');
+                return 1;
+            }
+
+            int problems = 0;
+
+            foreach (Vector2 frame in Frames)
+            {
+                log.Append("--- the cua PuzzleGame · khung ")
+                   .Append(frame.x).Append('x').Append(frame.y).Append('\n');
+
+                for (int world = 1; world <= 12; world++)
+                {
+                    if (TutorialLessons.For(world) == null && !GauntletRun.AvailableFor(world))
+                        continue;                       // thế giới không có gì để hiện
+
+                    problems += OneCard(prefab, frame, "the-gioi-" + world, log,
+                        game => game.DebugShowWorldCard(world));
+
+                    if (!GauntletRun.AvailableFor(world)) continue;
+
+                    problems += OneCard(prefab, frame, "thap-giua-" + world, log,
+                        game => game.DebugShowTowerStepCard(world, 9));
+                    problems += OneCard(prefab, frame, "thap-xong-" + world, log,
+                        game => game.DebugShowTowerCard(world, true));
+                    problems += OneCard(prefab, frame, "thap-hong-" + world, log,
+                        game => game.DebugShowTowerCard(world, false));
+                }
+            }
+            return problems;
+        }
+
+        private static int OneCard(GameObject prefab, Vector2 frame, string who, StringBuilder log,
+                                   System.Func<PuzzleGame, RectTransform> open)
+        {
+            GameObject instance = null;
+            try
+            {
+                instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+
+                // Canvas là CON, không phải gốc: gốc prefab (PuzzleRoot) mang Transform
+                // thường, còn PuzzleCanvas mới là RectTransform. Ép kiểu transform của gốc
+                // là InvalidCastException — đúng chỗ bản đầu của bài kiểm này đã sai.
+                var canvas = instance.GetComponentInChildren<Canvas>(true);
+                if (canvas != null)
+                {
+                    // Chỉ WorldSpace mới cho GÁN cỡ Canvas bằng tay. ScreenSpaceOverlay lấy
+                    // cỡ từ màn hình thật, mà batchmode thì không có màn hình nào.
+                    canvas.renderMode = RenderMode.WorldSpace;
+                    var canvasRect = canvas.transform as RectTransform;
+                    if (canvasRect != null) canvasRect.sizeDelta = frame;
+                }
+                Canvas.ForceUpdateCanvases();
+
+                var game = instance.GetComponentInChildren<PuzzleGame>(true);
+                if (game == null)
+                {
+                    log.Append("    LOI ").Append(who).Append(": prefab khong co PuzzleGame\n");
+                    return 1;
+                }
+
+                RectTransform card = open(game);
+                if (card == null)
+                {
+                    log.Append("    bo qua ").Append(who).Append(" (khong dung duoc)\n");
+                    return 0;
+                }
+                Canvas.ForceUpdateCanvases();
+
+                return VerifyCard(card, who, log);
+            }
+            catch (System.Exception e)
+            {
+                log.Append("    LOI ").Append(who).Append(": ").Append(e.GetType().Name)
+                   .Append(" — ").Append(e.Message).Append('\n');
+                return 1;
+            }
+            finally
+            {
+                if (instance != null) Object.DestroyImmediate(instance);
+            }
+        }
+
+        /// <summary>
+        /// Bất biến chung của mọi thẻ dùng Header + AddButton: chữ neo từ đỉnh, nút neo từ
+        /// đáy, và cả hai phải nằm trong khung thẻ mà không đè lên nhau.
+        /// </summary>
+        private static int VerifyCard(RectTransform card, string who, StringBuilder log)
+        {
+            int problems = 0;
+            void Fail(string what)
+            {
+                problems++;
+                log.Append("    LOI ").Append(who).Append(": ").Append(what).Append('\n');
+            }
+
+            float height = card.sizeDelta.y;
+            if (height <= 0f) { Fail("thẻ cao 0"); return problems; }
+
+            float lowestText = 0f;
+            float highestButtonTop = 0f;
+            float lowestButtonBottom = float.MaxValue;
+            int buttons = 0;
+
+            foreach (RectTransform child in card)
+            {
+                string name = child.name;
+                if (name == "Fill" || name == "Border" || name == "Sheen") continue;
+
+                if (name.StartsWith("CardBtn"))
+                {
+                    buttons++;
+
+                    // Nút neo từ đáy (anchor y = 0): anchoredPosition.y là mép DƯỚI.
+                    float bottom = child.anchoredPosition.y;
+                    float top = bottom + child.sizeDelta.y;
+
+                    if (bottom < -0.5f)
+                        Fail(name + " tụt xuống dưới đáy thẻ (" + bottom.ToString("F0") +
+                             ") — dấu hiệu Begin() khai thiếu nút");
+                    if (top > height + 0.5f)
+                        Fail(name + " vượt lên trên đỉnh thẻ (" + top.ToString("F0") +
+                             " > " + height.ToString("F0") + ")");
+                    if (child.sizeDelta.y <= 0f) Fail(name + " cao 0");
+
+                    if (top > highestButtonTop) highestButtonTop = top;
+                    if (bottom < lowestButtonBottom) lowestButtonBottom = bottom;
+                    continue;
+                }
+
+                // Khối chữ neo từ đỉnh (anchor y = 1): -anchoredPosition.y là mép TRÊN.
+                float textTop = -child.anchoredPosition.y;
+                float textBottom = textTop + child.sizeDelta.y;
+                if (textBottom > lowestText) lowestText = textBottom;
+                if (textBottom > height + 0.5f)
+                    Fail(name + " tràn khỏi đáy thẻ (" + textBottom.ToString("F0") +
+                         " > " + height.ToString("F0") + ")");
+            }
+
+            if (buttons == 0) Fail("thẻ không có nút nào");
+
+            // Chữ không được chạm vào khối nút.
+            if (buttons > 0 && lowestText > height - highestButtonTop + 0.5f)
+                Fail("chữ chạm " + lowestText.ToString("F0") + " nhưng khối nút bắt đầu ở " +
+                     (height - highestButtonTop).ToString("F0") + " — chữ nằm dưới nút");
+
+            if (problems == 0)
+                log.Append("    ok ").Append(who).Append(" · cao ").Append(height.ToString("F0"))
+                   .Append(" · ").Append(buttons).Append(" nút · chữ tới ")
+                   .Append(lowestText.ToString("F0")).Append('\n');
 
             return problems;
         }
